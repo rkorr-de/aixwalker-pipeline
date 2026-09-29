@@ -1,0 +1,8 @@
+build/
+__pycache__/
+*.pyc
+*.mp3
+*.wav
+*.mp4
+*.zip
+!assets/**

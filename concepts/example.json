@@ -1,0 +1,38 @@
+{
+  "slug": "iron-focus-vol1",
+  "album": "Iron Focus Vol. 1",
+  "genre": "Slow Gym Beats",
+  "bpm": 80,
+  "mood": "dark, heavy, hypnotic, focused",
+  "playlist": "gym",
+  "minutes_per_track": 3,
+  "tracks": [
+    {"title": "Beneath the Bar", "variation": "deep 808 sub bass, sparse hi-hats, distant industrial atmosphere"},
+    {"title": "Cold Iron", "variation": "metallic percussion, slow pulsing bass, dark pads"},
+    {"title": "Weighted Breath", "variation": "breathing rhythm, heavy kick, brooding synth drone"}
+  ],
+  "art_prompt": "Close-up of a loaded barbell resting on a rack in a dark industrial gym, chalk dust in a shaft of cold light, wet concrete floor reflecting teal light.",
+  "thumbnail_prompt": "Athletic man from behind, shoulders and back, gripping a heavy barbell in a dark industrial gym, dramatic rim light, chalk dust.",
+  "thumbnail_headline": "IRON FOCUS",
+  "thumbnail_sub": "80 BPM · 40 MIN",
+  "yt_title": "Slow Gym Beats · 40 Min · Heavy Lifting Focus (80 BPM) – Iron Focus Vol. 1",
+  "hook": "40 minutes of slow, heavy gym beats at 80 BPM – built for squats, deadlifts and the moment before the set.",
+  "intro": "No EDM screeching, no vocals. Deep sub bass, dark ambient textures and a steady groove that locks you into tunnel vision.",
+  "use_line": "💪 Perfect for: leg day, deadlifts, stairmaster, push/pull/legs, late-night sessions",
+  "cta_question": "Which track pushes you the hardest? Let me know in the comments.",
+  "hashtags": ["#GymMusic", "#WorkoutMusic", "#SlowGymBeats", "#DarkAmbient", "#AixWalker"],
+  "tags": ["gym music", "workout music", "slow gym beats", "80 bpm workout", "dark workout music", "deadlift music", "heavy lifting music", "gym playlist 2026", "dark ambient gym", "deep bass gym mix", "focus music gym", "aixwalker", "aix walker"],
+  "ab_titles": [
+    "Slow Gym Beats · 40 Min · Heavy Lifting Focus (80 BPM) – Iron Focus Vol. 1",
+    "IRON FOCUS 🏋️ 40 Min Dark Gym Beats for Heavy Lifting (80 BPM)",
+    "Heavy Lifting Music · 80 BPM · 40 Min Slow Dark Gym Mix"
+  ],
+  "ab_thumbs": ["HEAVY LIFTING", "80 BPM PUMP"],
+  "shorts": [
+    {"start": "03:10", "end": "03:50", "overlay": "the drop before the set", "why": "Track 2 Intro mit stärkstem Bass-Einsatz"},
+    {"start": "06:40", "end": "07:20", "overlay": "tunnel vision", "why": "ruhigster Teil, gut für Fokus-Clip"}
+  ],
+  "title_de": "Iron Focus Vol. 1 – 40 Minuten Slow Gym Beats (80 BPM)",
+  "teaser_de": "Tiefer Bass, dunkle Flächen, 80 BPM – gemacht für schwere Sätze. Kein Gesang, keine Unterbrechung.",
+  "pinned_comment": "Which track is your favorite? Full tracklist with timestamps in the description 👇"
+}
