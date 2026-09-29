@@ -16,13 +16,14 @@ Systemwerkzeuge: `ffmpeg`, `ffprobe`, Python 3.11+. Abhängigkeiten: `pip instal
 ## Ablauf pro Mix
 
 ```bash
+which ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
 pip install -q -r requirements.txt --break-system-packages
 python run_mix.py concepts/<slug>.json --out build/<slug> --upload
 ```
 
 Ergebnis in `build/<slug>/`: `mp3/` (Tracks mit Cover + ID3), `covers/` (1400² je Track, `album_3000.png`),
 `video/<slug>.mp4` (1920×1080, AAC 192k), `thumbnail/thumb_A|B|C.jpg`, `metadata.txt`, `result.json`
-und `build/<slug>.zip` zum Versand.
+und `build/<slug>.zip` zum Versand (MP3s, Cover, Thumbnails, Metadaten – ohne Video, das liegt auf YouTube).
 
 Optionen:
 - `--dry-run` – synthetisches Audio und prozedurale Bilder, keine API-Kosten (Funktionstest)

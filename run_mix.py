@@ -84,7 +84,9 @@ def main() -> int:
     for i, t in enumerate(tracks, 1):
         raw = out / "raw" / f"{i:02d}.mp3"
         for attempt in range(args.max_retries + 1):
-            if args.dry_run:
+            if raw.exists() and raw.stat().st_size > 50_000 and attempt == 0 and not args.dry_run:
+                log(f"Track {i:02d}: vorhandene Datei wird wiederverwendet")
+            elif args.dry_run:
                 synthetic_track(raw, int(concept.get("minutes_per_track", 3) * 60 * (0.9 + 0.05 * (i % 3))), bpm, i)
             else:
                 prompt = lyria.build_prompt(genre, bpm, concept["mood"], t["variation"], concept.get("minutes_per_track", 3))
@@ -150,16 +152,17 @@ def main() -> int:
     # 6) ZIP
     zip_path = out.parent / f"{concept['slug']}.zip"
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
-        for sub in ("mp3", "covers", "video", "thumbnail"):
+        for sub in ("mp3", "covers", "thumbnail"):
             for f in sorted((out / sub).glob("*")):
                 if f.suffix in (".mp3", ".png", ".jpg", ".mp4"):
                     z.write(f, f"{sub}/{f.name}")
         z.write(out / "metadata.txt", "metadata.txt")
     shutil.rmtree(out / "frames", ignore_errors=True)
-    result = {"zip": str(zip_path), "video": str(mp4), "video_id": video_id, "video_url": video_url,
+    result = {"zip": str(zip_path), "zip_mb": round(zip_path.stat().st_size / 1e6, 1), "video": str(mp4),
+              "video_mb": round(mp4.stat().st_size / 1e6, 1), "video_id": video_id, "video_url": video_url,
               "duration_sec": total_sec, "chapters": chapter_text, "title": yt_title, "thumbnails": [str(t) for t in thumbs]}
     (out / "result.json").write_text(json.dumps(result, indent=2, ensure_ascii=False))
-    log(f"Fertig: {zip_path} ({zip_path.stat().st_size / 1e6:.1f} MB)")
+    log(f"Fertig: {zip_path} ({zip_path.stat().st_size / 1e6:.1f} MB, ohne Video); Video: {mp4} ({mp4.stat().st_size / 1e6:.1f} MB)")
     return 0
 
 
