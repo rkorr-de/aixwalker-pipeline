@@ -36,7 +36,7 @@ def sync_concept(concept: dict, total_sec: float, titles: list[str], starts: lis
     for k in _DUR_FIELDS:
         if isinstance(c.get(k), str):
             c[k] = sub(c[k])
-    for k in ("ab_titles", "ab_thumbs"):
+    for k in ("ab_titles", "ab_thumbs", "tags"):
         if k in c:
             c[k] = [sub(x) for x in c[k]]
     shorts = []
