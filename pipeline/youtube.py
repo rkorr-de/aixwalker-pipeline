@@ -113,3 +113,11 @@ if __name__ == "__main__":
     print("Wiedergabestunden 365 Tage:", round(channel_watch_hours(), 1))
     for row in recent_performance():
         print(row)
+
+
+def update_video(video_id: str, title: str, description: str, tags: list[str]) -> None:
+    """Überschreibt Titel, Beschreibung und Tags eines bestehenden Videos (Sichtbarkeit bleibt unverändert)."""
+    yt = service()
+    snip = yt.videos().list(part="snippet", id=video_id).execute()["items"][0]["snippet"]
+    snip.update({"title": title[:100], "description": description[:5000], "tags": tags[:60]})
+    yt.videos().update(part="snippet", body={"id": video_id, "snippet": snip}).execute()

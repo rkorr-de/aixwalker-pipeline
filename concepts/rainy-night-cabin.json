@@ -7,19 +7,58 @@
   "playlist": "chillout",
   "minutes_per_track": 3.2,
   "tracks": [
-    {"title": "Amber Embers", "variation": "warm soft pads, distant crackling fireplace texture, slow sine bass swells"},
-    {"title": "Blanket of Rain", "variation": "gentle rain ambience, muted felt piano notes, long reverb tails"},
-    {"title": "Candle Window", "variation": "airy glass pads, sparse music-box tones, very slow pulse"},
-    {"title": "Distant Thunder Hush", "variation": "deep soft sub rumble far away, warm drone, calm rain wash"},
-    {"title": "Ember Glow", "variation": "slow evolving analog synth chords, subtle warm tape hiss, soft low heartbeat kick"},
-    {"title": "Fogged Glass", "variation": "hazy filtered pads, slow arpeggio at low volume, rain on window texture"},
-    {"title": "Hearthside Drift", "variation": "cozy lo-fi chill groove without drums, warm electric piano, vinyl crackle"},
-    {"title": "Lantern Hour", "variation": "soft bell tones, slow string-like pads, gentle stereo movement"},
-    {"title": "Moss and Timber", "variation": "organic wooden textures, low cello-like drone, soft rain drops"},
-    {"title": "Night Kettle", "variation": "minimal ambient, faint warm hum, slow detuned pad layers"},
-    {"title": "Pine Shadows", "variation": "dark warm ambient, deep soft bass, distant wind through trees"},
-    {"title": "Quiet Eaves", "variation": "very sparse piano, dripping eaves, endless reverb, near-silent pads"},
-    {"title": "Still Water Dreams", "variation": "slowly fading dreamy pads, soft rain dissolving into silence, lullaby-like final theme"}
+    {
+      "title": "Amber Embers",
+      "variation": "warm soft pads, distant crackling fireplace texture, slow sine bass swells"
+    },
+    {
+      "title": "Blanket of Rain",
+      "variation": "gentle rain ambience, muted felt piano notes, long reverb tails"
+    },
+    {
+      "title": "Candle Window",
+      "variation": "airy glass pads, sparse music-box tones, very slow pulse"
+    },
+    {
+      "title": "Distant Thunder Hush",
+      "variation": "deep soft sub rumble far away, warm drone, calm rain wash"
+    },
+    {
+      "title": "Ember Glow",
+      "variation": "slow evolving analog synth chords, subtle warm tape hiss, soft low heartbeat kick"
+    },
+    {
+      "title": "Fogged Glass",
+      "variation": "hazy filtered pads, slow arpeggio at low volume, rain on window texture"
+    },
+    {
+      "title": "Hearthside Drift",
+      "variation": "cozy lo-fi chill groove without drums, warm electric piano, vinyl crackle"
+    },
+    {
+      "title": "Lantern Hour",
+      "variation": "soft bell tones, slow string-like pads, gentle stereo movement"
+    },
+    {
+      "title": "Moss and Timber",
+      "variation": "organic wooden textures, low cello-like drone, soft rain drops"
+    },
+    {
+      "title": "Night Kettle",
+      "variation": "minimal ambient, faint warm hum, slow detuned pad layers"
+    },
+    {
+      "title": "Pine Shadows",
+      "variation": "dark warm ambient, deep soft bass, distant wind through trees"
+    },
+    {
+      "title": "Quiet Eaves",
+      "variation": "very sparse piano, dripping eaves, endless reverb, near-silent pads"
+    },
+    {
+      "title": "Still Water Dreams",
+      "variation": "slowly fading dreamy pads, soft rain dissolving into silence, lullaby-like final theme"
+    }
   ],
   "art_prompt": "Photorealistic cozy wooden cabin interior at night, rain streaking down a large window, a glowing fireplace, a knitted blanket on a sofa, warm amber light against deep teal shadows, cinematic, no text.",
   "thumbnail_prompt": "Photorealistic attractive young woman relaxing on a cozy sofa in a wooden cabin at night, wrapped in a soft knit blanket and wearing a comfortable oversized sweater, holding a warm mug, looking out at rain on the window, glowing fireplace, warm amber and teal tones, serene mood, fully clothed, tasteful, no text.",
@@ -30,17 +69,54 @@
   "intro": "No vocals, no sudden sounds. Soft pads, muted piano and gentle rain textures that slow your breathing and help you drift off, relax or unwind after a long day.",
   "use_line": "🌙 Perfect for: falling asleep, relaxing evenings, reading, meditation, stress relief, rainy days",
   "cta_question": "Where are you listening tonight – in bed, at your desk or by the window? Let me know in the comments.",
-  "hashtags": ["#SleepMusic", "#RainSounds", "#CozyVibes", "#ChilloutMusic", "#AixWalker"],
-  "tags": ["sleep music", "rain and fireplace", "cozy cabin ambience", "relaxing music", "chillout music", "sleep music 45 minutes", "rainy night music", "deep sleep music", "calm music for sleep", "ambient sleep", "stress relief music", "relaxing rain music", "cabin ambience", "aixwalker", "aix walker"],
+  "hashtags": [
+    "#SleepMusic",
+    "#RainSounds",
+    "#CozyVibes",
+    "#ChilloutMusic",
+    "#AixWalker"
+  ],
+  "tags": [
+    "sleep music",
+    "rain and fireplace",
+    "cozy cabin ambience",
+    "relaxing music",
+    "chillout music",
+    "sleep music 45 minutes",
+    "rainy night music",
+    "deep sleep music",
+    "calm music for sleep",
+    "ambient sleep",
+    "stress relief music",
+    "relaxing rain music",
+    "cabin ambience",
+    "aixwalker",
+    "aix walker"
+  ],
   "ab_titles": [
     "Sleep Music · 45 Min · Rain & Fireplace Chill (50 BPM) – Rainy Night Cabin",
     "RAINY NIGHT CABIN 🌧️ 45 Min Cozy Sleep Music with Rain & Fireplace",
     "Fall Asleep Fast · Soft Rain & Warm Chillout · 45 Min Sleep Music"
   ],
-  "ab_thumbs": ["RAINY CABIN", "SLEEP TONIGHT"],
+  "ab_thumbs": [
+    "RAINY CABIN",
+    "SLEEP TONIGHT"
+  ],
   "shorts": [
-    {"start": "00:00", "end": "00:40", "overlay": "rain on the window", "why": "Opening Amber Embers mit sanftem Kamin-Knistern, ideal als Einschlaf-Loop"},
-    {"start": "09:30", "end": "10:10", "overlay": "cozy night in", "why": "Hearthside Drift mit warmem Groove, stärkster Wohlfühl-Moment zum Teilen"}
+    {
+      "track": "Amber Embers",
+      "offset": 0,
+      "length": 40,
+      "overlay": "rain on the window",
+      "why": "Opening mit sanftem Kamin-Knistern, ideal als Einschlaf-Loop"
+    },
+    {
+      "track": "Hearthside Drift",
+      "offset": 10,
+      "length": 40,
+      "overlay": "cozy night in",
+      "why": "Hearthside Drift mit warmem Groove, stärkster Wohlfühl-Moment zum Teilen"
+    }
   ],
   "title_de": "Rainy Night Cabin – 45 Minuten Schlafmusik mit Regen & Kamin (50 BPM)",
   "teaser_de": "Warme Flächen, sanfter Regen, knisternder Kamin – 45 Minuten zum Einschlafen und Abschalten. Kein Gesang, keine Unterbrechung.",

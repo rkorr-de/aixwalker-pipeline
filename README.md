@@ -48,3 +48,13 @@ Der Freitags-Lauf nutzt das, um die 10 Vorschläge datenbasiert zu gewichten.
 - Crossfade 1,5 s zwischen Tracks; Kapitel aus den realen Startzeiten, über 60 Min als `01:02:13`
 - Thumbnail: max. 3 Wörter, Motiv werbefreundlich
 - KI-Label (`containsSyntheticMedia`) wird beim Upload immer gesetzt
+
+## Regel: Paket immer komplett und richtig (ohne Eingriff von Rolf)
+
+Nach der Produktion sind Laufzeit und Kapitelzeiten die Wahrheit. `metadata.sync_concept` gleicht deshalb automatisch an:
+alle Minutenangaben („45 Min“, „45 minutes“, „45 Minuten“) in Titel, Hook, Thumbnail-Text, A/B-Varianten und Community-Text,
+sowie die Shorts-Zeitmarken. Shorts werden bevorzugt als `{"track": "<Titel>", "offset": 10, "length": 40, ...}` angegeben,
+dann berechnet die Pipeline Start/Ende aus den realen Track-Startzeiten. Feste Zeiten außerhalb der Laufzeit brechen den Lauf ab.
+Bei Abweichungen wird nichts dem Nutzer überlassen: Metadaten, Thumbnail, Beschreibung und ZIP werden selbst korrigiert;
+ein bereits hochgeladenes Video wird mit `--update-video <ID>` (Titel, Beschreibung, Tags, Thumbnail) aktualisiert.
+Nach jedem Lauf prüfen: Titel/Beschreibung/Thumbnail/Shorts passen zur echten Dauer, ZIP und metadata.txt sind aktuell.

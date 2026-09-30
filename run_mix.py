@@ -61,6 +61,8 @@ def main() -> int:
     ap.add_argument("--out", default=None)
     ap.add_argument("--upload", action="store_true", help="privat auf YouTube hochladen")
     ap.add_argument("--publish-at", default=None, help="RFC3339, z. B. 2026-10-02T16:00:00Z (geplante Veröffentlichung)")
+    ap.add_argument("--update-video", default=None, metavar="VIDEO_ID",
+                    help="bestehendes Video aktualisieren (Titel/Beschreibung/Tags/Thumbnail) statt neu hochzuladen")
     ap.add_argument("--dry-run", action="store_true", help="synthetisches Audio statt Lyria, keine Bild-API")
     ap.add_argument("--max-retries", type=int, default=2, help="Neuversuche pro Track bei QC-Fehler")
     args = ap.parse_args()
@@ -113,11 +115,14 @@ def main() -> int:
     total_sec = audio.probe_duration(mix_wav)
     chapter_text = metadata.chapters([t["title"] for t in tracks], starts)
     log(f"Mix gesamt {metadata.fmt_ts(total_sec)}; Kapitel:\n{chapter_text}")
+    # Alle Zeitangaben (Titel, Texte, Thumbnail, Shorts) an die echte Laufzeit angleichen
+    concept = metadata.sync_concept(concept, total_sec, [t["title"] for t in tracks], starts)
 
     # 3) Album-Cover, Thumbnail, Video
     album_art = images.generate_art(concept["art_prompt"], "1:1", pro=True)
     images.make_album_cover(album_art, album, f"{genre} · {bpm} BPM", out / "covers" / "album_3000.png")
     thumb_art = images.generate_art(concept.get("thumbnail_prompt", concept["art_prompt"]), "16:9", pro=True)
+    thumb_art.save(out / "thumbnail" / "art.png")
     total_min = int(round(total_sec / 60))
     thumbs = []
     for k, headline in enumerate([concept["thumbnail_headline"], *concept.get("ab_thumbs", [])[:2]]):
@@ -137,7 +142,14 @@ def main() -> int:
 
     # 5) Upload (privat)
     video_id = None
-    if args.upload:
+    if args.update_video:
+        from pipeline import youtube
+        video_id = args.update_video
+        youtube.update_video(video_id, yt_title, desc, tags)
+        youtube.set_thumbnail(video_id, thumbs[0])
+        video_url = f"https://youtu.be/{video_id}"
+        log(f"Video {video_id} aktualisiert (Titel, Beschreibung, Tags, Thumbnail): {video_url}")
+    elif args.upload:
         from pipeline import youtube
         log("Upload auf YouTube (privat) …")
         video_id = youtube.upload_video(mp4, yt_title, desc, tags, publish_at=args.publish_at)
