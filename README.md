@@ -59,3 +59,4 @@ Bei Abweichungen wird nichts dem Nutzer überlassen: Metadaten, Thumbnail, Besch
 ein bereits hochgeladenes Video wird mit `--update-video <ID>` (Titel, Beschreibung, Tags, Thumbnail) aktualisiert.
 Nach jedem Lauf prüfen: Titel/Beschreibung/Thumbnail/Shorts passen zur echten Dauer, ZIP und metadata.txt sind aktuell.
 Minutenangaben werden **abgerundet** (45:43 → „45 Min“), damit nie mehr versprochen wird als geliefert.
+Siehe auch LESSONS.md (Fehler und Regeln aus früheren Läufen).

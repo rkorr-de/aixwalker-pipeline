@@ -169,6 +169,21 @@ def main() -> int:
                 if f.suffix in (".mp3", ".png", ".jpg", ".mp4"):
                     z.write(f, f"{sub}/{f.name}")
         z.write(out / "metadata.txt", "metadata.txt")
+    # Versandpakete: Dateiversand erlaubt max. 30 MB je Datei → MP3s in ZIPs ≤ 25 MB, Album-Cover separat
+    deliv = out / "delivery"
+    shutil.rmtree(deliv, ignore_errors=True)
+    deliv.mkdir(parents=True)
+    shutil.copy(out / "covers" / "album_3000.png", deliv / "album_3000.png")
+    parts, cur, size = [], [], 0
+    for f in sorted((out / "mp3").glob("*.mp3")):
+        if cur and size + f.stat().st_size > 25e6:
+            parts.append(cur); cur, size = [], 0
+        cur.append(f); size += f.stat().st_size
+    parts.append(cur)
+    for n, grp in enumerate(parts, 1):
+        with zipfile.ZipFile(deliv / f"mp3_teil{n}.zip", "w", zipfile.ZIP_STORED) as z:
+            for f in grp:
+                z.write(f, f.name)
     shutil.rmtree(out / "frames", ignore_errors=True)
     result = {"zip": str(zip_path), "zip_mb": round(zip_path.stat().st_size / 1e6, 1), "video": str(mp4),
               "video_mb": round(mp4.stat().st_size / 1e6, 1), "video_id": video_id, "video_url": video_url,
