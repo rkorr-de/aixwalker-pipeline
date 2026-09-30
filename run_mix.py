@@ -123,7 +123,7 @@ def main() -> int:
     images.make_album_cover(album_art, album, f"{genre} · {bpm} BPM", out / "covers" / "album_3000.png")
     thumb_art = images.generate_art(concept.get("thumbnail_prompt", concept["art_prompt"]), "16:9", pro=True)
     thumb_art.save(out / "thumbnail" / "art.png")
-    total_min = int(round(total_sec / 60))
+    total_min = int(total_sec // 60)
     thumbs = []
     for k, headline in enumerate([concept["thumbnail_headline"], *concept.get("ab_thumbs", [])[:2]]):
         thumbs.append(images.make_thumbnail(thumb_art, headline, concept.get("thumbnail_sub", f"{bpm} BPM · {total_min} MIN"),

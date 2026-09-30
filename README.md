@@ -58,3 +58,4 @@ dann berechnet die Pipeline Start/Ende aus den realen Track-Startzeiten. Feste Z
 Bei Abweichungen wird nichts dem Nutzer überlassen: Metadaten, Thumbnail, Beschreibung und ZIP werden selbst korrigiert;
 ein bereits hochgeladenes Video wird mit `--update-video <ID>` (Titel, Beschreibung, Tags, Thumbnail) aktualisiert.
 Nach jedem Lauf prüfen: Titel/Beschreibung/Thumbnail/Shorts passen zur echten Dauer, ZIP und metadata.txt sind aktuell.
+Minutenangaben werden **abgerundet** (45:43 → „45 Min“), damit nie mehr versprochen wird als geliefert.

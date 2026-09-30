@@ -31,7 +31,7 @@ def sync_concept(concept: dict, total_sec: float, titles: list[str], starts: lis
     - Shorts mit festen Zeiten müssen innerhalb der Laufzeit liegen, sonst Abbruch
     """
     c = dict(concept)
-    minutes = int(round(total_sec / 60))
+    minutes = int(total_sec // 60)  # abrunden: nie mehr versprechen als geliefert wird
     sub = lambda txt: _DUR.sub(lambda m: f"{minutes}{m.group(1)}{m.group(2)}", txt)
     for k in _DUR_FIELDS:
         if isinstance(c.get(k), str):
