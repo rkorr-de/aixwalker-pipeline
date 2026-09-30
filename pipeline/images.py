@@ -62,8 +62,8 @@ def generate_art(prompt: str, aspect: str = "1:1", pro: bool = False, timeout: i
         except Exception as e:  # noqa: BLE001
             last = e
             print(f"[images] Versuch {attempt + 1} fehlgeschlagen: {e}")
-    print(f"[images] Fallback auf prozedurales Bild: {last}")
-    return procedural_art(aspect)
+    # Kein stilles Platzhalter-Bild in einem echten Lauf: lieber abbrechen, als ein falsches Thumbnail/Cover zu veröffentlichen.
+    raise RuntimeError(f"Bildgenerierung fehlgeschlagen (kein Fallback in echten Läufen): {last}")
 
 
 def procedural_art(aspect: str = "1:1", seed: int | None = None) -> Image.Image:
