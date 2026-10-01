@@ -63,6 +63,9 @@ Label-Release.
      set“), `short_titles`: 2 klickstarke Short-Titel (< 70 Zeichen, Emoji erlaubt)
    - `shorts`: 2 weitere manuelle Ideen (Zeitmarke, Overlay, Begründung), title_de, teaser_de, pinned_comment
    - playlist: „gym“ für Gym-Mixe, sonst „chillout“
+7b. Kostenvoranschlag: `python -m pipeline.costs concepts/<slug>.json` ausführen und Rolf per SendUserMessage die
+   Ausgabe schicken (Betrag in $ und €, Aufschlüsselung, Hinweis zur Abrechnung). Steht dort eine WARNUNG (über der
+   Schwelle BUDGET_WARN_USD): auf Rolfs Freigabe warten, sonst ohne Rückfrage weiter.
 8. Starte: `BASH_DEFAULT_TIMEOUT_MS=3600000 python run_mix.py concepts/<slug>.json --out build/<slug> --upload --drive`
    (Lauf dauert 40–70 Min). Lege eine Task-Liste an und melde Zwischenstände per SendUserMessage (Tracks fertig,
    Video gerendert, Upload fertig, Shorts fertig, Drive fertig). Bricht der Lauf ab: Ursache beheben und denselben
@@ -78,7 +81,8 @@ Label-Release.
 ## Auslieferung
 
 10. `build/<slug>.zip` per SendUserFile senden. Per SendUserMessage: Video-Link (privat), YouTube-Titel, komplette
-    Beschreibung, Kapitelliste, die 2 Short-Links (privat) mit Titel und Zeitmarke, Drive-Ordner-Link, Hinweis
+    Beschreibung, Kapitelliste, die 2 Short-Links (privat) mit Titel und Zeitmarke, Drive-Ordner-Link, die
+    tatsächlichen Kosten des Laufs (`cost_report` aus result.json, in $ und €, daneben der Voranschlag), Hinweis
     „Mix und Shorts sind PRIVAT – kurz reinhören, dann in Studio auf Öffentlich stellen (Shorts 1–2 Tage nach dem
     Mix)“, Community-Text. Nichts selbst veröffentlichen.
 11. Beim ersten Release zusätzlich: kurze DistroKid-Anleitung (Release anlegen: Album, Titel = Album-Name,

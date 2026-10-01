@@ -12,7 +12,7 @@ from pathlib import Path
 
 import requests
 
-from . import config
+from . import config, costs
 
 _working_mode = None
 
@@ -84,6 +84,7 @@ def generate_track(prompt: str, out_path: Path, retries: int = 3, timeout: int =
                     raise RuntimeError(f"{mode}: Audio verdächtig klein ({len(audio)} Bytes)")
                 out_path.write_bytes(audio)
                 _working_mode = mode
+                costs.count("lyria_tracks")
                 return out_path
             except Exception as e:  # noqa: BLE001
                 last_err = e

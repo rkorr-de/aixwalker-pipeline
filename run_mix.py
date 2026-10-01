@@ -36,7 +36,7 @@ import zipfile
 from datetime import date
 from pathlib import Path
 
-from pipeline import audio, config, images, lyria, metadata, shorts, video
+from pipeline import audio, config, costs, images, lyria, metadata, shorts, video
 
 
 def log(msg: str) -> None:
@@ -103,6 +103,9 @@ def main() -> int:
     bpm = int(concept["bpm"])
     min_sec = float(concept.get("min_minutes", config.MIN_MIX_MINUTES)) * 60
     log(f"Mix „{album}“: {len(tracks)} Tracks geplant, {genre}, {bpm} BPM, Ziel ≥ {min_sec / 60:.0f} Min, dry_run={args.dry_run}")
+    costs.start(out / "costs.json")
+    est = costs.estimate(concept)
+    log(f"Kostenvoranschlag: {est['usd']:.2f} $ ≈ {est['eur']:.2f} € ({est['tracks_expected']} Tracks erwartet)")
 
     # 1) Tracks erzeugen + QC + Mastering; bei Bedarf Zusatz-Tracks bis zur Mindestlänge
     wavs: list[Path] = []
@@ -241,7 +244,10 @@ def main() -> int:
             log(f"Drive-Ablage fehlgeschlagen (DRIVE_REFRESH_TOKEN fehlt/ungültig → python auth_youtube.py url drive): {e}")
             drive_links = {"error": str(e)}
 
-    result = {"zip": str(zip_path), "zip_mb": round(zip_path.stat().st_size / 1e6, 1), "video": str(mp4),
+    cost_line = costs.report()
+    log(cost_line)
+    result = {"cost_usd": costs.total_usd(), "cost_eur": costs.usd_to_eur(costs.total_usd()), "cost_report": cost_line,
+              "cost_estimate_usd": est["usd"], "zip": str(zip_path), "zip_mb": round(zip_path.stat().st_size / 1e6, 1), "video": str(mp4),
               "video_mb": round(mp4.stat().st_size / 1e6, 1), "video_id": video_id, "video_url": video_url,
               "duration_sec": total_sec, "duration_min": total_min, "tracks": total, "chapters": chapter_text,
               "title": yt_title, "thumbnails": [str(t) for t in thumbs], "shorts": short_list, "drive": drive_links}

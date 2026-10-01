@@ -43,6 +43,16 @@ MIN_MIX_MINUTES = 60      # jeder Mix mindestens so lang
 DEFAULT_MINUTES_PER_TRACK = 5
 SHORTS_COUNT = 2
 SHORT_CLIP_SEC = 45
+
+# Preise (USD) laut Google-Preisliste – bei Änderung hier pflegen (ai.google.dev/pricing)
+PRICES_USD = {
+    "lyria_track": 0.08,     # Lyria 3.5, ein Track (ca. 3–6 Min)
+    "image_flash": 0.039,    # Nano Banana (gemini-2.5-flash-image), ein Bild
+    "image_pro": 0.134,      # Nano Banana Pro (gemini-3-pro-image-preview), ein Bild bis 2K
+}
+USD_EUR_RATE = 0.92
+BUDGET_WARN_USD = 5.0        # Warnschwelle je Lauf (Umgebungsvariable BUDGET_WARN_USD überschreibt)
+BILLING_URL = "https://console.cloud.google.com/billing?project=bodydashboard-fde82"
 MP3_BITRATE = "192k"
 
 
