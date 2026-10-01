@@ -236,9 +236,10 @@ def main() -> int:
         try:
             from pipeline import drive
             folder = f"{date.today().isoformat()} – {album} ({genre}, {bpm} BPM)"
-            files = [zip_path, out / "covers" / "album_3000.png", out / "metadata.txt", thumbs[0],
-                     *[Path(s["file"]) for s in short_list]]
-            drive_links = drive.upload_mix_package(folder, files)
+            files = [out / "covers" / "album_3000.png", out / "metadata.txt", mp4, *thumbs]
+            subfolders = {"mp3": sorted((out / "mp3").glob("*.mp3")),
+                          "shorts": [Path(s["file"]) for s in short_list]}
+            drive_links = drive.upload_mix_package(folder, files, subfolders)
             log(f"Drive: {drive_links['_folder']}")
         except Exception as e:  # noqa: BLE001
             log(f"Drive-Ablage fehlgeschlagen (DRIVE_REFRESH_TOKEN fehlt/ungültig → python auth_youtube.py url drive): {e}")

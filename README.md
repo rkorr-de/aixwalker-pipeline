@@ -33,7 +33,7 @@ Optionen:
 - `--dry-run` – synthetisches Audio und prozedurale Bilder, keine API-Kosten (Funktionstest)
 - `--upload` – lädt das Video **privat** hoch, setzt Thumbnail A, fügt zur Playlist hinzu, setzt KI-Label
 - `--publish-at 2026-10-02T16:00:00Z` – stattdessen geplante Veröffentlichung (UTC)
-- `--drive` – legt ZIP, Album-Cover, Thumbnail, Metadaten und Shorts in Google Drive unter
+- `--drive` – legt die MP3s einzeln (Unterordner `mp3/`), Album-Cover, Video, alle Thumbnails, Metadaten und Shorts (`shorts/`) in Google Drive unter
   `AIX WALKER Mixe/<Datum – Album (Genre, BPM)>` ab (je Mix ein neuer Ordner)
 - `--no-shorts` – keine Shorts
 

@@ -23,7 +23,7 @@ Label-Release.
 - Pro Mix werden **2 Shorts** automatisch aus den stärksten Passagen produziert und privat hochgeladen; sie sollen
   Zuschauer anlocken und zum Klick auf den vollen Mix verleiten (Hook-Text max. 4 Wörter, Link zum Mix in der
   Beschreibung).
-- Das Paket (ZIP mit MP3s, Album-Cover, Thumbnail, Metadaten, Shorts) wird in **Google Drive** unter
+- Das Paket (MP3s einzeln im Unterordner `mp3/`, Album-Cover, Video, alle Thumbnails, Metadaten, Shorts in `shorts/`; kein ZIP) wird in **Google Drive** unter
   „AIX WALKER Mixe/<Datum – Album>“ abgelegt – je Mix ein neuer Ordner (macht die Pipeline mit `--drive`).
 - Bereits produzierte Mixe: Upload-Liste des Kanals (`python -m pipeline.youtube` zeigt die letzten Titel) plus alle
   früheren Videos („THE PUMP LIST“ Slow Gym Beats 80 BPM, „NIGHT RIDE Vol. 1“ Dark Ambient/Deep Bass,

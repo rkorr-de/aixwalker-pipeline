@@ -37,22 +37,34 @@ def ensure_folder(svc, name: str, parent: str | None = None) -> str:
     return svc.files().create(body=body, fields="id").execute()["id"]
 
 
-def upload_mix_package(folder_name: str, files: list[Path]) -> dict:
-    """Legt AIX WALKER Mixe/<folder_name> an (neu je Mix) und lädt die Dateien hoch. Liefert {name: link}."""
+def _upload(svc, f: Path, parent: str) -> str:
+    media = MediaFileUpload(str(f), chunksize=8 * 1024 * 1024, resumable=True)
+    req = svc.files().create(body={"name": f.name, "parents": [parent]}, media_body=media,
+                             fields="id,webViewLink")
+    resp = None
+    while resp is None:
+        status, resp = req.next_chunk()
+    return resp.get("webViewLink", f"https://drive.google.com/file/d/{resp['id']}/view")
+
+
+def upload_mix_package(folder_name: str, files: list[Path], subfolders: dict[str, list[Path]] | None = None) -> dict:
+    """Legt AIX WALKER Mixe/<folder_name> an (neu je Mix) und lädt die Dateien hoch. Liefert {name: link}.
+
+    `files` landen direkt im Mix-Ordner, `subfolders` ({"mp3": [Pfade], "shorts": [Pfade]}) in gleichnamigen
+    Unterordnern (die MP3s liegen einzeln dort, kein ZIP).
+    """
     svc = service()
     root = ensure_folder(svc, ROOT_FOLDER)
     folder = ensure_folder(svc, folder_name, root)
     links = {"_folder": f"https://drive.google.com/drive/folders/{folder}"}
     for f in files:
-        if not f.exists():
-            continue
-        media = MediaFileUpload(str(f), chunksize=8 * 1024 * 1024, resumable=True)
-        req = svc.files().create(body={"name": f.name, "parents": [folder]}, media_body=media,
-                                 fields="id,webViewLink")
-        resp = None
-        while resp is None:
-            status, resp = req.next_chunk()
-        links[f.name] = resp.get("webViewLink", f"https://drive.google.com/file/d/{resp['id']}/view")
+        if f.exists():
+            links[f.name] = _upload(svc, f, folder)
+    for sub, sub_files in (subfolders or {}).items():
+        sub_id = ensure_folder(svc, sub, folder)
+        for f in sub_files:
+            if f.exists():
+                links[f"{sub}/{f.name}"] = _upload(svc, f, sub_id)
     return links
 
 
