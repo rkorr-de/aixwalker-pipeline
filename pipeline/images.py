@@ -8,7 +8,7 @@ from pathlib import Path
 import requests
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-from . import config
+from . import config, costs
 
 STYLE_SUFFIX = (
     " Cinematic, moody, dark teal and charcoal palette with a single warm highlight, "
@@ -58,11 +58,13 @@ def generate_art(prompt: str, aspect: str = "1:1", pro: bool = False, timeout: i
             data = _find_inline_image(r.json())
             if not data:
                 raise RuntimeError(f"kein Bild in Antwort: {r.text[:300]}")
+            costs.count("image_pro" if pro else "image_flash")
             return Image.open(io.BytesIO(base64.b64decode(data))).convert("RGB")
         except Exception as e:  # noqa: BLE001
             last = e
             print(f"[images] Versuch {attempt + 1} fehlgeschlagen: {e}")
     print(f"[images] Fallback auf prozedurales Bild: {last}")
+    costs.count("image_failed")
     return procedural_art(aspect)
 
 

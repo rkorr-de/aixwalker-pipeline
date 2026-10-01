@@ -5,12 +5,31 @@
   "bpm": 80,
   "mood": "dark, heavy, hypnotic, focused",
   "playlist": "gym",
-  "minutes_per_track": 4,
-  "target_minutes": 60,
+  "minutes_per_track": 5,
+  "min_minutes": 60,
   "tracks": [
-    {"title": "Beneath the Bar", "variation": "deep 808 sub bass, sparse hi-hats, distant industrial atmosphere"},
-    {"title": "Cold Iron", "variation": "metallic percussion, slow pulsing bass, dark pads"},
-    {"title": "Weighted Breath", "variation": "breathing rhythm, heavy kick, brooding synth drone"}
+    {
+      "title": "Beneath the Bar",
+      "variation": "deep 808 sub bass, sparse hi-hats, distant industrial atmosphere"
+    },
+    {
+      "title": "Cold Iron",
+      "variation": "metallic percussion, slow pulsing bass, dark pads"
+    },
+    {
+      "title": "Weighted Breath",
+      "variation": "breathing rhythm, heavy kick, brooding synth drone"
+    }
+  ],
+  "extra_tracks": [
+    {
+      "title": "Zero Hour",
+      "variation": "slow build from silence, rising sub bass, minimal percussion"
+    },
+    {
+      "title": "Zone Out",
+      "variation": "hypnotic loop, muted kick, long reverb tails"
+    }
   ],
   "art_prompt": "Close-up of a loaded barbell resting on a rack in a dark industrial gym, chalk dust in a shaft of cold light, wet concrete floor reflecting teal light.",
   "thumbnail_prompt": "Athletic man from behind, shoulders and back, gripping a heavy barbell in a dark industrial gym, dramatic rim light, chalk dust.",
@@ -21,17 +40,58 @@
   "intro": "No EDM screeching, no vocals. Deep sub bass, dark ambient textures and a steady groove that locks you into tunnel vision.",
   "use_line": "💪 Perfect for: leg day, deadlifts, stairmaster, push/pull/legs, late-night sessions",
   "cta_question": "Which track pushes you the hardest? Let me know in the comments.",
-  "hashtags": ["#GymMusic", "#WorkoutMusic", "#SlowGymBeats", "#DarkAmbient", "#AixWalker"],
-  "tags": ["gym music", "workout music", "slow gym beats", "80 bpm workout", "dark workout music", "deadlift music", "heavy lifting music", "gym playlist 2026", "dark ambient gym", "deep bass gym mix", "focus music gym", "aixwalker", "aix walker"],
+  "hashtags": [
+    "#GymMusic",
+    "#WorkoutMusic",
+    "#SlowGymBeats",
+    "#DarkAmbient",
+    "#AixWalker"
+  ],
+  "tags": [
+    "gym music",
+    "workout music",
+    "slow gym beats",
+    "80 bpm workout",
+    "dark workout music",
+    "deadlift music",
+    "heavy lifting music",
+    "gym playlist 2026",
+    "dark ambient gym",
+    "deep bass gym mix",
+    "focus music gym",
+    "aixwalker",
+    "aix walker"
+  ],
   "ab_titles": [
     "Slow Gym Beats · 60 Min · Heavy Lifting Focus (80 BPM) – Iron Focus Vol. 1",
     "IRON FOCUS 🏋️ 60 Min Dark Gym Beats for Heavy Lifting (80 BPM)",
-    "Heavy Lifting Music · 80 BPM · 60 Min Slow Dark Gym Mix"
+    "Heavy Lifting Music · 80 BPM · 1 Hour Slow Dark Gym Mix"
   ],
-  "ab_thumbs": ["HEAVY LIFTING", "80 BPM PUMP"],
+  "ab_thumbs": [
+    "HEAVY LIFTING",
+    "80 BPM PUMP"
+  ],
+  "short_overlays": [
+    "the drop before the set",
+    "tunnel vision"
+  ],
+  "short_titles": [
+    "Dark gym beats that lock you in before the set 🏋️ 80 BPM",
+    "Tunnel vision for heavy lifting 🔥 slow gym beats"
+  ],
   "shorts": [
-    {"start": "03:10", "end": "03:50", "overlay": "the drop before the set", "why": "Track 2 Intro mit stärkstem Bass-Einsatz"},
-    {"start": "06:40", "end": "07:20", "overlay": "tunnel vision", "why": "ruhigster Teil, gut für Fokus-Clip"}
+    {
+      "start": "03:10",
+      "end": "03:50",
+      "overlay": "the drop before the set",
+      "why": "Track 2 Intro mit stärkstem Bass-Einsatz"
+    },
+    {
+      "start": "06:40",
+      "end": "07:20",
+      "overlay": "tunnel vision",
+      "why": "ruhigster Teil, gut für Fokus-Clip"
+    }
   ],
   "title_de": "Iron Focus Vol. 1 – 60 Minuten Slow Gym Beats (80 BPM)",
   "teaser_de": "Tiefer Bass, dunkle Flächen, 80 BPM – gemacht für schwere Sätze. Kein Gesang, keine Unterbrechung.",

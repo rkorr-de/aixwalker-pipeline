@@ -14,16 +14,18 @@ SCOPES = [
     "https://www.googleapis.com/auth/youtube",
     "https://www.googleapis.com/auth/yt-analytics.readonly",
 ]
+# Drive hat eine eigene Freigabe (Google erlaubt YouTube- und Drive-Scopes nicht in einem Consent).
+DRIVE_SCOPES = ["https://www.googleapis.com/auth/drive.file"]
 
 
-def credentials() -> Credentials:
+def credentials(refresh_token_var: str = "YT_REFRESH_TOKEN") -> Credentials:
     creds = Credentials(
         token=None,
-        refresh_token=config.require("YT_REFRESH_TOKEN"),
+        refresh_token=config.require(refresh_token_var),
         token_uri="https://oauth2.googleapis.com/token",
         client_id=config.require("YT_CLIENT_ID"),
         client_secret=config.require("YT_CLIENT_SECRET"),
-        scopes=SCOPES,
+        scopes=None,  # beim Refresh keine Scopes anfordern: es gelten die bei der Freigabe erteilten
     )
     creds.refresh(Request())
     return creds
