@@ -13,6 +13,7 @@ SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube",
     "https://www.googleapis.com/auth/yt-analytics.readonly",
+    "https://www.googleapis.com/auth/drive.file",
 ]
 
 
@@ -23,7 +24,7 @@ def credentials() -> Credentials:
         token_uri="https://oauth2.googleapis.com/token",
         client_id=config.require("YT_CLIENT_ID"),
         client_secret=config.require("YT_CLIENT_SECRET"),
-        scopes=SCOPES,
+        scopes=None,  # beim Refresh keine Scopes anfordern: es gelten die bei der Freigabe erteilten
     )
     creds.refresh(Request())
     return creds

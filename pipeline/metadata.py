@@ -56,12 +56,14 @@ def checklist(concept: dict) -> str:
 [ ] Endscreen: letzten 20 s → Playlist + „Abonnieren“ (in Studio → Editor)
 [ ] Pinned Comment: „{concept['pinned_comment']}“
 [ ] Community-Beitrag posten (Text in metadata.txt)
-[ ] 2 Shorts schneiden (Zeitmarken in metadata.txt), Link zum Mix in der Beschreibung
+[ ] 2 Shorts sind PRIVAT hochgeladen – kurz prüfen, dann öffentlich stellen (am besten 1–2 Tage nach dem Mix)
+[ ] Drive-Ordner „AIX WALKER Mixe/<Datum – Album>“ enthält ZIP, Cover, Metadaten, Shorts
 """
 
 
 def write_metadata(out: Path, concept: dict, yt_title: str, desc: str, tags: list[str], chapter_text: str,
-                   ab_titles: list[str], ab_thumbs: list[str], shorts: list[dict], video_url: str) -> Path:
+                   ab_titles: list[str], ab_thumbs: list[str], shorts: list[dict], video_url: str,
+                   shorts_produced: str = "(keine)") -> Path:
     txt = f"""=== YOUTUBE TITEL ===
 {yt_title}
 
@@ -79,7 +81,10 @@ def write_metadata(out: Path, concept: dict, yt_title: str, desc: str, tags: lis
 === A/B THUMBNAIL-TEXT ===
 """ + "\n".join(f"{i + 1}. {t}" for i, t in enumerate(ab_thumbs)) + f"""
 
-=== SHORTS-VORSCHLÄGE ===
+=== SHORTS (automatisch produziert & privat hochgeladen) ===
+{shorts_produced}
+
+=== WEITERE SHORTS-IDEEN ===
 """ + "\n".join(f"{i + 1}. {s['start']}–{s['end']}  Overlay: „{s['overlay']}“  ({s['why']})" for i, s in enumerate(shorts)) + f"""
 
 === COMMUNITY-BEITRAG ===

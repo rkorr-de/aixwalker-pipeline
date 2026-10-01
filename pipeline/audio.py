@@ -27,7 +27,7 @@ def probe_duration(path: Path) -> float:
     return float(json.loads(out)["format"]["duration"])
 
 
-def quality_check(path: Path, target_bpm: int | None = None, min_sec: float = 90, max_sec: float = 300,
+def quality_check(path: Path, target_bpm: int | None = None, min_sec: float = 90, max_sec: float = 480,
                   bpm_tolerance: float = 0.25) -> QC:
     """Prüft Dauer, Stille-Anteil, Pegel und (grob) Tempo. Halbes/doppeltes Tempo zählt als Treffer."""
     import librosa
