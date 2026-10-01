@@ -35,8 +35,9 @@ Label-Release.
 1. Das Arbeitsverzeichnis ist Rolfs eigenes Repo `aixwalker-pipeline` (prüfe mit `ls`: run_mix.py, pipeline/,
    concepts/). Dann: `which ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)` und
    `pip install -q -r requirements.txt --break-system-packages`. Lies README.md und concepts/example.json.
-2. Prüfe GOOGLE_API_KEY, YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN. Fehlt etwas: sofort per SendUserMessage
-   melden und nur die Teile ohne diese Variable ausführen.
+2. Prüfe GOOGLE_API_KEY, YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN, DRIVE_REFRESH_TOKEN. Fehlt etwas: sofort
+   per SendUserMessage melden und nur die Teile ohne diese Variable ausführen (ohne DRIVE_REFRESH_TOKEN: Lauf ohne
+   `--drive`, ZIP trotzdem per SendUserFile liefern).
 3. Analytics: `python -m pipeline.youtube` → Wiedergabestunden (365 Tage), Titel und Kennzahlen der letzten Uploads.
    Merke, welche Genres/Längen die beste Ø-Wiedergabedauer hatten.
 
@@ -67,11 +68,10 @@ Label-Release.
    Video gerendert, Upload fertig, Shorts fertig, Drive fertig). Bricht der Lauf ab: Ursache beheben und denselben
    Befehl erneut starten; fertige Tracks in build/<slug>/raw werden wiederverwendet. Keine Commits, keine Pushes.
 9. Nach dem Lauf prüfen: result.json lesen – Dauer ≥ 60 Min, Kapitel plausibel, Thumbnails vorhanden, 2 Shorts mit
-   URL, Drive-Link vorhanden. Meldet result.json unter „drive“ einen Fehler mit „insufficient“/„scope“: Drive-Freigabe
-   fehlt → `python auth_youtube.py url` ausführen, Rolf die URL schicken (Kanal AIX WALKER wählen, Drive-Zugriff
-   bestätigen), die zurückgeschickte localhost-Adresse mit `python auth_youtube.py token "<adresse>"` tauschen und
-   Rolf die Zeile `YT_REFRESH_TOKEN=…` zum Eintragen in die Umgebung AixWalker geben; danach
-   `python -m pipeline.drive` nicht nötig – beim nächsten Lauf klappt die Ablage automatisch.
+   URL, Drive-Link vorhanden. Meldet result.json unter „drive“ einen Fehler: Drive-Freigabe fehlt → `python auth_youtube.py url drive`
+   ausführen, Rolf die URL schicken (Konto wählen, Drive-Zugriff bestätigen), die zurückgeschickte localhost-Adresse
+   mit `python auth_youtube.py token drive "<adresse>"` tauschen und Rolf die Zeile `DRIVE_REFRESH_TOKEN=…` zum
+   Eintragen in die Umgebung AixWalker geben; beim nächsten Lauf klappt die Ablage automatisch.
    Klappt etwas nach einem Neuversuch nicht: alles liefern, was fertig ist, und den Fehler klar melden. Keine
    Audiodateien vortäuschen.
 

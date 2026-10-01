@@ -1,7 +1,8 @@
 """Google Drive: pro Mix ein neuer Ordner unter „AIX WALKER Mixe“, dort ZIP, Album-Cover, Metadaten.
 
-Nutzt dieselben OAuth-Zugangsdaten wie YouTube; braucht zusätzlich den Scope drive.file
-(nur Dateien, die diese App selbst anlegt – kein Zugriff auf andere Drive-Inhalte).
+Gleicher OAuth-Client wie YouTube, aber eigenes Refresh-Token DRIVE_REFRESH_TOKEN (Scope drive.file: nur Dateien,
+die diese App selbst anlegt). Google erlaubt YouTube- und Drive-Scopes nicht in einer gemeinsamen Freigabe, daher
+die getrennte Freigabe über `python auth_youtube.py url drive`.
 """
 from pathlib import Path
 
@@ -15,7 +16,7 @@ FOLDER_MIME = "application/vnd.google-apps.folder"
 
 
 def service():
-    return build("drive", "v3", credentials=youtube.credentials(), cache_discovery=False)
+    return build("drive", "v3", credentials=youtube.credentials("DRIVE_REFRESH_TOKEN"), cache_discovery=False)
 
 
 def _find_folder(svc, name: str, parent: str | None) -> str | None:

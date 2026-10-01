@@ -11,6 +11,7 @@ GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
 YT_CLIENT_ID = os.environ.get("YT_CLIENT_ID", "")
 YT_CLIENT_SECRET = os.environ.get("YT_CLIENT_SECRET", "")
 YT_REFRESH_TOKEN = os.environ.get("YT_REFRESH_TOKEN", "")
+DRIVE_REFRESH_TOKEN = os.environ.get("DRIVE_REFRESH_TOKEN", "")
 
 GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta"
 LYRIA_MODEL = os.environ.get("LYRIA_MODEL", "lyria-3.5")

@@ -238,7 +238,7 @@ def main() -> int:
             drive_links = drive.upload_mix_package(folder, files)
             log(f"Drive: {drive_links['_folder']}")
         except Exception as e:  # noqa: BLE001
-            log(f"Drive-Ablage fehlgeschlagen (vermutlich Scope drive.file fehlt → auth_youtube.py neu ausführen): {e}")
+            log(f"Drive-Ablage fehlgeschlagen (DRIVE_REFRESH_TOKEN fehlt/ungültig → python auth_youtube.py url drive): {e}")
             drive_links = {"error": str(e)}
 
     result = {"zip": str(zip_path), "zip_mb": round(zip_path.stat().st_size / 1e6, 1), "video": str(mp4),

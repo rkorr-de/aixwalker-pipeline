@@ -11,7 +11,8 @@ Die Anweisungen der geplanten Routine stehen in `ROUTINE_PROMPT.md` (die Routine
 |---|---|
 | `GOOGLE_API_KEY` | Gemini-API (Lyria 3.5 für Musik, Nano Banana für Bilder) |
 | `YT_CLIENT_ID`, `YT_CLIENT_SECRET` | OAuth-Desktop-Client aus Google Cloud |
-| `YT_REFRESH_TOKEN` | einmalig mit `auth_youtube.py` erzeugt (Scopes: YouTube Upload/Verwaltung, Analytics, Drive `drive.file`) |
+| `YT_REFRESH_TOKEN` | einmalig mit `auth_youtube.py url` / `token` erzeugt (YouTube Upload/Verwaltung, Analytics) |
+| `DRIVE_REFRESH_TOKEN` | einmalig mit `auth_youtube.py url drive` / `token drive` erzeugt (Drive `drive.file`, getrennte Freigabe) |
 
 Systemwerkzeuge: `ffmpeg`, `ffprobe`, Python 3.11+. Abhängigkeiten: `pip install -r requirements.txt`.
 
