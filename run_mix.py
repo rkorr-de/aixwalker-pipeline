@@ -12,7 +12,8 @@ Konzept-JSON (Beispiel in concepts/example.json):
   "bpm": 80,
   "mood": "dark, heavy, hypnotic",
   "playlist": "gym",
-  "minutes_per_track": 3,
+  "minutes_per_track": 4,
+  "target_minutes": 60,
   "tracks": [ {"title": "Beneath the Bar", "variation": "deep 808, sparse hats"}, ... ],
   "art_prompt": "...",            # Motiv für Album/Thumbnail
   "track_art_prompts": ["...", ...],  # optional, sonst art_prompt mit Variation
@@ -26,6 +27,7 @@ Konzept-JSON (Beispiel in concepts/example.json):
 """
 import argparse
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -113,6 +115,22 @@ def main() -> int:
     total_sec = audio.probe_duration(mix_wav)
     chapter_text = metadata.chapters([t["title"] for t in tracks], starts)
     log(f"Mix gesamt {metadata.fmt_ts(total_sec)}; Kapitel:\n{chapter_text}")
+
+    # Längenwächter: Ziel rund 60 Min (target_minutes ±5) und Dauer im Titel muss stimmen
+    target = float(concept.get("target_minutes", 60))
+    got_min = total_sec / 60
+    problems = []
+    if abs(got_min - target) > 5:
+        problems.append(f"Mixdauer {got_min:.1f} Min weicht vom Ziel {target:.0f} Min um mehr als 5 Min ab "
+                        f"(Tracks ergänzen oder minutes_per_track anpassen)")
+    m = re.search(r"(\d+)\s*Min", concept["yt_title"])
+    if m and abs(int(m.group(1)) - got_min) > 1.5:
+        problems.append(f"Dauer im yt_title ({m.group(1)} Min) passt nicht zur echten Dauer ({got_min:.0f} Min)")
+    for msg in problems:
+        log(f"WARNUNG: {msg}")
+    if problems and args.upload:
+        sys.exit("Abbruch vor dem Upload wegen Längenabweichung. Konzept anpassen und denselben Befehl erneut starten "
+                 "(fertige Tracks in raw/ werden wiederverwendet).")
 
     # 3) Album-Cover, Thumbnail, Video
     album_art = images.generate_art(concept["art_prompt"], "1:1", pro=True)

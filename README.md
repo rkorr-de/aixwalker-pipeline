@@ -30,6 +30,13 @@ Optionen:
 - `--upload` – lädt das Video **privat** hoch, setzt Thumbnail A, fügt zur Playlist hinzu, setzt KI-Label
 - `--publish-at 2026-10-02T16:00:00Z` – stattdessen geplante Veröffentlichung (UTC)
 
+## Länge & Ablage (seit 2026-10-01)
+
+- Jeder Mix ist rund **60 Min** lang: `minutes_per_track` 4, `target_minutes` 60, 15–16 Tracks.
+  `run_mix.py` bricht vor dem Upload ab, wenn die echte Dauer >5 Min vom Ziel oder von der Zahl im `yt_title` abweicht.
+- Das MP3-Paket (`build/<slug>.zip`) kommt immer in einen neuen Google-Drive-Ordner `AIX WALKER/Mixe/<Datum> – <Album>`.
+- Details und Prompt-Bausteine: `ROUTINE.md`.
+
 ## Konzeptdatei
 
 Siehe `concepts/example.json`. Der Freitags-Lauf schreibt pro Mix eine neue Datei `concepts/<slug>.json`

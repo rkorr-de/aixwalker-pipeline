@@ -98,7 +98,7 @@ def build_prompt(genre: str, bpm: int, mood: str, variation: str, minutes: float
         f"{genre}, {bpm} BPM, {mood}. {variation}. "
         f"Instrumental, no vocals, no lyrics, no spoken words. "
         f"Clean intro without long silence, steady groove, natural ending suitable for a DJ mix. "
-        f"Duration about {minutes:.0f} minutes. High fidelity stereo."
+        f"Duration about {minutes:g} minutes. High fidelity stereo."
     )
 
 
