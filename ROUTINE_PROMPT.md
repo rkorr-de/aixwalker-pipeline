@@ -37,7 +37,7 @@ Label-Release.
    `pip install -q -r requirements.txt --break-system-packages`. Lies README.md und concepts/example.json.
 2. Prüfe GOOGLE_API_KEY, YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN, DRIVE_REFRESH_TOKEN. Fehlt etwas: sofort
    per SendUserMessage melden und nur die Teile ohne diese Variable ausführen (ohne DRIVE_REFRESH_TOKEN: Lauf ohne
-   `--drive`, ZIP trotzdem per SendUserFile liefern).
+   `--drive`: die MP3s in Teilpaketen unter 30 MB per SendUserFile liefern).
 3. Analytics: `python -m pipeline.youtube` → Wiedergabestunden (365 Tage), Titel und Kennzahlen der letzten Uploads.
    Merke, welche Genres/Längen die beste Ø-Wiedergabedauer hatten.
 
@@ -80,7 +80,9 @@ Label-Release.
 
 ## Auslieferung
 
-10. `build/<slug>.zip` per SendUserFile senden. Per SendUserMessage: Video-Link (privat), YouTube-Titel, komplette
+10. Album-Cover (`build/<slug>/covers/album_3000.png`) und Thumbnail A (`build/<slug>/thumbnail/thumb_A.jpg`) per
+    SendUserFile senden (kein ZIP: die MP3s liegen einzeln auf Drive, und der Dateiversand ist auf 30 MB begrenzt).
+    Per SendUserMessage: Video-Link (privat), YouTube-Titel, komplette
     Beschreibung, Kapitelliste, die 2 Short-Links (privat) mit Titel und Zeitmarke, Drive-Ordner-Link, die
     tatsächlichen Kosten des Laufs (`cost_report` aus result.json, in $ und €, daneben der Voranschlag), Hinweis
     „Mix und Shorts sind PRIVAT – kurz reinhören, dann in Studio auf Öffentlich stellen (Shorts 1–2 Tage nach dem
