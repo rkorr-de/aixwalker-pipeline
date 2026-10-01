@@ -59,7 +59,7 @@ def find_passages(mix_wav: Path, starts: list[float], total_sec: float, clip_sec
 
 
 def make_short_frame(art: Image.Image, cover_png: Path, headline: str, track_title: str, out: Path,
-                     w: int = 1080, h: int = 1920) -> Path:
+                     w: int = 1080, h: int = 1920, total_min: int | None = None) -> Path:
     """9:16-Bild: Motiv als unscharfer Hintergrund, Cover mittig, großer Hook-Text oben, CTA unten."""
     aw, ah = art.size
     scale = max(w / aw, h / ah)
@@ -104,10 +104,10 @@ def make_short_frame(art: Image.Image, cover_png: Path, headline: str, track_tit
     tw = d.textlength(sub, font=small)
     d.text(((w - tw) / 2, y + side + 44), sub, font=small, fill=config.GREY)
     cta = _font(config.FONT_BODY, 46)
-    t1 = "FULL 60+ MIN ON THE CHANNEL"
+    t1 = f"FULL {total_min} MIN ON THE CHANNEL" if total_min else "FULL MIX ON THE CHANNEL"
     tw = d.textlength(t1, font=cta)
     d.text(((w - tw) / 2, int(h * 0.76)), t1, font=cta, fill=config.TEAL)
-    t2 = "link in description  ·  no vocals  ·  no ads mid-mix"
+    t2 = "link in description  ·  no vocals  ·  no interruptions"
     small2 = _font(config.FONT_BODY, 34)
     tw = d.textlength(t2, font=small2)
     d.text(((w - tw) / 2, int(h * 0.76) + 70), t2, font=small2, fill=config.GREY)
