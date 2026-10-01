@@ -199,7 +199,7 @@ def main() -> int:
         for k, p in enumerate(passages):
             t_title = tracks[p["track_index"]]["title"]
             frame = shorts.make_short_frame(thumb_art, covers[p["track_index"]], overlays[k], t_title,
-                                            out / "shorts" / f"short_{k + 1}_frame.png")
+                                            out / "shorts" / f"short_{k + 1}_frame.png", total_min=total_min)
             clip = shorts.build_short(frame, mix_wav, p["start"], p["end"], out / "shorts" / f"short_{k + 1}.mp4")
             s_title, s_desc, s_tags = shorts.short_metadata(concept, k, p, t_title, overlays[k], video_url)
             entry = {**p, "overlay": overlays[k], "track_title": t_title, "file": str(clip), "title": s_title}
