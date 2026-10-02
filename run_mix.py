@@ -123,8 +123,13 @@ def main() -> int:
             if k < len(extra):
                 t = dict(extra[k])
             else:
-                src = tracks[(k - len(extra)) % n0]
-                t = {"title": f"{src['title']} (Reprise)", "variation": f"{src['variation']}, alternate take, new melodic motif"}
+                # Keine Reprisen: immer komplett neuer Track mit eigenem Titel und eigener Variation
+                m = k - len(extra)
+                used = " | ".join(x["variation"] for x in tracks)
+                t = {"title": f"{genre} Study {m + 1:02d}",
+                     "variation": f"completely new composition, distinct melody and chord progression, "
+                                  f"different instrumentation and structure than all previous tracks (unique seed {m + 1}), "
+                                  f"consistent with {genre} {bpm} BPM mood: {concept.get('mood', '')}"}
             tracks.append(t)
             log(f"Mix bisher {total_now / 60:.1f} Min < {min_sec / 60:.0f} Min → Zusatz-Track {i + 1:02d} „{t['title']}“")
         i += 1

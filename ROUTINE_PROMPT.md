@@ -17,6 +17,7 @@ Label-Release.
 - Genres: Slow Gym Beats, Dark Ambient/Spa, Night Drive/Deep Bass, Chillout/Sleep. Musik-Beschreibungen auf Englisch,
   Community-Texte auf Deutsch.
 - **Jeder Mix mindestens 60 Minuten** (die Pipeline verlängert automatisch mit Reserve-Tracks, bis das erreicht ist).
+- **Keine inhaltlich gleichen Tracks, keine Reprisen (Rolf, 2026-10-02):** Fehlt Länge, werden immer komplett neue Tracks mit eigenem Titel und eigener Melodie generiert – nie Wiederholungen. Lyria liefert nur ca. 3 Min je Track: daher mindestens 20 Tracks planen und 8 `extra_tracks` mit je eigener Variation liefern, damit 60+ Min ohne Wiederholung erreicht werden. Titel „75 Min“ nur, wenn die echte Dauer das trägt.
 - Track-Titel sind Eigenkreationen, alphabetisch sortiert. Fehlt ein Titel, wird ein passender erfunden.
 - Kapitel: erste Marke 00:00; über 60 Minuten im Format 01:02:13.
 - KI-Label wird beim Upload immer gesetzt (macht die Pipeline). Upload immer PRIVAT; Rolf veröffentlicht selbst.
@@ -54,8 +55,8 @@ Label-Release.
 
 7. Schreibe `concepts/<slug>.json` nach dem Muster von concepts/example.json:
    - `minutes_per_track`: 5, `min_minutes`: 60
-   - `tracks`: 14 Tracks mit eigenen, alphabetisch sortierten Titeln und je einer klaren musikalischen Variation
-   - `extra_tracks`: 4 Reserve-Tracks (Titel + Variation), falls die 60 Minuten sonst nicht erreicht werden
+   - `tracks`: 20 Tracks mit eigenen, alphabetisch sortierten Titeln und je einer klaren musikalischen Variation
+   - `extra_tracks`: 8 Reserve-Tracks (Titel + Variation, nie Wiederholungen), falls die 60 Minuten sonst nicht erreicht werden
    - `art_prompt`/`thumbnail_prompt` passend zur Motivwahl; `yt_title` nach Muster
      „[Genre] · [Dauer] · [Zweck] (BPM) – <Album>“ unter 70 Zeichen mit Suchbegriff vorn
    - hook (1 Satz), intro, use_line, cta_question, 5 hashtags, 12–15 tags, 3 ab_titles, 2 ab_thumbs (max. 3 Wörter)
