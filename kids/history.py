@@ -70,6 +70,19 @@ def save(entries: list[dict]) -> None:
         svc.files().create(body={"name": FILE_NAME, "parents": [root]}, media_body=media, fields="id").execute()
 
 
+def refresh_views(entries: list[dict]) -> list[dict]:
+    """Trägt die aktuellen YouTube-Aufrufe in die Einträge ein (Feld „views“) – Grundlage fürs Themen-Lernen."""
+    from . import youtube
+    ids = [e["video_id"] for e in entries if e.get("video_id")]
+    if not ids:
+        return entries
+    counts = youtube.view_counts(ids)
+    for e in entries:
+        if e.get("video_id") in counts:
+            e["views"] = counts[e["video_id"]]
+    return entries
+
+
 def add(entry: dict) -> None:
     entries = load()
     entries.append(entry)

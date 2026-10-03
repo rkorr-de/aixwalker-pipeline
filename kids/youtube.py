@@ -77,6 +77,42 @@ def set_thumbnail(video_id: str, thumb: Path) -> None:
     service().thumbnails().set(videoId=video_id, media_body=MediaFileUpload(str(thumb))).execute()
 
 
+def ensure_playlist() -> str:
+    """Playlist „Giggle Meadow …“ (anlegen, falls es sie noch nicht gibt) – längere Sitzungen, mehr Abos."""
+    yt = service()
+    token = None
+    while True:
+        r = yt.playlists().list(part="snippet", mine=True, maxResults=50, pageToken=token).execute()
+        for p in r.get("items", []):
+            if p["snippet"]["title"] == config.PLAYLIST_TITLE:
+                return p["id"]
+        token = r.get("nextPageToken")
+        if not token:
+            break
+    body = {"snippet": {"title": config.PLAYLIST_TITLE, "description": config.PLAYLIST_DESCRIPTION,
+                        "defaultLanguage": config.DEFAULT_LANGUAGE},
+            "status": {"privacyStatus": "public"}}
+    return yt.playlists().insert(part="snippet,status", body=body).execute()["id"]
+
+
+def add_to_playlist(video_id: str) -> str:
+    pl = ensure_playlist()
+    service().playlistItems().insert(part="snippet", body={"snippet": {
+        "playlistId": pl, "resourceId": {"kind": "youtube#video", "videoId": video_id}}}).execute()
+    return pl
+
+
+def view_counts(video_ids: list[str]) -> dict[str, int]:
+    """Aufrufe je Video (für das Lernen aus der Wirkung)."""
+    out: dict[str, int] = {}
+    yt = service()
+    for i in range(0, len(video_ids), 50):
+        r = yt.videos().list(part="statistics", id=",".join(video_ids[i:i + 50])).execute()
+        for it in r.get("items", []):
+            out[it["id"]] = int(it["statistics"].get("viewCount", 0))
+    return out
+
+
 def status(video_id: str) -> dict:
     r = service().videos().list(part="status,snippet,statistics", id=video_id).execute()
     return r["items"][0] if r.get("items") else {}
