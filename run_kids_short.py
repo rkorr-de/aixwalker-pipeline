@@ -224,7 +224,7 @@ def main() -> int:
         if not args.dry_run and not args.skip_review:
             rv = review.review_video(final, st, out / "contact_sheet.jpg")
             result["video_review"] = rv
-            log(f"Videoprüfung: Noten {rv['scores']} → {'bestanden' if rv['passed'] else 'ABGELEHNT'}"
+            log(f"Videoprüfung: {rv['scores']} → {'bestanden' if rv['passed'] else 'ABGELEHNT'}"
                 + (f" | Fehler: {'; '.join(rv.get('errors', []))[:300]}" if rv.get("errors") else ""))
             if not rv["passed"]:
                 try:

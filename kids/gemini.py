@@ -89,7 +89,10 @@ def text_json(prompt: str, system: str = "", temperature: float = 1.0, model: st
               media: list[tuple[str, bytes]] | None = None, video_fps: float | None = None) -> dict:
     raw = text(prompt, system, True, temperature, model=model, media=media, video_fps=video_fps)
     raw = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.M).strip()
-    return json.loads(raw)
+    data = json.loads(raw)
+    if isinstance(data, list) and len(data) == 1 and isinstance(data[0], dict):   # manchmal als [ {...} ] verpackt
+        data = data[0]
+    return data
 
 
 def image(prompt: str, aspect: str = "9:16", pro: bool = False, references: list[Image.Image] | None = None,

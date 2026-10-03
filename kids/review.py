@@ -34,25 +34,34 @@ def review_video(video: Path, story: dict, contact_sheet: Path | None = None) ->
     plan = {k: story.get(k) for k in ("summary", "lesson", "character", "friend", "setting", "beats")}
     prompt = (
         f"This is the planned story:\n{json.dumps(plan, indent=1, ensure_ascii=False)}\n\n"
-        "Watch the attached video very carefully, frame by frame. Score from 1 (terrible) to 10 (flawless):\n"
-        "- anatomy: characters have correct, stable anatomy for their animal (no extra/missing legs, no legs on "
-        "fish, no melting faces, no merged bodies)\n"
-        "- consistency: the character keeps the same look, colors and size in every frame and across the cut\n"
-        "- physics: objects stay solid, nothing appears/disappears/morphs, no impossible motion, no weird liquids\n"
-        "- story: the planned story is clearly understandable from the pictures alone – want, problem, solution, "
-        "happy end – and it makes sense\n"
-        "- quality: clean image, no flicker, no text/letters/watermarks, bright and colorful, cute\n"
-        "- sound: LISTEN to the audio: cheerful music clearly audible, sounds are soft, cute and child-friendly and "
-        "fit the action; NO shrill squeaking, chipmunk babble, voices, grunts, harsh or loud noises\n\n"
-        'Answer as JSON: {"scores": {"anatomy": n, "consistency": n, "physics": n, "story": n, "quality": n, '
-        '"sound": n}, '
-        '"errors": ["concrete visible error with approximate second", ...], "verdict": "publish" or "reject"}'
+        "Watch AND listen to the attached video carefully. List every problem you notice and classify it:\n"
+        "- critical: an object or character suddenly appears, disappears or turns into something else; wrong "
+        "number of limbs or body parts that do not belong (e.g. legs on a fish); a creature in an impossible "
+        "situation (fish out of water, floating in the air without reason); bodies melting into each other for "
+        "more than a moment; real recognizable words or sentences in any language; scary, rude or unsafe content; "
+        "the story makes no sense at all\n"
+        "- major: clearly visible glitch for more than half a second (limb clipping through an object, face "
+        "distorted), a hard jump cut that breaks continuity, story only partly understandable, sound clearly not "
+        "matching the picture, harsh or shrill sound\n"
+        "- minor: brief small artifacts, slight morphing of paws during fast motion, small inconsistencies – "
+        "normal for animation and acceptable\n"
+        "Cute nonsense babble, giggles and animal squeaks are NOT problems.\n"
+        "Also give an overall score 1–10 for how good this is as a toddler cartoon.\n"
+        'Answer as JSON: {"problems": [{"second": n, "severity": "critical|major|minor", "text": "..."}], '
+        '"overall": n}'
     )
     r = gemini.text_json(prompt, SYSTEM, temperature=0.1, model=config.CRITIC_MODEL, media=media)
-    scores = {k: int(v) for k, v in (r.get("scores") or {}).items()}
-    r["scores"] = scores
-    r["min_score"] = min(scores.values()) if scores else 0
-    r["passed"] = bool(scores) and r["min_score"] >= config.VIDEO_MIN_SCORE and r.get("verdict") != "reject"
+    probs = r.get("problems") or []
+    crit = [p for p in probs if p.get("severity") == "critical"]
+    major = [p for p in probs if p.get("severity") == "major"]
+    r["errors"] = [f"{p.get('second', '?')} s [{p.get('severity')}] {p.get('text', '')}" for p in crit + major]
+    r["scores"] = {"overall": int(r.get("overall", 0)), "critical": len(crit), "major": len(major),
+                   "minor": len(probs) - len(crit) - len(major)}
+    # Kalibriert an Rolfs Urteil (03.10.2026): Goldfisch-Video (Fisch in der Luft, Feder taucht auf/verschwindet)
+    # muss scheitern, das Kling-Video (kleine Pfoten-Artefakte) bestehen.
+    r["passed"] = (len(crit) <= config.VIDEO_MAX_CRITICAL and len(crit) + len(major) <= config.VIDEO_MAX_ERRORS
+                   and r["scores"]["overall"] >= config.VIDEO_MIN_SCORE)
+    r["min_score"] = r["scores"]["overall"]
     return r
 
 

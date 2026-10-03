@@ -277,10 +277,12 @@ def kling_prompt(story: dict) -> str:
             f"Slow, simple, clearly readable motion, stable camera at child eye level, characters keep exactly the "
             f"same look, correct anatomy for the animal, objects stay solid and stay in place unless pushed, "
             f"nothing appears or disappears, vivid rich candy colors, colorful detailed background, warm light, "
-            f"no text on screen. Audio: only soft, cute cartoon sound effects exactly synchronized with the visible "
-            f"actions (soft footsteps when walking, gentle thud when something lands, tiny happy squeaks or giggles "
-            f"when a character reacts, a bright chime at the happy end). Absolutely no speech, no words, no talking, "
-            f"no dialogue, no singing, no babbling, no music.")
+            f"no text on screen. Audio: cute ANIMAL sounds and soft cartoon sound effects exactly synchronized with "
+            f"the visible actions – the characters make the natural cute sounds of their animal kind (squeaks, "
+            f"chirps, snuffles, little grunts of effort, happy squeals, giggly animal laughs), soft footsteps when "
+            f"walking, gentle thud when something lands, a bright chime at the happy end. The animals do NOT speak "
+            f"or babble like humans: no speech, no words, no human-like gibberish, no dialogue, no singing, no "
+            f"music.")
 
 
 def sfx_prompt(story: dict) -> str:

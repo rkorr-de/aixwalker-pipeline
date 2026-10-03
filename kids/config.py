@@ -115,7 +115,11 @@ LESSON_POOL = [   # nur Lektionen, die man mit großen, langsamen Bewegungen zei
 AVOID_SPECIES_DAYS = int(os.environ.get("KIDS_AVOID_SPECIES_DAYS", "45"))
 AVOID_LESSON_DAYS = int(os.environ.get("KIDS_AVOID_LESSON_DAYS", "25"))
 STORY_MIN_SCORE = int(os.environ.get("KIDS_STORY_MIN_SCORE", "8"))      # Mindestnote (1–10) je Prüfkriterium
-VIDEO_MIN_SCORE = int(os.environ.get("KIDS_VIDEO_MIN_SCORE", "7"))
+# Videoprüfung (kids/review.py) – kalibriert am 03.10.2026: Goldfisch-Video 7 schwere Fehler → abgelehnt,
+# Kling-Video, das Rolf „sehr gut“ fand: 1 schwerer + 3 deutliche → bestanden
+VIDEO_MIN_SCORE = int(os.environ.get("KIDS_VIDEO_MIN_SCORE", "4"))         # Gesamtnote (1–10)
+VIDEO_MAX_CRITICAL = int(os.environ.get("KIDS_VIDEO_MAX_CRITICAL", "1"))   # schwere Fehler
+VIDEO_MAX_ERRORS = int(os.environ.get("KIDS_VIDEO_MAX_ERRORS", "4"))       # schwere + deutliche Fehler zusammen
 
 # Suchbegriffe, nach denen Eltern suchen – fließen in Beschreibung und Tags ein (Englisch).
 PARENT_KEYWORDS = [
