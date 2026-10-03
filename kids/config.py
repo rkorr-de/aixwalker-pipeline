@@ -40,8 +40,8 @@ SHORT_SEC = 15.0
 WIDTH, HEIGHT, FPS = 1080, 1920, 30
 CROSSFADE_SEC = 0.4
 MUSIC_GAIN_DB = -16.0            # Musikbett unter den Veo-Tönen
-MUSIC_BED_GAIN_DB = -4.0         # Kling: Musik ist die Hauptspur
-SFX_GAIN_DB = -2.0               # Kling: Geräusche aus assets/kids_sfx (auf −20 LUFS normalisiert) über der Musik
+MUSIC_BED_GAIN_DB = -12.0        # Kling: Musikbett (wird bei jedem Geräusch zusätzlich kurz abgesenkt)
+SFX_GAIN_DB = 0.0                # Kling: Geräusche aus assets/kids_sfx (Spitze −1 dB, verdichtet) über der Musik
 VEO_AUDIO_GAIN_DB = 0.0
 TARGET_LUFS = -14.0
 

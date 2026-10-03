@@ -62,6 +62,22 @@ def _clean(src: Path, dst: Path) -> None:
                     "-c:a", "libmp3lame", "-q:a", "3", str(dst)], check=True)
 
 
+def _vol(f: Path, key: str) -> float:
+    r = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(f), "-af", "volumedetect", "-f", "null", "-"],
+                       capture_output=True, text=True).stderr
+    return float(next(l for l in r.splitlines() if key in l).split(":")[-1].split()[0])
+
+
+def level(f: Path, mean_db: float = -15.0) -> None:
+    """Kurze Geräusche einheitlich gut hörbar machen: mittlere Lautstärke auf `mean_db`, Spitzen begrenzt."""
+    tmp = f.with_suffix(".lvl.mp3")
+    gain = mean_db - _vol(f, "mean_volume")
+    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(f), "-af",
+                    f"volume={gain:.1f}dB,alimiter=limit=0.89:attack=2:release=50:level=false",
+                    "-c:a", "libmp3lame", "-q:a", "3", str(tmp)], check=True)
+    tmp.replace(f)
+
+
 def index() -> dict:
     return json.loads(INDEX.read_text()) if INDEX.exists() else {}
 
@@ -87,6 +103,7 @@ def build(force: bool = False) -> dict:
             raw = DIR / f"_{key}_raw.mp3"
             fal.sound_effects(f"{desc}, {_NO_VOICE}", raw, seconds=max(0.5, sec))
             _clean(raw, DIR / f"{key}.mp3")
+            level(DIR / f"{key}.mp3")
             raw.unlink(missing_ok=True)
             r = gemini.text_json(RATING_PROMPT.format(desc=desc), "Answer ONLY with valid JSON.", temperature=0.1,
                                  model=config.CRITIC_MODEL, media=[("audio/mpeg", (DIR / f"{key}.mp3").read_bytes())])
@@ -105,6 +122,11 @@ def build(force: bool = False) -> dict:
 
 if __name__ == "__main__":
     import sys
+    if "--level" in sys.argv:   # vorhandene Dateien neu auf einheitliche Lautstärke bringen
+        for k in available():
+            level(DIR / f"{k}.mp3")
+        print("Lautstärke angeglichen:", ", ".join(available()))
+        sys.exit(0)
     costs.start(config.BUILD / "sfx_library_costs.json")
     build(force="--force" in sys.argv)
     print("Nutzbar:", ", ".join(available()))

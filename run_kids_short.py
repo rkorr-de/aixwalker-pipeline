@@ -196,6 +196,12 @@ def main() -> int:
                     final = render.assemble_single(c1, sfx, music, out / "short.mp4")
                     log("Geräusche nachjustiert")
                 log(f"Ton-Abgleich: {'alles synchron' if chk.get('all_good') else 'nachjustiert'}")
+                lv = render.cue_levels(final, st.get("sfx_cues", []))
+                result["sound_levels"] = lv
+                log("Geräusch-Lautstärke über Musik: " + ", ".join(f"{r['sound']} {r['above_music_db']:+.0f} dB"
+                                                                  for r in lv["cues"]))
+                if not lv["ok"]:
+                    result["warnings"].append("mindestens ein Geräusch kaum lauter als die Musik")
             except Exception as e:  # noqa: BLE001
                 result["warnings"].append(f"Ton-Abgleich übersprungen: {str(e)[:120]}")
         else:
