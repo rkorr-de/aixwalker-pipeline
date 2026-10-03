@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Baut aus einem Konzept (JSON) das komplette Mix-Paket, lädt Mix + 2 Shorts privat auf YouTube und legt das
-Paket auf Google Drive ab.
+"""Baut aus einem Konzept (JSON) das komplette Mix-Paket, lädt Mix + 2 Shorts auf YouTube (privat, mit --public
+sofort öffentlich) und legt das Paket auf Google Drive ab. Für den vollautomatischen Lauf siehe run_auto.py.
 
 Aufruf:
-  python run_mix.py concept.json --out build/<slug> [--upload] [--drive] [--dry-run] [--publish-at ...]
+  python run_mix.py concept.json --out build/<slug> [--upload] [--public] [--drive] [--dry-run] [--publish-at ...]
+
+Platzhalter {MIN} und {HOURS} in Titel/Hook/Intro werden nach dem Rendern durch die echte Dauer ersetzt.
 
 Konzept-JSON (Beispiel in concepts/example.json):
 {
@@ -67,7 +69,8 @@ def produce_track(i: int, t: dict, concept: dict, out: Path, args, bpm: int) -> 
         elif args.dry_run:
             synthetic_track(raw, int(minutes * 60 * (0.9 + 0.05 * (i % 3))), bpm, i)
         else:
-            prompt = lyria.build_prompt(concept["genre"], bpm, concept["mood"], t["variation"], minutes)
+            prompt = lyria.build_prompt(concept["genre"], bpm, concept["mood"], t["variation"], minutes,
+                                        concept.get("sound_design", ""))
             lyria.generate_track(prompt, raw)
         qc = audio.quality_check(raw, target_bpm=None if args.dry_run else bpm)
         log(f"Track {i:02d} „{t['title']}“: {qc.duration:.0f}s, Tempo {qc.tempo:.0f}, Stille {qc.silence_ratio:.0%}, "
@@ -82,7 +85,8 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("concept")
     ap.add_argument("--out", default=None)
-    ap.add_argument("--upload", action="store_true", help="Mix + Shorts privat auf YouTube hochladen")
+    ap.add_argument("--upload", action="store_true", help="Mix + Shorts auf YouTube hochladen (Standard privat)")
+    ap.add_argument("--public", action="store_true", help="Mix und Shorts sofort öffentlich veröffentlichen")
     ap.add_argument("--drive", action="store_true", help="Paket in Google Drive ablegen (Ordner je Mix)")
     ap.add_argument("--no-shorts", action="store_true", help="keine Shorts erzeugen")
     ap.add_argument("--publish-at", default=None, help="RFC3339, z. B. 2026-10-02T16:00:00Z (geplante Veröffentlichung)")
@@ -123,8 +127,13 @@ def main() -> int:
             if k < len(extra):
                 t = dict(extra[k])
             else:
-                src = tracks[(k - len(extra)) % n0]
-                t = {"title": f"{src['title']} (Reprise)", "variation": f"{src['variation']}, alternate take, new melodic motif"}
+                # Keine Reprisen: immer komplett neuer Track mit eigenem Titel und eigener Variation
+                m = k - len(extra)
+                used = " | ".join(x["variation"] for x in tracks)
+                t = {"title": f"{genre} Study {m + 1:02d}",
+                     "variation": f"completely new composition, distinct melody and chord progression, "
+                                  f"different instrumentation and structure than all previous tracks (unique seed {m + 1}), "
+                                  f"consistent with {genre} {bpm} BPM mood: {concept.get('mood', '')}"}
             tracks.append(t)
             log(f"Mix bisher {total_now / 60:.1f} Min < {min_sec / 60:.0f} Min → Zusatz-Track {i + 1:02d} „{t['title']}“")
         i += 1
@@ -156,6 +165,7 @@ def main() -> int:
     total_sec = audio.probe_duration(mix_wav)
     total_min = int(round(total_sec / 60))
     concept["total_min"] = total_min
+    metadata.fill_concept(concept, total_min)   # {MIN}/{HOURS} → echte Dauer
     chapter_text = metadata.chapters([t["title"] for t in tracks], starts)
     log(f"Mix gesamt {metadata.fmt_ts(total_sec)}; Kapitel:\n{chapter_text}")
 
@@ -179,16 +189,24 @@ def main() -> int:
     tags = concept["tags"]
     video_url = "(wird nach Upload eingetragen)"
 
-    # 5) Upload Mix (privat)
+    # 5) Upload Mix
+    privacy = "public" if args.public else "private"
     video_id = None
+    comment_id = None
     if args.upload:
         from pipeline import youtube
-        log("Upload Mix auf YouTube (privat) …")
-        video_id = youtube.upload_video(mp4, yt_title, desc, tags, publish_at=args.publish_at)
+        log(f"Upload Mix auf YouTube ({privacy}) …")
+        video_id = youtube.upload_video(mp4, yt_title, desc, tags, privacy=privacy, publish_at=args.publish_at)
         video_url = f"https://youtu.be/{video_id}"
         youtube.set_thumbnail(video_id, thumbs[0])
         youtube.add_to_playlist(video_id, playlist_id)
-        log(f"Hochgeladen: {video_url} (privat{', geplant ' + args.publish_at if args.publish_at else ''})")
+        log(f"Hochgeladen: {video_url} ({privacy}{', geplant ' + args.publish_at if args.publish_at else ''})")
+        if args.public and concept.get("pinned_comment"):
+            try:
+                comment_id = youtube.post_comment(video_id, concept["pinned_comment"])
+                log(f"Kommentar gepostet (in Studio anpinnen): {comment_id}")
+            except Exception as e:  # noqa: BLE001
+                log(f"Kommentar nicht gepostet (Scope youtube.force-ssl fehlt? → YouTube-Freigabe erneuern): {str(e)[:160]}")
 
     # 6) Shorts: beste Passagen → 9:16-Clips → Upload (privat)
     short_list: list[dict] = []
@@ -205,20 +223,20 @@ def main() -> int:
             entry = {**p, "overlay": overlays[k], "track_title": t_title, "file": str(clip), "title": s_title}
             if args.upload:
                 from pipeline import youtube
-                sid = youtube.upload_video(clip, s_title, s_desc, s_tags)
+                sid = youtube.upload_video(clip, s_title, s_desc, s_tags, privacy=privacy)
                 try:
                     youtube.set_thumbnail(sid, frame)
                 except Exception as e:  # noqa: BLE001
                     log(f"Short-Thumbnail nicht gesetzt: {e}")
                 entry["video_id"], entry["url"] = sid, f"https://youtube.com/shorts/{sid}"
-                log(f"Short {k + 1} hochgeladen (privat): {entry['url']}")
+                log(f"Short {k + 1} hochgeladen ({privacy}): {entry['url']}")
             short_list.append(entry)
         log(f"Shorts: {len(short_list)} Clips ({config.SHORT_CLIP_SEC}s) aus den stärksten Passagen")
 
     shorts_text = shorts.write_shorts_section(short_list) if short_list else "(keine)"
     metadata.write_metadata(out / "metadata.txt", concept, yt_title, desc, tags, chapter_text,
                             concept.get("ab_titles", []), concept.get("ab_thumbs", []), concept.get("shorts", []),
-                            video_url, shorts_text)
+                            video_url, shorts_text, public=bool(args.public and args.upload))
 
     # 7) ZIP
     zip_path = out.parent / f"{concept['slug']}.zip"
@@ -251,7 +269,8 @@ def main() -> int:
               "cost_estimate_usd": est["usd"], "zip": str(zip_path), "zip_mb": round(zip_path.stat().st_size / 1e6, 1), "video": str(mp4),
               "video_mb": round(mp4.stat().st_size / 1e6, 1), "video_id": video_id, "video_url": video_url,
               "duration_sec": total_sec, "duration_min": total_min, "tracks": total, "chapters": chapter_text,
-              "title": yt_title, "thumbnails": [str(t) for t in thumbs], "shorts": short_list, "drive": drive_links}
+              "title": yt_title, "description": desc, "tags": tags, "privacy": privacy if args.upload else None,
+              "comment_id": comment_id, "thumbnails": [str(t) for t in thumbs], "shorts": short_list, "drive": drive_links}
     (out / "result.json").write_text(json.dumps(result, indent=2, ensure_ascii=False))
     log(f"Fertig: {zip_path} ({zip_path.stat().st_size / 1e6:.1f} MB, ohne Video); Video: {mp4} "
         f"({mp4.stat().st_size / 1e6:.1f} MB, {total_min} Min); Shorts: {len(short_list)}")

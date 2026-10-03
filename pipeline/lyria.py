@@ -93,10 +93,13 @@ def generate_track(prompt: str, out_path: Path, retries: int = 3, timeout: int =
     raise RuntimeError(f"Lyria: Track konnte nicht erzeugt werden: {last_err}")
 
 
-def build_prompt(genre: str, bpm: int, mood: str, variation: str, minutes: float = 3.0) -> str:
-    """Baut einen Lyria-Prompt. `variation` beschreibt, was diesen Track von den anderen abhebt."""
+def build_prompt(genre: str, bpm: int, mood: str, variation: str, minutes: float = 3.0,
+                 sound_design: str = "") -> str:
+    """Baut einen Lyria-Prompt. `sound_design` ist die klangliche Identität des ganzen Mixes (gleich für alle
+    Tracks, sorgt für Zusammenhalt), `variation` beschreibt, was diesen Track von den anderen abhebt."""
+    sd = f" Overall sound of this mix: {sound_design}." if sound_design else ""
     return (
-        f"{genre}, {bpm} BPM, {mood}. {variation}. "
+        f"{genre}, {bpm} BPM, {mood}.{sd} This track: {variation}. "
         f"Instrumental, no vocals, no lyrics, no spoken words. "
         f"Clean intro without long silence, steady groove, natural ending suitable for a DJ mix. "
         f"Duration about {minutes:.0f} minutes. High fidelity stereo."

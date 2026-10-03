@@ -12,11 +12,16 @@ YT_CLIENT_ID = os.environ.get("YT_CLIENT_ID", "")
 YT_CLIENT_SECRET = os.environ.get("YT_CLIENT_SECRET", "")
 YT_REFRESH_TOKEN = os.environ.get("YT_REFRESH_TOKEN", "")
 DRIVE_REFRESH_TOKEN = os.environ.get("DRIVE_REFRESH_TOKEN", "")
+GMAIL_REFRESH_TOKEN = os.environ.get("GMAIL_REFRESH_TOKEN", "")   # Bericht per E-Mail (auth_youtube.py url gmail)
+REPORT_EMAIL = os.environ.get("REPORT_EMAIL", "")                 # leer = Adresse des Gmail-Kontos der Freigabe
+DISTROKID_SONGWRITER = os.environ.get("DISTROKID_SONGWRITER", "")  # Klarname für die DistroKid-Angaben im Bericht
 
 GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta"
 LYRIA_MODEL = os.environ.get("LYRIA_MODEL", "lyria-3.5")
 IMAGE_MODEL = os.environ.get("IMAGE_MODEL", "gemini-2.5-flash-image")
 IMAGE_MODEL_PRO = os.environ.get("IMAGE_MODEL_PRO", "gemini-3-pro-image-preview")
+TEXT_MODEL = os.environ.get("TEXT_MODEL", "gemini-3.1-pro-preview")            # Konzept-/Titelgenerierung (Planer)
+TEXT_MODEL_FALLBACK = os.environ.get("TEXT_MODEL_FALLBACK", "gemini-3.8-flash")
 
 ARTIST = "Aix Walker"
 CHANNEL_HANDLE = "@AIXWALKER"
@@ -52,6 +57,10 @@ PRICES_USD = {
 }
 USD_EUR_RATE = 0.92
 BUDGET_WARN_USD = 5.0        # Warnschwelle je Lauf (Umgebungsvariable BUDGET_WARN_USD überschreibt)
+BUDGET_MAX_USD = 9.0         # harte Obergrenze je automatischem Lauf: darüber bricht run_auto.py ab (BUDGET_MAX_USD)
+MEMORY_FOLDER = "_memory"    # Unterordner in „AIX WALKER Mixe“ mit memory.json (Gedächtnis des Planers)
+PLANNED_TRACKS = 20          # Lyria liefert ca. 3 Min je Track → 20 Tracks + Reserve für ≥ 60 Min ohne Wiederholung
+EXTRA_TRACKS = 8
 BILLING_URL = "https://console.cloud.google.com/billing?project=bodydashboard-fde82"
 MP3_BITRATE = "192k"
 

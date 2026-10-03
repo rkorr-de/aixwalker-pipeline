@@ -1,0 +1,185 @@
+{
+  "slug": "deep-sleep-drift",
+  "album": "Deep Sleep Drift",
+  "genre": "Chillout Sleep",
+  "bpm": 50,
+  "mood": "warm, soft, weightless, deeply calming",
+  "playlist": "chillout",
+  "minutes_per_track": 5,
+  "min_minutes": 60,
+  "tracks": [
+    {
+      "title": "Amber Hush",
+      "variation": "warm soft pads, slow breathing sub pulse, no percussion"
+    },
+    {
+      "title": "Barely Awake",
+      "variation": "gentle felt-piano-like tones, long reverb, drifting texture"
+    },
+    {
+      "title": "Cloud Ledger",
+      "variation": "airy synth clouds, very soft heartbeat kick, wide stereo"
+    },
+    {
+      "title": "Dim Lantern",
+      "variation": "low warm drone, faint glassy bells, slow swell"
+    },
+    {
+      "title": "Evening Tide",
+      "variation": "ocean-like filtered noise swells, soft sub bass, calm pads"
+    },
+    {
+      "title": "Faded Horizon",
+      "variation": "slowly evolving chords, muted texture, dreamy delay"
+    },
+    {
+      "title": "Gentle Descent",
+      "variation": "downward gliding pads, soft deep bass, minimal rhythm"
+    },
+    {
+      "title": "Hollow Moon",
+      "variation": "hollow resonant tones, distant chimes, deep silence between notes"
+    },
+    {
+      "title": "Idle Waters",
+      "variation": "still water ambience, slow arpeggio fade, warm low end"
+    },
+    {
+      "title": "Jasmine Dusk",
+      "variation": "soft floral pads, warm analog hum, sparse tones"
+    },
+    {
+      "title": "Kindled Dark",
+      "variation": "dark warm drone, gentle sub pulse, slow filter movement"
+    },
+    {
+      "title": "Low Tide Lullaby",
+      "variation": "lullaby-like simple motif, very soft, heavy reverb"
+    },
+    {
+      "title": "Midnight Linen",
+      "variation": "muted textures like soft fabric, slow pads, quiet bass"
+    },
+    {
+      "title": "Night Vessel",
+      "variation": "floating drone, slow rolling sub, distant harmonic glow"
+    },
+    {
+      "title": "Quiet Harbor",
+      "variation": "calm pads, slow low pulse, gentle swells"
+    },
+    {
+      "title": "Soft Static",
+      "variation": "warm vinyl-like noise bed, slow chords, hush"
+    },
+    {
+      "title": "Velvet Hours",
+      "variation": "velvet low pads, slow evolving harmony, deep calm"
+    },
+    {
+      "title": "Yawning Stars",
+      "variation": "starry high pads, soft sub drone, fading echoes"
+    },
+    {
+      "title": "Zen Pillow",
+      "variation": "soft felt-like mellow keys, slow warm pad bed, new melody with gentle rising motif"
+    },
+    {
+      "title": "Zephyr Calm",
+      "variation": "breezy airy textures, slow wind-like filter sweeps, light deep bass, new chord progression"
+    },
+    {
+      "title": "Zero Gravity Rest",
+      "variation": "floating weightless pads, sparse slow arpeggio, very quiet sub, distinct harmony"
+    },
+    {
+      "title": "Zodiac Hush",
+      "variation": "starlit shimmering tones, muted low drone, slow evolving counter-melody, new structure"
+    }
+  ],
+  "extra_tracks": [
+    {
+      "title": "Evening Embers",
+      "variation": "glowing warm pads, slow low pulse, brand-new melodic theme, soft crackle texture"
+    },
+    {
+      "title": "Silent Meadow",
+      "variation": "open pastoral pads, gentle bell tones, distant bass, unique chord movement"
+    },
+    {
+      "title": "Tidal Pillow",
+      "variation": "slow ocean swells, soft rhythmic pulse, new simple motif, deep calm"
+    },
+    {
+      "title": "Wool Moonlight",
+      "variation": "woolly warm textures, quiet high shimmer, slow sub, different harmonic path"
+    }
+  ],
+  "art_prompt": "Photorealistic empty bed with soft white linen and pillows in a dark bedroom at night, window showing a starry sky, low mist on the floor, gentle teal glow, no people, no text.",
+  "thumbnail_prompt": "Cinematic empty bed with rumpled white linen in a dark bedroom, large window with stars and moonlight, soft teal glow and floor mist, photorealistic, no people, no text.",
+  "thumbnail_headline": "DEEP SLEEP",
+  "thumbnail_sub": "50 BPM · 1 HOUR",
+  "yt_title": "Sleep Music · 1 Hour · Fall Asleep Fast (50 BPM) – Deep Sleep Drift",
+  "hook": "over an hour of warm, slow sleep music at 50 BPM – built to quiet your mind and carry you into deep sleep.",
+  "intro": "No vocals, no sudden sounds. Soft pads, gentle sub bass and slow textures that fade into the background so you can drift off.",
+  "use_line": "😴 Perfect for: falling asleep, insomnia, deep relaxation, napping, late-night calm, background for meditation",
+  "cta_question": "What time do you usually fall asleep? Let me know in the comments.",
+  "hashtags": [
+    "#SleepMusic",
+    "#DeepSleep",
+    "#Chillout",
+    "#RelaxingMusic",
+    "#AixWalker"
+  ],
+  "tags": [
+    "sleep music",
+    "deep sleep music",
+    "fall asleep fast",
+    "insomnia music",
+    "relaxing sleep music",
+    "calm music for sleep",
+    "sleep ambient",
+    "chillout sleep",
+    "50 bpm sleep",
+    "night music",
+    "dark ambient sleep",
+    "no vocals sleep",
+    "sleep mix 2026",
+    "aixwalker",
+    "aix walker"
+  ],
+  "ab_titles": [
+    "Sleep Music · 1 Hour · Fall Asleep Fast (50 BPM) – Deep Sleep Drift",
+    "DEEP SLEEP DRIFT 🌙 1 Hour Soft Ambient to Fall Asleep (No Vocals)",
+    "Fall Asleep in Minutes · 1 Hour Calm Sleep Music · 50 BPM"
+  ],
+  "ab_thumbs": [
+    "FALL ASLEEP",
+    "DEEP SLEEP"
+  ],
+  "short_overlays": [
+    "sleep starts here",
+    "quiet your mind"
+  ],
+  "short_titles": [
+    "Fall asleep in minutes 🌙 soft sleep music",
+    "Quiet your mind tonight 😴 deep sleep drift"
+  ],
+  "shorts": [
+    {
+      "start": "05:10",
+      "end": "05:50",
+      "overlay": "sleep starts here",
+      "why": "sanfter Einsatz der warmen Pads"
+    },
+    {
+      "start": "32:00",
+      "end": "32:40",
+      "overlay": "quiet your mind",
+      "why": "ruhigster, weitester Klangraum"
+    }
+  ],
+  "title_de": "Deep Sleep Drift – über 1 Stunde Sleep Music (50 BPM)",
+  "teaser_de": "Warme Flächen, 50 BPM, kein Gesang – zum Einschlafen und Abschalten.",
+  "pinned_comment": "Which track carried you to sleep? Full tracklist with timestamps in the description 👇"
+}

@@ -58,7 +58,7 @@ def estimate(concept: dict) -> dict:
     minutes = float(concept.get("minutes_per_track", config.DEFAULT_MINUTES_PER_TRACK))
     min_minutes = float(concept.get("min_minutes", config.MIN_MIX_MINUTES))
     planned = len(concept["tracks"])
-    needed = max(planned, int(-(-min_minutes // max(minutes * 0.85, 1))))  # Lyria liefert oft etwas kürzer
+    needed = max(planned, int(-(-min_minutes // max(minutes * 0.65, 1))))  # Lyria liefert ca. 3 Min statt 5
     retries = max(1, round(needed * 0.15))
     tracks_usd = (needed + retries) * p["lyria_track"]
     images_usd = needed * p["image_flash"] + 2 * p["image_pro"]  # Cover je Track (Flash) + Album + Thumbnail (Pro)

@@ -13,7 +13,9 @@ SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube",
     "https://www.googleapis.com/auth/yt-analytics.readonly",
+    "https://www.googleapis.com/auth/youtube.force-ssl",   # Kommentare posten (angepinnter Kommentar)
 ]
+GMAIL_SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
 # Drive hat eine eigene Freigabe (Google erlaubt YouTube- und Drive-Scopes nicht in einem Consent).
 DRIVE_SCOPES = ["https://www.googleapis.com/auth/drive.file"]
 
@@ -75,6 +77,13 @@ def add_to_playlist(video_id: str, playlist_id: str) -> None:
     service().playlistItems().insert(part="snippet", body={
         "snippet": {"playlistId": playlist_id, "resourceId": {"kind": "youtube#video", "videoId": video_id}}
     }).execute()
+
+
+def post_comment(video_id: str, text: str) -> str:
+    """Postet einen Top-Level-Kommentar (Scope youtube.force-ssl nötig). Anpinnen geht nur in Studio."""
+    r = service().commentThreads().insert(part="snippet", body={"snippet": {
+        "videoId": video_id, "topLevelComment": {"snippet": {"textOriginal": text}}}}).execute()
+    return r["id"]
 
 
 def set_public(video_id: str) -> None:
