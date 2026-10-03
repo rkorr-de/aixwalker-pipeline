@@ -110,7 +110,7 @@ def generate_clip(prompt: str, out: Path, first_frame: Image.Image | None = None
             key = _price_key(model)
             costs.ensure_budget(key, config.VEO_CLIP_SEC)
             variants = []
-            if references:
+            if references and first_frame is None:   # Veo 3.1: Startbild + Referenzbilder → HTTP 400
                 variants.append(("mit Referenzbildern", references))
             variants.append(("ohne Referenzbilder", []))
             next_model = False
