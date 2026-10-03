@@ -18,12 +18,15 @@ REPORT_EMAIL = os.environ.get("KIDS_REPORT_EMAIL", "rolf.korr@gmail.com")
 # ---- Modelle ----------------------------------------------------------------------------------------------------
 GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta"
 TEXT_MODEL = os.environ.get("KIDS_TEXT_MODEL", "gemini-3.8-flash")
+# Strenger Prüfer für Story (vor dem Dreh) und fertiges Video (vor dem Upload) – stärkeres Modell als der Autor
+CRITIC_MODEL = os.environ.get("KIDS_CRITIC_MODEL", "gemini-3.1-pro-preview")
 IMAGE_MODEL = os.environ.get("KIDS_IMAGE_MODEL", "gemini-2.5-flash-image")          # Nano Banana
 IMAGE_MODEL_PRO = os.environ.get("KIDS_IMAGE_MODEL_PRO", "gemini-3-pro-image-preview")  # Nano Banana Pro
-# Veo: erster Eintrag ist Standardqualität; die weiteren sind Ausweichmodelle, falls eines nicht freigeschaltet ist.
+# Veo: erster Eintrag wird benutzt, die weiteren sind Ausweichmodelle. Standard ist seit 03.10.2026 Veo 3.1 Fast
+# (0,12 $/s statt 0,40 $/s – ca. 1,90 $ statt 6,40 $ je Short). Bessere Qualität: KIDS_VEO_MODELS=veo-3.1-generate-preview
 VEO_MODELS = [m for m in os.environ.get(
     "KIDS_VEO_MODELS",
-    "veo-3.1-generate-preview,veo-3.1-fast-generate-preview,veo-3.1-lite-generate-preview"
+    "veo-3.1-fast-generate-preview,veo-3.1-lite-generate-preview"
 ).split(",") if m]
 VEO_CLIP_SEC = 8                 # Veo liefert 4/6/8 s; 2 × 8 s → 15 s nach Schnitt
 VEO_RESOLUTION = os.environ.get("KIDS_VEO_RESOLUTION", "1080p")
@@ -46,6 +49,7 @@ PRICES_USD = {
     "image_pro": 0.134,
     "lyria_track": 0.08,
     "text_call": 0.01,           # Pauschale je Gemini-Text-Aufruf (real meist < 0,005 $)
+    "text_call_pro": 0.05,       # Pauschale je Prüf-Aufruf mit CRITIC_MODEL (Story-/Videoprüfung)
 }
 USD_EUR_RATE = float(os.environ.get("USD_EUR_RATE", "0.92"))
 BUDGET_USD = float(os.environ.get("KIDS_BUDGET_USD", "10.0"))   # harte Obergrenze je Lauf (Abbruch statt Upload)
@@ -69,25 +73,35 @@ NEGATIVE_PROMPT = (
 FORBIDDEN_WORDS = ["disney", "pixar character", "mickey", "minnie", "donald", "elsa", "frozen", "bluey", "peppa",
                    "paw patrol", "cocomelon", "baby shark", "pikachu", "pokemon", "sonic", "mario", "minion"]
 
-# ---- Themen-Pool (Inspiration für die Tageswahl; Gemini erfindet daraus täglich eine neue Mini-Story) -----------
-THEME_POOL = [
-    "baby hamster vs. a cupcake twice its size", "caterpillar learning to wave with too many legs",
-    "a tiny fallen star that needs help jumping back into the sky", "penguin chick and a melting ice cream",
-    "a shy red balloon and a curious puppy", "duckling trying to catch its own reflection in a puddle",
-    "kitten discovering a dandelion that floats away", "baby elephant blowing its first soap bubble",
-    "bunny who cannot stop sneezing from flower pollen", "owl chick trying to stay awake at sunset",
-    "fox cub and a hiccuping frog", "lamb hopping over a tiny stream and landing in a flower",
-    "squirrel building a nut tower that keeps toppling", "baby turtle racing a snail (both very slow)",
-    "piglet splashing in a rainbow puddle", "chick trying to fly like a butterfly", "bear cub tasting honey for the first time",
-    "mouse using a leaf as an umbrella in a sunny drizzle", "koala falling asleep mid-hug", "baby giraffe stuck on a swing",
-    "hedgehog with a flower stuck on its spikes", "tiny dragon whose sneeze makes bubbles instead of fire",
-    "puppy chasing its tail and getting dizzy", "kitten wearing a sock as a hat", "ducklings forming a conga line",
-    "baby otter juggling a pebble", "bee carrying a flower petal as a parachute", "unicorn foal with a rainbow hiccup",
-    "little cloud that rains confetti", "snail with a glowing shell at dusk", "baby panda rolling down a grassy hill",
-    "robin chick learning to sing (only squeaks)", "goldfish jumping between two bowls", "seal pup clapping for itself",
-    "tiny monkey swinging into a pile of leaves", "baby deer meeting a firefly", "kitten and a bouncing ball of yarn",
-    "chipmunk with cheeks full of berries trying to whistle", "fluffy chick hiding in a teacup", "baby dolphin playing with a bubble ring",
+# ---- Abwechslung: Tiere × Lehrinhalte ------------------------------------------------------------------------
+# Jeden Tag wird ein Tier gewählt, das in den letzten AVOID_SPECIES_DAYS Shorts nicht vorkam, und ein Lehrinhalt,
+# der in den letzten AVOID_LESSON_DAYS nicht dran war. Gemini schreibt daraus jedes Mal eine komplett neue Story.
+# Nur Tiere mit klar erkennbaren Beinen/Pfoten auf festem Boden – damit kommen Videomodelle zuverlässig zurecht
+# (keine Fische, Schlangen, Schnecken, Quallen; keine Flugszenen).
+SPECIES_POOL = [
+    "baby bunny", "fox cub", "bear cub", "piglet", "duckling", "penguin chick", "kitten", "puppy", "hedgehog",
+    "raccoon kit", "lamb", "baby goat", "calf", "pony foal", "baby elephant", "koala joey", "panda cub", "sloth baby",
+    "squirrel", "chipmunk", "field mouse", "hamster", "owl chick", "baby hippo", "baby giraffe", "zebra foal",
+    "red panda cub", "beaver kit", "mole", "badger cub", "capybara pup", "baby llama", "fluffy yellow chick",
+    "frog (sitting on the ground)", "baby turtle (on land)", "otter pup (on a riverbank)", "lion cub", "tiger cub",
+    "baby monkey", "baby gorilla", "kangaroo joey", "baby rhino", "wombat", "meerkat pup", "baby deer (fawn)",
+    "polar bear cub", "seal pup (on the beach)", "baby walrus (on the ice)", "dinosaur hatchling (cute, round)",
+    "baby dragon (tiny, friendly, wingless walker)", "baby alpaca", "guinea pig", "ferret kit", "baby armadillo",
+    "baby porcupine", "baby camel", "baby flamingo (standing)", "baby ostrich chick", "puffin chick", "little bulldog puppy",
 ]
+LESSON_POOL = [
+    "sharing a toy with a friend", "waiting for your turn", "trying again after a mistake", "asking for help",
+    "helping a smaller friend", "tidying up toys after playing", "being gentle with a flower", "saying sorry and hugging",
+    "washing hands before eating", "brushing teeth before bed", "eating a vegetable and liking it", "learning colors: red, yellow, blue", "big and small", "sorting shapes: circle, square, triangle", "up and down",
+    "being brave in the dark with a night light", "taking care of a little plant (watering it)", "saying thank you",
+    "putting on shoes by yourself", "planting a seed and watching it grow", "sharing food with a friend",
+    "teamwork: two friends carry something heavy together", "being patient while a cake bakes", "feeding a pet", "putting a toy back where it belongs", "comforting a sad friend", "getting dressed for the cold (hat and scarf)", "using an umbrella in the rain", "making a friend at the playground", "building a block tower together", "listening carefully",
+    "taking only one cookie", "fixing a broken toy together", "drinking water when thirsty",
+    "giving a present to a friend", ]
+AVOID_SPECIES_DAYS = int(os.environ.get("KIDS_AVOID_SPECIES_DAYS", "45"))
+AVOID_LESSON_DAYS = int(os.environ.get("KIDS_AVOID_LESSON_DAYS", "25"))
+STORY_MIN_SCORE = int(os.environ.get("KIDS_STORY_MIN_SCORE", "8"))      # Mindestnote (1–10) je Prüfkriterium
+VIDEO_MIN_SCORE = int(os.environ.get("KIDS_VIDEO_MIN_SCORE", "7"))
 
 # Suchbegriffe, nach denen Eltern suchen – fließen in Beschreibung und Tags ein (Englisch).
 PARENT_KEYWORDS = [

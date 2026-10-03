@@ -25,7 +25,7 @@ from zoneinfo import ZoneInfo
 
 from PIL import Image
 
-from kids import config, costs, drive, gemini, mail, render, story as story_mod, veo
+from kids import config, costs, drive, gemini, history, mail, render, review, story as story_mod, veo
 from kids import youtube as yt
 
 BERLIN = ZoneInfo("Europe/Berlin")
@@ -58,6 +58,8 @@ def main() -> int:
     ap.add_argument("--publish-local", default=None, help="Uhrzeit Europe/Berlin HEUTE, z. B. 16:00 (wird in UTC umgerechnet)")
     ap.add_argument("--mail", action="store_true", help="Report per Gmail-API senden (GMAIL_REFRESH_TOKEN)")
     ap.add_argument("--no-music", action="store_true")
+    ap.add_argument("--skip-review", action="store_true", help="Videoprüfung vor dem Upload überspringen (nur Tests)")
+    ap.add_argument("--story-only", action="store_true", help="nur Story schreiben + prüfen (fast kostenlos)")
     ap.add_argument("--no-drive", action="store_true", help="nicht in Google Drive ablegen (Standard: ablegen)")
     args = ap.parse_args()
 
@@ -75,7 +77,8 @@ def main() -> int:
     t0 = time.time()
     result: dict = {"date": today, "out": str(out), "warnings": [], "dry_run": args.dry_run}
 
-    est = costs.estimate(standard=True, retries=config.MAX_CLIP_RETRIES)
+    est = costs.estimate(standard="fast" not in config.VEO_MODELS[0] and "lite" not in config.VEO_MODELS[0],
+                         retries=config.MAX_CLIP_RETRIES)
     log(f"Kostenvoranschlag: {est['usd']:.2f} $ ≈ {est['eur']:.2f} € (Budget {config.BUDGET_USD:.2f} $)")
     for ln in est["lines"]:
         log("  - " + ln)
@@ -92,18 +95,25 @@ def main() -> int:
             except Exception as e:  # noqa: BLE001
                 result["warnings"].append(f"Upload-Liste nicht lesbar: {e}")
 
-        # 2) Story
+        # 2) Story: neues Tier × neuer Lehrinhalt, strenge Prüfung vor dem Dreh (kids/story.py)
         if args.dry_run:
             st = json.loads((config.ROOT / "kids" / "example_story.json").read_text())
             if args.theme:
                 st["theme"] = args.theme
         else:
-            st = story_mod.create(used, theme=args.theme)
+            past = history.load()
+            log(f"Verlauf: {len(past)} bisherige Shorts")
+            st = story_mod.create(past, used, theme=args.theme, log=log)
         (out / "story.json").write_text(json.dumps(st, indent=2, ensure_ascii=False))
         result["story"] = st
         log(f"Story: {st['title']}  |  Figur: {st['character']['name']} ({st['character']['species']})")
+        if args.story_only:
+            result.update(status="ok", cost_usd=costs.total_usd(), cost_report=costs.report())
+            (out / "result.json").write_text(json.dumps(result, indent=2, ensure_ascii=False))
+            log(costs.report())
+            raise SystemExit(0)
 
-        # 3) Bilder: Charakter-Sheet, Keyframe 1, Endframe-Vorgabe (Loop), Thumbnail
+        # 3) Bilder: Charakter-Sheet, Keyframe 1, Thumbnail
         if args.dry_run:
             sheet = Image.new("RGB", (1024, 1024), (240, 220, 180))
             kf1 = Image.new("RGB", (1080, 1920), (180, 220, 255))
@@ -117,7 +127,7 @@ def main() -> int:
         render.make_thumbnail(thumb_art, out / "thumbnail.jpg")
         log("Charakter-Sheet, Keyframe und Thumbnail fertig")
 
-        # 4) Veo-Clips (Clip 2 startet mit dem letzten Bild von Clip 1 und soll auf Keyframe 1 enden → Loop)
+        # 4) Veo-Clips (Clip 2 startet mit dem letzten Bild von Clip 1)
         c1, c2 = out / "clip_1.mp4", out / "clip_2.mp4"
         if args.dry_run:
             dry_clip(c1, "skyblue")
@@ -125,12 +135,10 @@ def main() -> int:
         else:
             veo.generate_clip(story_mod.veo_prompt(st, 0), c1, first_frame=kf1, references=[sheet])
             log(f"Clip 1 fertig ({veo.current_model()})")
+            # Clip 2 setzt nahtlos am letzten Bild von Clip 1 an (kein erzwungenes Loop-Ende mehr – das hat die
+            # Handlung unlogisch gemacht)
             lf = Image.open(render.last_frame(c1, out / "clip_1_last.png"))
-            try:
-                veo.generate_clip(story_mod.veo_prompt(st, 1), c2, first_frame=lf, references=[sheet], last_frame=kf1)
-            except Exception as e:  # noqa: BLE001
-                result["warnings"].append(f"Clip 2 ohne Loop-Endbild erzeugt: {str(e)[:120]}")
-                veo.generate_clip(story_mod.veo_prompt(st, 1), c2, first_frame=lf, references=[sheet])
+            veo.generate_clip(story_mod.veo_prompt(st, 1), c2, first_frame=lf, references=[sheet])
             log("Clip 2 fertig")
         result["veo_model"] = veo.current_model() or ("dry-run" if args.dry_run else "")
 
@@ -160,6 +168,20 @@ def main() -> int:
             raise RuntimeError("QC fehlgeschlagen: " + "; ".join(q["reasons"]))
         log(f"Short fertig: {final} ({q['duration']:.2f} s)")
 
+        # 6b) Strenge Videoprüfung (KI-Fehler, Story verständlich?) – unter der Mindestnote kein Upload
+        if not args.dry_run and not args.skip_review:
+            rv = review.review_video(final, st, out / "contact_sheet.jpg")
+            result["video_review"] = rv
+            log(f"Videoprüfung: Noten {rv['scores']} → {'bestanden' if rv['passed'] else 'ABGELEHNT'}"
+                + (f" | Fehler: {'; '.join(rv.get('errors', []))[:300]}" if rv.get("errors") else ""))
+            if not rv["passed"]:
+                try:
+                    history.add(history.entry_from_story(st, today, "rejected by video review"))
+                except Exception as e:  # noqa: BLE001
+                    log(f"Verlauf nicht gespeichert: {e}")
+                raise RuntimeError("Videoprüfung nicht bestanden – nichts veröffentlicht. Fehler: "
+                                   + "; ".join(rv.get("errors", []))[:400])
+
         # 7) Upload
         if args.upload and not args.dry_run:
             privacy = "public" if args.public else "private"
@@ -179,6 +201,10 @@ def main() -> int:
             else:
                 result["published_at_local"] = datetime.now(BERLIN).strftime("%d.%m.%Y %H:%M")
             log(f"Hochgeladen: {result['url']} ({result['privacy']})")
+            try:
+                history.add(history.entry_from_story(st, today, "published", vid))
+            except Exception as e:  # noqa: BLE001
+                result["warnings"].append(f"Verlauf nicht gespeichert: {str(e)[:120]}")
         # 8) Google Drive: kompletter Short-Ordner unter „Giggle Meadow Shorts/<Datum – Titel>“
         if not args.no_drive and not args.dry_run:
             if drive.available():

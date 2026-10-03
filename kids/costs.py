@@ -12,7 +12,8 @@ from . import config
 _lock = threading.Lock()
 _path: Path | None = None
 _ledger: dict = {"veo_sec_standard": 0, "veo_sec_fast": 0, "veo_sec_lite": 0, "image_flash": 0, "image_pro": 0,
-                 "lyria_track": 0, "text_call": 0, "veo_failed": 0}
+                 "lyria_track": 0, "text_call": 0, "text_call_pro": 0,
+                 "veo_failed": 0}
 
 
 class BudgetExceeded(RuntimeError):
@@ -70,7 +71,7 @@ def estimate(standard: bool = True, retries: int = 1) -> dict:
     veo = price(sec_key, clips * config.VEO_CLIP_SEC)
     imgs = price("image_flash", 3) + price("image_pro", 1)
     music = price("lyria_track", 1)
-    text = price("text_call", 3)
+    text = price("text_call", 4) + price("text_call_pro", 6)
     usd = round(veo + imgs + music + text, 2)
     return {"usd": usd, "eur": eur(usd), "lines": [
         f"{clips} Veo-Clips à {config.VEO_CLIP_SEC} s ({'Standard' if standard else 'Fast'}) = {veo:.2f} $",

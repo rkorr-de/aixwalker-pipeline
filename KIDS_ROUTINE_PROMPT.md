@@ -35,8 +35,10 @@ Führe aus (ein Befehl, läuft 10–20 Minuten):
 python run_kids_short.py --publish-local 16:00 2>&1 | tee build/kids/run.log
 ```
 
-Das Skript macht alles selbst: Thema wählen (keine Wiederholung bisheriger Titel), Story, Charakter-Sheet,
-Keyframe, 2 Veo-Clips, Musik, Schnitt auf 15 s, Thumbnail, Upload als „für Kinder“ mit geplanter
+Das Skript macht alles selbst: Tier + Lehrinhalt wählen, die laut Verlauf (`Giggle Meadow Shorts/_verlauf.json`
+in Drive) lange nicht dran waren, Story schreiben und von einem strengeren Modell prüfen lassen (Logik, Lerninhalt,
+Drehbarkeit, Neuheit – bis zu 6 Runden), Charakter-Sheet, Keyframe, 2 Veo-Clips (Veo 3.1 Fast), Musik, Schnitt auf
+15 s, **strenge Videoprüfung auf KI-Fehler** (bei Nichtbestehen kein Upload), Thumbnail, Upload als „für Kinder“ mit geplanter
 Veröffentlichung um 16:00 Uhr Berlin, und legt den kompletten Short-Ordner (Video, Thumbnail, Story, Kosten,
 Quellclips) in Google Drive unter **„Giggle Meadow Shorts/<Datum – Titel>“** ab (`DRIVE_REFRESH_TOKEN`). Harte Budgetgrenze: `KIDS_BUDGET_USD` (Standard 10 $) – bei Überschreitung
 bricht es ab (Exit-Code 2) und lädt nichts hoch.
@@ -48,14 +50,19 @@ Scheitert es wieder: Fehlermail (Schritt 5), fertig.
 
 ## Schritt 3 – Sichtprüfung (Pflicht, bevor es öffentlich wird)
 
-Öffne mit `Read` das Prüfbild `build/kids/<Datum>/contact_sheet.jpg` und `thumbnail.jpg`. Prüfe:
+Die automatische Videoprüfung steht in `result.json` unter `video_review` (Noten 1–10, Fehlerliste). Zusätzlich
+öffne mit `Read` das Prüfbild `build/kids/<Datum>/contact_sheet.jpg` und `thumbnail.jpg` und sei **streng** – im
+Zweifel löschen statt veröffentlichen. Prüfe:
+- Ergibt die Geschichte in den Bildern Sinn (Wunsch → Problem → Lösung → glückliches Ende)? Ist sie neu (anderes
+  Tier, andere Idee als die letzten Shorts laut `python -m kids.history`)?
 - Figur sieht süß und kindgerecht aus, kein Text/Buchstaben im Bild, keine gruseligen oder kaputten Darstellungen
   (deformierte Körper, zusätzliche Gliedmaßen, Schmutz-Artefakte), Figur in beiden Clips erkennbar dieselbe.
 - Falls **eindeutig unbrauchbar**: `python run_kids_short.py --publish-local 16:00` ein zweites Mal ausführen
   (neue Story, Kosten zählen weiter – das Budget stoppt automatisch). Wenn auch das nichts Brauchbares liefert
   oder das Budget erreicht ist: das geplante Video **löschen** (`python -c "from kids import youtube as y;
   y.delete('<video_id>')"`), Fehlermail, fertig. Nie etwas Unbrauchbares online lassen.
-- Kleine Schönheitsfehler sind okay – lieber täglich liefern als perfekt sein.
+- Kleine Schönheitsfehler (leichte Unschärfe) sind okay; typische KI-Fehler (falsche Beine, Morphing, Dinge tauchen
+  auf/verschwinden, unlogische Handlung) sind es **nicht** – dann löschen bzw. neu erzeugen.
 
 ## Schritt 4 – Veröffentlichung bestätigen
 
