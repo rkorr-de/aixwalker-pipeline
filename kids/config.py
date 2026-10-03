@@ -70,7 +70,7 @@ NEGATIVE_PROMPT = (
     "blood, weapons, realistic human, deformed, extra limbs, blurry, low quality, glitch, flicker"
 )
 # Figuren sind immer Eigenkreationen – keine Namen oder Designs bekannter Marken.
-FORBIDDEN_WORDS = ["disney", "pixar character", "mickey", "minnie", "donald", "elsa", "frozen", "bluey", "peppa",
+FORBIDDEN_WORDS = ["disney", "pixar character", "mickey", "minnie", "donald duck", "elsa", "bluey", "peppa",
                    "paw patrol", "cocomelon", "baby shark", "pikachu", "pokemon", "sonic", "mario", "minion"]
 
 # ---- Abwechslung: Tiere × Lehrinhalte ------------------------------------------------------------------------
@@ -89,15 +89,17 @@ SPECIES_POOL = [
     "baby dragon (tiny, friendly, wingless walker)", "baby alpaca", "guinea pig", "ferret kit", "baby armadillo",
     "baby porcupine", "baby camel", "baby flamingo (standing)", "baby ostrich chick", "puffin chick", "little bulldog puppy",
 ]
-LESSON_POOL = [
+LESSON_POOL = [   # nur Lektionen, die man mit großen, langsamen Bewegungen zeigen kann (keine Fingerarbeit)
     "sharing a toy with a friend", "waiting for your turn", "trying again after a mistake", "asking for help",
     "helping a smaller friend", "tidying up toys after playing", "being gentle with a flower", "saying sorry and hugging",
-    "washing hands before eating", "brushing teeth before bed", "eating a vegetable and liking it", "learning colors: red, yellow, blue", "big and small", "sorting shapes: circle, square, triangle", "up and down",
-    "being brave in the dark with a night light", "taking care of a little plant (watering it)", "saying thank you",
-    "putting on shoes by yourself", "planting a seed and watching it grow", "sharing food with a friend",
-    "teamwork: two friends carry something heavy together", "being patient while a cake bakes", "feeding a pet", "putting a toy back where it belongs", "comforting a sad friend", "getting dressed for the cold (hat and scarf)", "using an umbrella in the rain", "making a friend at the playground", "building a block tower together", "listening carefully",
-    "taking only one cookie", "fixing a broken toy together", "drinking water when thirsty",
-    "giving a present to a friend", ]
+    "eating a vegetable and liking it", "learning colors: red, yellow, blue", "big and small", "up and down",
+    "being brave in the dark with a night light", "saying thank you with a hug", "sharing food with a friend",
+    "teamwork: two friends push something heavy together", "being patient while waiting", "comforting a sad friend",
+    "making a new friend", "building a block tower together", "taking only one cookie", "giving a present to a friend",
+    "letting a friend go first", "inviting someone who is alone to play", "being careful near a sleeping baby animal",
+    "sharing an umbrella-sized leaf in the rain", "cheering for a friend", "taking a rest when tired",
+    "fast and slow", "near and far", "heavy and light", "happy and sad feelings", "being kind to a tiny bug",
+]
 AVOID_SPECIES_DAYS = int(os.environ.get("KIDS_AVOID_SPECIES_DAYS", "45"))
 AVOID_LESSON_DAYS = int(os.environ.get("KIDS_AVOID_LESSON_DAYS", "25"))
 STORY_MIN_SCORE = int(os.environ.get("KIDS_STORY_MIN_SCORE", "8"))      # Mindestnote (1–10) je Prüfkriterium

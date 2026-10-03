@@ -11,6 +11,7 @@ Ergebnis ist ein dict (siehe SCHEMA), das als story.json im Build-Ordner liegt.
 """
 import json
 import random
+import re
 
 from . import config, gemini
 
@@ -99,7 +100,7 @@ def pick(history: list[dict], used_titles: list[str], rnd: random.Random | None 
 def _sanitize(story: dict) -> dict:
     blob = json.dumps(story).lower()
     for w in config.FORBIDDEN_WORDS:
-        if w in blob:
+        if re.search(rf"\b{re.escape(w)}\b", blob):
             raise ValueError(f"Story enthält geschützten Begriff „{w}“ – neu erzeugen")
     story["title"] = story["title"][:100]
     if "#shorts" not in story["title"].lower():
@@ -153,13 +154,34 @@ def review(story: dict, history: list[dict]) -> dict:
     return r
 
 
-def create(history: list[dict], used_titles: list[str], theme: str | None = None, rounds: int = 6,
-           log=print) -> dict:
-    """Schreibt eine neue Story und lässt sie prüfen, bis sie besteht (sonst die beste mit Mindestnote ≥ Grenze−1)."""
-    species, lesson = pick(history, used_titles)
-    if theme:
-        lesson = theme
-    log(f"Heute: {species} × „{lesson}“")
+def create(history: list[dict], used_titles: list[str], theme: str | None = None, combos: int = 3,
+           rounds: int = 3, log=print) -> dict:
+    """Bis zu `combos` Tier×Lektion-Kombinationen mit je `rounds` Überarbeitungen; die erste bestandene Story gewinnt,
+    sonst die beste mit Mindestnote ≥ Grenze−1."""
+    best, best_score, last_err = None, -1, None
+    tried: set[str] = set()
+    for _ in range(combos):
+        for _ in range(10):
+            species, lesson = pick(history, used_titles)
+            if species not in tried:
+                break
+        tried.add(species)
+        if theme:
+            lesson = theme
+        log(f"Heute: {species} × „{lesson}“")
+        st, score, err = _write(species, lesson, history, rounds, log)
+        if st is not None and st.get("review", {}).get("passed"):
+            return st
+        last_err = err or last_err
+        if st is not None and score > best_score:
+            best, best_score = st, score
+    if best is not None and best_score >= config.STORY_MIN_SCORE - 1:
+        best["review"]["note"] = f"beste Fassung (Mindestnote {best_score})"
+        return best
+    raise RuntimeError(f"Keine Story hat die Prüfung bestanden (beste Mindestnote {best_score}). {last_err or ''}")
+
+
+def _write(species: str, lesson: str, history: list[dict], rounds: int, log) -> tuple[dict | None, int, Exception | None]:
     base = (
         f"Main character: a {species}.\n"
         f"Lesson / learning goal: {lesson}.\n\n"
@@ -188,18 +210,16 @@ def create(history: list[dict], used_titles: list[str], theme: str | None = None
             last_err = e
             feedback = f"Technical problem: {e}. Answer with valid JSON matching the schema."
             continue
-        st["review"] = {"round": i + 1, "scores": rv["scores"], "problems": rv.get("problems", [])}
+        st["review"] = {"round": i + 1, "scores": rv["scores"], "problems": rv.get("problems", []),
+                        "passed": rv["passed"]}
         log(f"Story-Prüfung Runde {i + 1}: {st['summary'][:110]} | Noten {rv['scores']} → "
             f"{'bestanden' if rv['passed'] else 'abgelehnt'}")
         if rv["passed"]:
-            return st
+            return st, rv["min_score"], None
         if rv["min_score"] > best_score:
             best, best_score = st, rv["min_score"]
         feedback = "Problems: " + "; ".join(rv.get("problems", [])) + "\nHow to fix: " + str(rv.get("fix", ""))
-    if best is not None and best_score >= config.STORY_MIN_SCORE - 1:
-        best["review"]["note"] = f"beste Fassung nach {rounds} Runden (Mindestnote {best_score})"
-        return best
-    raise RuntimeError(f"Keine Story hat die Prüfung bestanden (beste Mindestnote {best_score}). {last_err or ''}")
+    return best, best_score, last_err
 
 
 def _cast(story: dict) -> str:
