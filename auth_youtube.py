@@ -11,7 +11,12 @@ Google Drive (eigene Freigabe, weil Google YouTube- und Drive-Scopes nicht zusam
   python auth_youtube.py token drive "<komplette localhost-Adresse>"
   Ausgabe: DRIVE_REFRESH_TOKEN=…
 
-Gmail (Bericht nach jedem Mix per E-Mail, Scope gmail.send):
+Kids-Kanal (zweiter Kanal im selben Google-Konto; beim Google-Dialog den Kids-Kanal auswählen):
+  python auth_youtube.py url kids
+  python auth_youtube.py token kids "<komplette localhost-Adresse>"
+  Ausgabe: KIDS_YT_REFRESH_TOKEN=…
+
+Gmail (Report-Mail ohne Connector, Scope gmail.send):
   python auth_youtube.py url gmail
   python auth_youtube.py token gmail "<komplette localhost-Adresse>"
   Ausgabe: GMAIL_REFRESH_TOKEN=…
@@ -24,14 +29,14 @@ import urllib.parse
 import requests
 
 from pipeline import config
-from pipeline.youtube import DRIVE_SCOPES, GMAIL_SCOPES, SCOPES
+from pipeline.youtube import DRIVE_SCOPES, SCOPES
 
 REDIRECT = "http://localhost:1"
 
 
 def auth_url(scopes: list[str]) -> str:
     q = {"client_id": config.require("YT_CLIENT_ID"), "redirect_uri": REDIRECT, "response_type": "code",
-         "scope": " ".join(scopes), "access_type": "offline", "prompt": "consent"}
+         "scope": " ".join(scopes), "access_type": "offline", "prompt": "select_account consent"}  # Konto-/Kanalauswahl erzwingen
     return "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode(q)
 
 
@@ -49,12 +54,13 @@ def exchange(redirected_url: str) -> str:
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    kind = "drive" if "drive" in args else "gmail" if "gmail" in args else "yt"
-    args = [a for a in args if a not in ("drive", "gmail")]
-    scopes = {"drive": DRIVE_SCOPES, "gmail": GMAIL_SCOPES, "yt": SCOPES}[kind]
+    kind = next((a for a in args if a in ("drive", "kids", "gmail")), "yt")
+    args = [a for a in args if a not in ("drive", "kids", "gmail")]
+    scopes = {"drive": DRIVE_SCOPES, "gmail": ["https://www.googleapis.com/auth/gmail.send"]}.get(kind, SCOPES)
+    var = {"drive": "DRIVE_REFRESH_TOKEN", "kids": "KIDS_YT_REFRESH_TOKEN", "gmail": "GMAIL_REFRESH_TOKEN"}.get(kind, "YT_REFRESH_TOKEN")
     if args and args[0] == "url":
         print(auth_url(scopes))
     elif len(args) >= 2 and args[0] == "token":
-        print(f"{kind.upper()}_REFRESH_TOKEN={exchange(args[1])}")
+        print(f"{var}={exchange(args[1])}")
     else:
         print(__doc__)
