@@ -19,8 +19,10 @@ Danach bekommt Rolf eine E-Mail mit Link und allen Infos.
 1. Arbeitsverzeichnis ist das Repo `aixwalker-pipeline` (prüfe mit `ls`: run_kids_short.py, kids/).
 2. `which ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)` und
    `pip install -q -r requirements.txt --break-system-packages`.
-3. Prüfe, dass `GOOGLE_API_KEY`, `YT_CLIENT_ID`, `YT_CLIENT_SECRET`, `KIDS_YT_REFRESH_TOKEN` gesetzt sind
-   (`env | grep -c -E '^(GOOGLE_API_KEY|YT_CLIENT_ID|YT_CLIENT_SECRET|KIDS_YT_REFRESH_TOKEN)='` muss 4 ergeben).
+3. Prüfe, dass `GOOGLE_API_KEY`, `YT_CLIENT_ID`, `YT_CLIENT_SECRET`, `KIDS_YT_REFRESH_TOKEN`, `DRIVE_REFRESH_TOKEN`
+   gesetzt sind (`env | grep -c -E '^(GOOGLE_API_KEY|YT_CLIENT_ID|YT_CLIENT_SECRET|KIDS_YT_REFRESH_TOKEN|DRIVE_REFRESH_TOKEN)='`
+   muss 5 ergeben). Fehlt nur `DRIVE_REFRESH_TOKEN`: Lauf trotzdem starten, in der Mail klar melden, dass die
+   Drive-Ablage fehlt.
    Fehlt etwas: **kein Lauf**, sondern sofort Fehlermail (Schritt 5) mit der fehlenden Variable.
 4. `python -m kids.youtube` zeigt Kanalname und die letzten Titel. Der Kanal muss der **Kids-Kanal** sein
    (nicht „AIX WALKER“). Stimmt der Kanal nicht: abbrechen, Fehlermail.
@@ -35,10 +37,12 @@ python run_kids_short.py --publish-local 16:00 2>&1 | tee build/kids/run.log
 
 Das Skript macht alles selbst: Thema wählen (keine Wiederholung bisheriger Titel), Story, Charakter-Sheet,
 Keyframe, 2 Veo-Clips, Musik, Schnitt auf 15 s, Thumbnail, Upload als „für Kinder“ mit geplanter
-Veröffentlichung um 16:00 Uhr Berlin. Harte Budgetgrenze: `KIDS_BUDGET_USD` (Standard 10 $) – bei Überschreitung
+Veröffentlichung um 16:00 Uhr Berlin, und legt den kompletten Short-Ordner (Video, Thumbnail, Story, Kosten,
+Quellclips) in Google Drive unter **„Giggle Meadow Shorts/<Datum – Titel>“** ab (`DRIVE_REFRESH_TOKEN`). Harte Budgetgrenze: `KIDS_BUDGET_USD` (Standard 10 $) – bei Überschreitung
 bricht es ab (Exit-Code 2) und lädt nichts hoch.
 
-Lies danach `build/kids/<heutiges Datum>/result.json`. Ist `status` nicht `ok` (oder der Befehl ist abgebrochen):
+Lies danach `build/kids/<heutiges Datum>/result.json`. Prüfe `drive._folder` (Link zum Drive-Ordner) – fehlt er,
+steht der Grund unter `warnings`; dann `python -m kids.drive build/kids/<Datum>` einmal nachholen. Ist `status` nicht `ok` (oder der Befehl ist abgebrochen):
 **einmal** erneut starten (gleicher Befehl – der Kostenzähler läuft weiter, das Budget bleibt die Grenze).
 Scheitert es wieder: Fehlermail (Schritt 5), fertig.
 
@@ -70,8 +74,8 @@ Sende an **rolf.korr@gmail.com** – ausschließlich an diese Adresse – eine K
   keine Mail möglich war.
 
 Betreff bei Erfolg: `[Kids-Short] JJJJ-MM-TT – online: <Titel>`
-Inhalt (Deutsch): Link, Titel, Figur, Story in einem Satz, Veröffentlichungszeit, Beschreibung und Tags wie
-hochgeladen, Kosten in $ und €, Veo-Modell, Hinweise/Warnungen aus `result.json`. Der Text aus
+Inhalt (Deutsch): Link, Titel, Figur, Story in einem Satz, Veröffentlichungszeit, Link zum Drive-Ordner,
+Beschreibung und Tags wie hochgeladen, Kosten in $ und €, Veo-Modell, Hinweise/Warnungen aus `result.json`. Der Text aus
 `kids.mail.report_text(result)` ist genau dieses Format – nutze ihn.
 
 Betreff bei Fehler: `[Kids-Short] JJJJ-MM-TT – FEHLER: <Kurzgrund>` mit Fehlertext, Kosten und was zu tun ist

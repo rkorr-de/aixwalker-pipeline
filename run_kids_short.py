@@ -8,6 +8,7 @@
   python run_kids_short.py --upload --public              # sofort öffentlich
   python run_kids_short.py --mail                         # zusätzlich Report-Mail per Gmail-API (GMAIL_REFRESH_TOKEN)
   python run_kids_short.py --theme "kitten and a bouncing ball of yarn"   # Thema vorgeben
+  python run_kids_short.py --no-drive                     # ohne Ablage in Google Drive (Standard: Ablage unter „Giggle Meadow Shorts/<Datum – Titel>“)
 
 Ergebnis: <out>/result.json (url, video_id, story, Kosten, QC), <out>/short.mp4, <out>/thumbnail.jpg,
 <out>/contact_sheet.jpg (Prüfbild), <out>/costs.json, <out>/story.json.
@@ -24,7 +25,7 @@ from zoneinfo import ZoneInfo
 
 from PIL import Image
 
-from kids import config, costs, gemini, mail, render, story as story_mod, veo
+from kids import config, costs, drive, gemini, mail, render, story as story_mod, veo
 from kids import youtube as yt
 
 BERLIN = ZoneInfo("Europe/Berlin")
@@ -57,6 +58,7 @@ def main() -> int:
     ap.add_argument("--publish-local", default=None, help="Uhrzeit Europe/Berlin HEUTE, z. B. 16:00 (wird in UTC umgerechnet)")
     ap.add_argument("--mail", action="store_true", help="Report per Gmail-API senden (GMAIL_REFRESH_TOKEN)")
     ap.add_argument("--no-music", action="store_true")
+    ap.add_argument("--no-drive", action="store_true", help="nicht in Google Drive ablegen (Standard: ablegen)")
     args = ap.parse_args()
 
     today = datetime.now(BERLIN).strftime("%Y-%m-%d")
@@ -177,6 +179,19 @@ def main() -> int:
             else:
                 result["published_at_local"] = datetime.now(BERLIN).strftime("%d.%m.%Y %H:%M")
             log(f"Hochgeladen: {result['url']} ({result['privacy']})")
+        # 8) Google Drive: kompletter Short-Ordner unter „Giggle Meadow Shorts/<Datum – Titel>“
+        if not args.no_drive and not args.dry_run:
+            if drive.available():
+                try:
+                    (out / "result.json").write_text(json.dumps(result, indent=2, ensure_ascii=False))
+                    links = drive.upload_short_package(out, today, st["title"], result.get("video_id"))
+                    result["drive"] = links
+                    log(f"Drive: {links['_folder']}")
+                except Exception as e:  # noqa: BLE001
+                    result["warnings"].append(f"Drive-Ablage fehlgeschlagen: {str(e)[:160]}")
+                    log(f"Drive-Ablage fehlgeschlagen: {e}")
+            else:
+                result["warnings"].append("Drive-Ablage übersprungen: DRIVE_REFRESH_TOKEN fehlt")
         result["status"] = "ok"
         rc = 0
     except costs.BudgetExceeded as e:

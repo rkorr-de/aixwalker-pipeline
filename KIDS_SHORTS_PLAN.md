@@ -9,6 +9,7 @@ Vereinbart mit Rolf am 03.10.2026:
 - Budget **10 $ pro Tag** (Veo 3.1 Standard, 1 Neuversuch), harte Grenze im Skript
 - Metadaten **nur Englisch**, Look wie das Referenz-Short „Dancing baby duck“ (Pixar-3D, Pastell, Bokeh)
 - täglich **16:00 Uhr Berlin öffentlich**, danach **E-Mail an rolf.korr@gmail.com**
+- jeder Short landet komplett in **Google Drive → „Giggle Meadow Shorts/<Datum – Titel>“** (Rolf spiegelt Drive lokal auf G:)
 - erst alles testen (inkl. Test-Upload), Tests wieder löschen, dann die tägliche Aufgabe anlegen
 
 ## Schritt 0 – Umgebung prüfen (ohne Rolf)
@@ -82,6 +83,9 @@ Dann prüfen:
 2. `contact_sheet.jpg` und `thumbnail.jpg` mit `Read` sichten (Figur konsistent? kein Text? süß? Loop-Ende?).
 3. YouTube: `python -c "from kids import youtube as y; print(y.status('<id>'))"` → `selfDeclaredMadeForKids: true`,
    `privacyStatus: private`, Titel/Beschreibung korrekt.
+   Drive: `result.json` → `drive._folder` öffnen lassen (Rolf den Link schicken): Ordner „Giggle Meadow Shorts/<Datum – Titel>“
+   mit short.mp4, thumbnail.jpg, story.json, youtube_link.txt und Unterordner `quellen/`. Den Test-Ordner nach dem
+   Löschen des Testvideos in Drive ebenfalls entfernen (`svc.files().delete(fileId=<Ordner-ID>)` über `pipeline.drive.service()`).
 4. Rolf den Link + Prüfbild schicken (SendUserMessage/SendUserFile) mit: „Bitte einmal anschauen (privat, nur du
    siehst es). Passt der Look? Antworte mit ‚passt‘ oder sag, was anders sein soll.“ **Warte** auf die Antwort.
    Änderungswünsche → `STYLE_BIBLE`/Prompts anpassen, Schritt 3 wiederholen (max. 2×, Budget beachten).

@@ -44,6 +44,7 @@ def report_text(result: dict) -> str:
         f"Story: {s.get('theme', '')}",
         f"Veröffentlicht: {result.get('published_at_local', '')}",
         f"Status laut YouTube: {result.get('privacy', '')}",
+        f"Google Drive: {result.get('drive', {}).get('_folder', '(nicht abgelegt)')}",
         "",
         f"Beschreibung:\n{s.get('description', '')}",
         "",

@@ -90,3 +90,4 @@ python run_kids_short.py --publish-local 16:00      # Produktion: heute 16:00 Uh
 | `KIDS_VEO_MODELS` | Komma-Liste der Veo-Modelle, Standard zuerst |
 | `GMAIL_REFRESH_TOKEN` | optional: Report-Mail ohne Gmail-Connector (`auth_youtube.py url gmail`) |
 | `KIDS_CHANNEL_NAME` | Anzeigename des Kids-Kanals (nur für Texte) |
+| `DRIVE_REFRESH_TOKEN` | vorhandene Drive-Freigabe; Ablage je Short unter `Giggle Meadow Shorts/<Datum – Titel>` (`KIDS_DRIVE_ROOT` ändert den Ordnernamen) |
