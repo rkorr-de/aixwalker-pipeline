@@ -11,7 +11,7 @@ from . import config
 
 _lock = threading.Lock()
 _path: Path | None = None
-_ledger: dict = {"veo_sec_standard": 0, "veo_sec_fast": 0, "image_flash": 0, "image_pro": 0,
+_ledger: dict = {"veo_sec_standard": 0, "veo_sec_fast": 0, "veo_sec_lite": 0, "image_flash": 0, "image_pro": 0,
                  "lyria_track": 0, "text_call": 0, "veo_failed": 0}
 
 
@@ -81,7 +81,7 @@ def estimate(standard: bool = True, retries: int = 1) -> dict:
 def report() -> str:
     u = total_usd()
     return (f"Tatsächlicher API-Verbrauch: {u:.2f} $ ≈ {eur(u):.2f} € "
-            f"(Veo {_ledger['veo_sec_standard'] + _ledger['veo_sec_fast']} s, {_ledger['image_flash']} Flash-Bilder, "
+            f"(Veo {_ledger['veo_sec_standard'] + _ledger['veo_sec_fast'] + _ledger['veo_sec_lite']} s, {_ledger['image_flash']} Flash-Bilder, "
             f"{_ledger['image_pro']} Pro-Bilder, {_ledger['lyria_track']} Lyria, {_ledger['text_call']} Textaufrufe, "
             f"{_ledger['veo_failed']} fehlgeschlagene Veo-Versuche). Monatsstand: {config.BILLING_URL}")
 

@@ -23,7 +23,7 @@ IMAGE_MODEL_PRO = os.environ.get("KIDS_IMAGE_MODEL_PRO", "gemini-3-pro-image-pre
 # Veo: erster Eintrag ist Standardqualität; die weiteren sind Ausweichmodelle, falls eines nicht freigeschaltet ist.
 VEO_MODELS = [m for m in os.environ.get(
     "KIDS_VEO_MODELS",
-    "veo-3.1-generate-preview,veo-3.1-fast-generate-preview,veo-3.0-generate-001,veo-3.0-fast-generate-001"
+    "veo-3.1-generate-preview,veo-3.1-fast-generate-preview,veo-3.1-lite-generate-preview"
 ).split(",") if m]
 VEO_CLIP_SEC = 8                 # Veo liefert 4/6/8 s; 2 × 8 s → 15 s nach Schnitt
 VEO_RESOLUTION = os.environ.get("KIDS_VEO_RESOLUTION", "1080p")
@@ -40,7 +40,8 @@ TARGET_LUFS = -14.0
 # ---- Kosten / Budget --------------------------------------------------------------------------------------------
 PRICES_USD = {
     "veo_sec_standard": 0.40,    # Veo 3.1 Standard, je Sekunde Video (mit Ton)
-    "veo_sec_fast": 0.15,        # Veo 3.1 Fast
+    "veo_sec_fast": 0.12,        # Veo 3.1 Fast (1080p)
+    "veo_sec_lite": 0.08,        # Veo 3.1 Lite (1080p)
     "image_flash": 0.039,
     "image_pro": 0.134,
     "lyria_track": 0.08,
