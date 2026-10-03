@@ -11,7 +11,17 @@ Google Drive (eigene Freigabe, weil Google YouTube- und Drive-Scopes nicht zusam
   python auth_youtube.py token drive "<komplette localhost-Adresse>"
   Ausgabe: DRIVE_REFRESH_TOKEN=…
 
-Beide Zeilen in die Umgebungsvariablen (Umgebung AixWalker) eintragen.
+Kids-Kanal (zweiter Kanal im selben Google-Konto; beim Google-Dialog den Kids-Kanal auswählen):
+  python auth_youtube.py url kids
+  python auth_youtube.py token kids "<komplette localhost-Adresse>"
+  Ausgabe: KIDS_YT_REFRESH_TOKEN=…
+
+Gmail (Report-Mail ohne Connector, Scope gmail.send):
+  python auth_youtube.py url gmail
+  python auth_youtube.py token gmail "<komplette localhost-Adresse>"
+  Ausgabe: GMAIL_REFRESH_TOKEN=…
+
+Alle Zeilen in die Umgebungsvariablen (Umgebung AixWalker) eintragen.
 """
 import sys
 import urllib.parse
@@ -44,11 +54,13 @@ def exchange(redirected_url: str) -> str:
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    drive = "drive" in args
-    args = [a for a in args if a != "drive"]
+    kind = next((a for a in args if a in ("drive", "kids", "gmail")), "yt")
+    args = [a for a in args if a not in ("drive", "kids", "gmail")]
+    scopes = {"drive": DRIVE_SCOPES, "gmail": ["https://www.googleapis.com/auth/gmail.send"]}.get(kind, SCOPES)
+    var = {"drive": "DRIVE_REFRESH_TOKEN", "kids": "KIDS_YT_REFRESH_TOKEN", "gmail": "GMAIL_REFRESH_TOKEN"}.get(kind, "YT_REFRESH_TOKEN")
     if args and args[0] == "url":
-        print(auth_url(DRIVE_SCOPES if drive else SCOPES))
+        print(auth_url(scopes))
     elif len(args) >= 2 and args[0] == "token":
-        print(f"{'DRIVE' if drive else 'YT'}_REFRESH_TOKEN={exchange(args[1])}")
+        print(f"{var}={exchange(args[1])}")
     else:
         print(__doc__)

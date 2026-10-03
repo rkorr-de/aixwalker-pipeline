@@ -71,3 +71,22 @@ Kontostand für die Gemini-API – der reale Monatsstand steht in Cloud Billing 
 - Crossfade 1,5 s zwischen Tracks; Kapitel aus den realen Startzeiten, über 60 Min als `01:02:13`
 - Thumbnail: max. 3 Wörter, Motiv werbefreundlich
 - KI-Label (`containsSyntheticMedia`) wird beim Upload immer gesetzt
+
+## Kids-Shorts (täglich 16:00, eigener Kids-Kanal)
+
+Tägliche 15-Sekunden-Shorts im Pixar-/Disney-Look ohne Sprache (Story → Nano Banana → Veo 3.1 → ffmpeg →
+Upload „für Kinder“ → E-Mail). Einrichtung: `KIDS_SHORTS_PLAN.md`; tägliche Routine: `KIDS_ROUTINE_PROMPT.md`.
+
+```bash
+python run_kids_short.py --dry-run                  # Funktionstest ohne Kosten
+python run_kids_short.py --upload --private         # Testlauf, privat
+python run_kids_short.py --publish-local 16:00      # Produktion: heute 16:00 Uhr Berlin öffentlich
+```
+
+| Variable | Zweck |
+|---|---|
+| `KIDS_YT_REFRESH_TOKEN` | OAuth-Token des Kids-Kanals (`python auth_youtube.py url kids` / `token kids`) |
+| `KIDS_BUDGET_USD` | harte Kostengrenze je Lauf (Standard 10) |
+| `KIDS_VEO_MODELS` | Komma-Liste der Veo-Modelle, Standard zuerst |
+| `GMAIL_REFRESH_TOKEN` | optional: Report-Mail ohne Gmail-Connector (`auth_youtube.py url gmail`) |
+| `KIDS_CHANNEL_NAME` | Anzeigename des Kids-Kanals (nur für Texte) |

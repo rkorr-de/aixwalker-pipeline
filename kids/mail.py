@@ -1,0 +1,57 @@
+"""Report-Mail über die Gmail-API (eigener Refresh-Token GMAIL_REFRESH_TOKEN mit Scope gmail.send).
+
+Die geplante Aufgabe nutzt bevorzugt den Gmail-Connector (mcp__Gmail__send_message). Dieses Modul ist der
+Fallback, damit die Mail auch dann sicher ankommt, wenn der Connector in der Sitzung fehlt.
+Token einmalig erzeugen: `python auth_youtube.py url gmail` → `python auth_youtube.py token gmail "<URL>"`.
+"""
+import base64
+from email.message import EmailMessage
+
+from googleapiclient.discovery import build
+
+from pipeline.youtube import credentials
+
+from . import config
+
+GMAIL_SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
+
+
+def available() -> bool:
+    import os
+    return bool(os.environ.get("GMAIL_REFRESH_TOKEN"))
+
+
+def send(subject: str, body: str, to: str | None = None) -> str:
+    to = to or config.REPORT_EMAIL
+    msg = EmailMessage()
+    msg["To"] = to
+    msg["Subject"] = subject
+    msg.set_content(body)
+    raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
+    svc = build("gmail", "v1", credentials=credentials("GMAIL_REFRESH_TOKEN"), cache_discovery=False)
+    r = svc.users().messages().send(userId="me", body={"raw": raw}).execute()
+    return r.get("id", "")
+
+
+def report_text(result: dict) -> str:
+    """Klartext-Report für Rolf (deutsch)."""
+    s = result.get("story", {})
+    lines = [
+        f"Neuer Kids-Short ist online: {result.get('url', '(kein Link)')}",
+        "",
+        f"Titel: {s.get('title', '')}",
+        f"Figur: {s.get('character', {}).get('name', '')} ({s.get('character', {}).get('species', '')})",
+        f"Story: {s.get('theme', '')}",
+        f"Veröffentlicht: {result.get('published_at_local', '')}",
+        f"Status laut YouTube: {result.get('privacy', '')}",
+        "",
+        f"Beschreibung:\n{s.get('description', '')}",
+        "",
+        f"Tags: {', '.join(s.get('tags', [])[:15])}",
+        "",
+        f"Kosten: {result.get('cost_usd', 0):.2f} $ ≈ {result.get('cost_eur', 0):.2f} € (Budget {config.BUDGET_USD:.0f} $) – Veo-Modell: {result.get('veo_model', '')}",
+        f"Laufzeit: {result.get('elapsed_min', 0):.1f} min",
+    ]
+    if result.get("warnings"):
+        lines += ["", "Hinweise:"] + [f"- {w}" for w in result["warnings"]]
+    return "\n".join(lines)

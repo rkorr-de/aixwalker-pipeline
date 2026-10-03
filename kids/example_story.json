@@ -1,0 +1,29 @@
+{
+  "slug": "hamster-giant-cupcake",
+  "theme": "A tiny hamster proudly carries a cupcake twice its size, can't bite it, and gets the cherry instead.",
+  "character": {
+    "name": "Pip",
+    "species": "baby hamster",
+    "look": "round golden-cream fluffy body, tiny pink paws, huge glossy dark-brown eyes, pink button nose, rosy cheeks, a little mint-green apron with a white heart"
+  },
+  "setting": "sunny flower meadow at golden hour, a red-and-white picnic blanket, yellow butterflies, soft bokeh light particles",
+  "shots": [
+    {
+      "seconds": 8,
+      "action": "Pip waddles into frame carrying a giant pink cupcake with a red cherry on top, sets it down proudly, opens his mouth wide, tries to bite it, bounces off, climbs onto it and slides down the frosting onto the blanket.",
+      "sounds": "tiny footstep taps, a cheerful squeak, a soft boing, a slow slippery slide whoosh, a gentle plop",
+      "ends_with": "Pip sitting on the blanket next to the towering cupcake, looking up at it with a sad pout"
+    },
+    {
+      "seconds": 8,
+      "action": "The cherry wobbles on top of the cupcake, rolls down the frosting and lands right in Pip's paws; he blinks, then nibbles it with chubby cheeks full and happy, then pats his belly and looks at the camera with a big smile.",
+      "sounds": "a short pause of silence, a tiny wobble sound, a rolling sound, a bright pling, cute nibbling and munching, a happy giggle-squeak",
+      "ends_with": "Pip sitting proudly on the blanket, cupcake beside him, smiling at the camera"
+    }
+  ],
+  "music": "playful bouncy ukulele and glockenspiel tune, light pizzicato strings, cheerful children's cartoon mood",
+  "title": "Tiny Hamster vs. GIANT Cupcake 🧁 Cute Cartoon for Toddlers #shorts",
+  "description": "Pip the baby hamster finds a cupcake twice his size – can he eat it? 🧁\nA calm, wordless 3D cartoon for toddlers and babies – no talking, just cute sounds.\n\ncute cartoon for toddlers, funny baby animals cartoon, toddler video no talking, calm video for kids, cute animation for babies, bedtime cartoon, preschool cartoon, cute hamster cartoon\n\n#shorts #kids #toddlers #cutecartoon #babyanimals #kidsvideos #3danimation",
+  "tags": ["cute cartoon", "toddler cartoon", "baby hamster", "cupcake", "kids shorts", "funny animals", "3d animation", "no talking", "calm video", "bedtime"],
+  "thumbnail_moment": "Shot 2, second 4: Pip with the cherry in his paws and chubby cheeks"
+}

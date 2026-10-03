@@ -1,0 +1,209 @@
+#!/usr/bin/env python3
+"""Täglicher Kids-Short: Story → Figur → Keyframes → 2 Veo-Clips → Schnitt → Thumbnail → Upload → Report.
+
+  python run_kids_short.py --dry-run                      # Funktionstest ohne API-Kosten (Platzhalter-Clips)
+  python run_kids_short.py --out build/kids/test          # alles erzeugen, kein Upload
+  python run_kids_short.py --upload --private             # Upload privat (Testlauf)
+  python run_kids_short.py --upload --publish-at 2026-10-04T14:00:00Z   # geplante Veröffentlichung (UTC)
+  python run_kids_short.py --upload --public              # sofort öffentlich
+  python run_kids_short.py --mail                         # zusätzlich Report-Mail per Gmail-API (GMAIL_REFRESH_TOKEN)
+  python run_kids_short.py --theme "kitten and a bouncing ball of yarn"   # Thema vorgeben
+
+Ergebnis: <out>/result.json (url, video_id, story, Kosten, QC), <out>/short.mp4, <out>/thumbnail.jpg,
+<out>/contact_sheet.jpg (Prüfbild), <out>/costs.json, <out>/story.json.
+Exit-Code 0 = fertig, 2 = Budget überschritten (nichts hochgeladen), 1 = anderer Fehler.
+"""
+import argparse
+import json
+import sys
+import time
+import traceback
+from datetime import datetime, timezone
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+from PIL import Image
+
+from kids import config, costs, gemini, mail, render, story as story_mod, veo
+from kids import youtube as yt
+
+BERLIN = ZoneInfo("Europe/Berlin")
+
+
+def log(msg: str) -> None:
+    print(f"[{datetime.now(BERLIN).strftime('%H:%M:%S')}] {msg}", flush=True)
+
+
+def dry_clip(out: Path, color: str, seconds: int = 8) -> Path:
+    """Platzhalter-Clip mit Ton (ohne API) für Trockenläufe."""
+    import subprocess
+    out.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                    "-f", "lavfi", "-i", f"color=c={color}:s=1080x1920:r=30:d={seconds}",
+                    "-f", "lavfi", "-i", f"sine=frequency=440:duration={seconds}",
+                    "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest", str(out)], check=True)
+    return out
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--out", default=None)
+    ap.add_argument("--theme", default=None)
+    ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--upload", action="store_true")
+    ap.add_argument("--private", action="store_true")
+    ap.add_argument("--public", action="store_true")
+    ap.add_argument("--publish-at", default=None, help="RFC3339 UTC, z. B. 2026-10-04T14:00:00Z")
+    ap.add_argument("--publish-local", default=None, help="Uhrzeit Europe/Berlin HEUTE, z. B. 16:00 (wird in UTC umgerechnet)")
+    ap.add_argument("--mail", action="store_true", help="Report per Gmail-API senden (GMAIL_REFRESH_TOKEN)")
+    ap.add_argument("--no-music", action="store_true")
+    args = ap.parse_args()
+
+    today = datetime.now(BERLIN).strftime("%Y-%m-%d")
+    if args.publish_local:
+        hh, mm = (int(x) for x in args.publish_local.split(":"))
+        local = datetime.now(BERLIN).replace(hour=hh, minute=mm, second=0, microsecond=0)
+        if local < datetime.now(BERLIN):
+            local = local.replace(minute=min(59, datetime.now(BERLIN).minute + 2))  # Zeit schon vorbei → in 2 Minuten
+        args.publish_at = local.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        args.upload = True
+    out = Path(args.out or (config.BUILD / today))
+    out.mkdir(parents=True, exist_ok=True)
+    costs.start(out / "costs.json")
+    t0 = time.time()
+    result: dict = {"date": today, "out": str(out), "warnings": [], "dry_run": args.dry_run}
+
+    est = costs.estimate(standard=True, retries=config.MAX_CLIP_RETRIES)
+    log(f"Kostenvoranschlag: {est['usd']:.2f} $ ≈ {est['eur']:.2f} € (Budget {config.BUDGET_USD:.2f} $)")
+    for ln in est["lines"]:
+        log("  - " + ln)
+    if est["usd"] > config.BUDGET_USD:
+        result["warnings"].append("Voranschlag über Budget – Lauf kann vorzeitig abbrechen")
+
+    try:
+        # 1) Bisherige Titel (keine Wiederholung)
+        used: list[str] = []
+        if not args.dry_run:
+            try:
+                used = yt.uploaded_titles()
+                log(f"{len(used)} bisherige Uploads gelesen")
+            except Exception as e:  # noqa: BLE001
+                result["warnings"].append(f"Upload-Liste nicht lesbar: {e}")
+
+        # 2) Story
+        if args.dry_run:
+            st = json.loads((config.ROOT / "kids" / "example_story.json").read_text())
+            if args.theme:
+                st["theme"] = args.theme
+        else:
+            st = story_mod.create(used, theme=args.theme)
+        (out / "story.json").write_text(json.dumps(st, indent=2, ensure_ascii=False))
+        result["story"] = st
+        log(f"Story: {st['title']}  |  Figur: {st['character']['name']} ({st['character']['species']})")
+
+        # 3) Bilder: Charakter-Sheet, Keyframe 1, Endframe-Vorgabe (Loop), Thumbnail
+        if args.dry_run:
+            sheet = Image.new("RGB", (1024, 1024), (240, 220, 180))
+            kf1 = Image.new("RGB", (1080, 1920), (180, 220, 255))
+            thumb_art = kf1
+        else:
+            sheet = gemini.image(story_mod.character_sheet_prompt(st), aspect="1:1", out=out / "character_sheet.png")
+            kf1 = gemini.image(story_mod.keyframe_prompt(st, 0), aspect="9:16", references=[sheet],
+                               out=out / "keyframe_1.png")
+            thumb_art = gemini.image(story_mod.thumbnail_prompt(st), aspect="9:16", pro=True, references=[sheet, kf1],
+                                     out=out / "thumbnail_art.png")
+        render.make_thumbnail(thumb_art, out / "thumbnail.jpg")
+        log("Charakter-Sheet, Keyframe und Thumbnail fertig")
+
+        # 4) Veo-Clips (Clip 2 startet mit dem letzten Bild von Clip 1 und soll auf Keyframe 1 enden → Loop)
+        c1, c2 = out / "clip_1.mp4", out / "clip_2.mp4"
+        if args.dry_run:
+            dry_clip(c1, "skyblue")
+            dry_clip(c2, "pink")
+        else:
+            veo.generate_clip(story_mod.veo_prompt(st, 0), c1, first_frame=kf1, references=[sheet])
+            log(f"Clip 1 fertig ({veo.current_model()})")
+            lf = Image.open(render.last_frame(c1, out / "clip_1_last.png"))
+            try:
+                veo.generate_clip(story_mod.veo_prompt(st, 1), c2, first_frame=lf, references=[sheet], last_frame=kf1)
+            except Exception as e:  # noqa: BLE001
+                result["warnings"].append(f"Clip 2 ohne Loop-Endbild erzeugt: {str(e)[:120]}")
+                veo.generate_clip(story_mod.veo_prompt(st, 1), c2, first_frame=lf, references=[sheet])
+            log("Clip 2 fertig")
+        result["veo_model"] = veo.current_model() or ("dry-run" if args.dry_run else "")
+
+        # 5) Musikbett
+        music = None
+        if not args.no_music:
+            music = out / "music.mp3"
+            if args.dry_run:
+                import subprocess
+                subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi",
+                                "-i", "sine=frequency=660:duration=16", "-c:a", "libmp3lame", str(music)], check=True)
+            else:
+                try:
+                    gemini.lyria(f"{st['music']} Instrumental, no vocals, playful, light, bouncy, ukulele, "
+                                 f"glockenspiel, pizzicato strings, children's cartoon, happy, 20 seconds, "
+                                 f"clean start, loopable.", music)
+                except Exception as e:  # noqa: BLE001
+                    result["warnings"].append(f"Musikbett übersprungen: {str(e)[:120]}")
+                    music = None
+
+        # 6) Schnitt + QC
+        final = render.assemble(c1, c2, music, out / "short.mp4")
+        q = render.qc(final, min_bytes=10_000 if args.dry_run else 500_000)
+        render.contact_sheet(final, out / "contact_sheet.jpg")
+        result["qc"] = q
+        if not q["ok"]:
+            raise RuntimeError("QC fehlgeschlagen: " + "; ".join(q["reasons"]))
+        log(f"Short fertig: {final} ({q['duration']:.2f} s)")
+
+        # 7) Upload
+        if args.upload and not args.dry_run:
+            privacy = "public" if args.public else "private"
+            vid = yt.upload(final, st["title"], st["description"], st["tags"], privacy=privacy,
+                            publish_at=args.publish_at)
+            try:
+                yt.set_thumbnail(vid, out / "thumbnail.jpg")
+            except Exception as e:  # noqa: BLE001
+                result["warnings"].append(f"Thumbnail nicht gesetzt: {str(e)[:120]}")
+            s = yt.status(vid).get("status", {})
+            result.update({"video_id": vid, "url": f"https://www.youtube.com/shorts/{vid}",
+                           "privacy": s.get("privacyStatus", privacy), "publish_at": s.get("publishAt", args.publish_at)})
+            when = args.publish_at
+            if when:
+                dt = datetime.fromisoformat(when.replace("Z", "+00:00")).astimezone(BERLIN)
+                result["published_at_local"] = dt.strftime("%d.%m.%Y %H:%M") + " (geplant)"
+            else:
+                result["published_at_local"] = datetime.now(BERLIN).strftime("%d.%m.%Y %H:%M")
+            log(f"Hochgeladen: {result['url']} ({result['privacy']})")
+        result["status"] = "ok"
+        rc = 0
+    except costs.BudgetExceeded as e:
+        result.update({"status": "budget_exceeded", "error": str(e)})
+        log(f"ABBRUCH: {e}")
+        rc = 2
+    except Exception as e:  # noqa: BLE001
+        result.update({"status": "error", "error": str(e), "trace": traceback.format_exc()[-2000:]})
+        log(f"FEHLER: {e}")
+        rc = 1
+
+    result.update({"cost_usd": costs.total_usd(), "cost_eur": costs.eur(costs.total_usd()),
+                   "cost_report": costs.report(), "elapsed_min": (time.time() - t0) / 60,
+                   "finished_utc": datetime.now(timezone.utc).isoformat()})
+    (out / "result.json").write_text(json.dumps(result, indent=2, ensure_ascii=False))
+    log(result["cost_report"])
+
+    if args.mail and mail.available():
+        try:
+            subj = (f"[Kids-Short] {today} – {'online' if rc == 0 and result.get('url') else result['status']}")
+            body = mail.report_text(result) if rc == 0 else f"Lauf {today}: {result['status']}\n\n{result.get('error', '')}\n\n{result['cost_report']}"
+            mail.send(subj, body)
+            log("Report-Mail gesendet")
+        except Exception as e:  # noqa: BLE001
+            log(f"Report-Mail fehlgeschlagen: {e}")
+    return rc
+
+
+if __name__ == "__main__":
+    sys.exit(main())
