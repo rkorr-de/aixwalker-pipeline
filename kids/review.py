@@ -56,26 +56,70 @@ def review_video(video: Path, story: dict, contact_sheet: Path | None = None) ->
     return r
 
 
-def place_sounds(clip: Path, story: dict) -> list[dict]:
-    """Die KI schaut den (stummen) Clip an und legt Geräusche aus der Bibliothek genau auf sichtbare Aktionen."""
+def _length(f: Path) -> float:
+    out = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(f)],
+                         capture_output=True, text=True).stdout.strip()
+    return float(out or 1.0)
+
+
+def place_sounds(clip: Path, story: dict, total: float = config.SHORT_SEC) -> list[dict]:
+    """Die KI schaut den (stummen) Clip mit 8 Bildern/s an und legt Geräusche aus der Bibliothek auf die
+    Zehntelsekunde genau auf sichtbare Aktionen. Jedes Geräusch klingt vor dem Ende vollständig aus."""
     lib = sfx_library.available()
+    lens = {k: _length(sfx_library.path(k)) for k in lib}
     small = clip.with_name("sfx_preview.mp4")
     subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(clip), "-vf", "scale=540:-2",
                     "-an", "-c:v", "libx264", "-crf", "28", "-preset", "veryfast", str(small)], check=True)
+    latest = total - 0.6
+    lib_txt = {k: f"{v} ({lens[k]:.1f} s long)" for k, v in lib.items()}
     prompt = (
         f"You are the sound designer of a gentle toddler cartoon. Story: {story.get('summary', '')}\n"
-        f"Watch the attached silent video and place 4–7 sound effects from this LIBRARY exactly when the matching "
-        f"action is visible (footsteps while walking, thud when something lands, idea when the solution starts, "
-        f"tada/sparkle/clap at the happy end, at least one cute animal sound such as squeak_happy, chirp_happy, "
-        f"coo or purr when the character reacts). At least 1 second between cues. Keep it calm – fewer is better "
-        f"than too many.\nLIBRARY: {json.dumps(lib)}\n"
-        'Answer as JSON: {"cues": [{"second": 1.5, "sound": "footsteps", "why": "..."}]}'
+        "Watch the attached silent video frame by frame (8 frames per second) and place 4–6 sound effects from this "
+        "LIBRARY so that each one starts EXACTLY on the frame where the matching action happens. Give times with "
+        "0.1 s precision (e.g. 3.4), never just round seconds.\n"
+        "- footsteps only while a character is visibly walking; thud exactly when something touches down; idea "
+        "exactly when a character visibly gets the idea (eyes widen, points)\n"
+        "- animal sounds (squeak_happy, chirp_happy, coo, purr) ONLY on a frame where that character's mouth "
+        "visibly opens or it clearly reacts – otherwise do not use animal sounds\n"
+        f"- exactly one success sound (tada or sparkle) when the goal is reached; every sound must END before "
+        f"{latest:.1f} s, i.e. start + length ≤ {latest:.1f}\n"
+        "- at least 1 s between cues; calm is better than busy\n"
+        f"LIBRARY: {json.dumps(lib_txt)}\n"
+        'Answer as JSON: {"cues": [{"second": 3.4, "sound": "footsteps", "why": "visible action at that frame"}]}'
     )
-    r = gemini.text_json(prompt, "Answer ONLY with valid JSON.", temperature=0.2, model=config.CRITIC_MODEL,
-                         media=[("video/mp4", small.read_bytes())])
-    cues = [{"second": round(float(c["second"]), 2), "sound": c["sound"]} for c in r.get("cues", [])
-            if c.get("sound") in lib and 0 <= float(c.get("second", -1)) <= 14.5]
-    return sorted(cues, key=lambda c: c["second"])[:8]
+    r = gemini.text_json(prompt, "Answer ONLY with valid JSON.", temperature=0.1, model=config.CRITIC_MODEL,
+                         media=[("video/mp4", small.read_bytes())], video_fps=8)
+    cues = []
+    for c in r.get("cues", []):
+        k = c.get("sound")
+        try:
+            t = float(c.get("second", -1))
+        except (TypeError, ValueError):
+            continue
+        if k not in lib or t < 0:
+            continue
+        t = min(t, latest - lens[k])          # sonst wird das Geräusch am Ende abgeschnitten (fehlendes Ta-da)
+        if t >= 0:
+            cues.append({"second": round(t, 2), "sound": k, "why": c.get("why", "")})
+    return sorted(cues, key=lambda c: c["second"])[:7]
+
+
+def check_sync(video: Path, cues: list[dict]) -> dict:
+    """Prüft im fertigen Video (mit Ton, 8 Bilder/s), ob jedes Geräusch zur sichtbaren Aktion passt."""
+    small = video.with_name("sync_preview.mp4")
+    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(video), "-vf", "scale=540:-2",
+                    "-c:v", "libx264", "-crf", "28", "-preset", "veryfast", "-c:a", "aac", "-b:a", "96k", str(small)],
+                   check=True)
+    prompt = (
+        f"Planned sound cues: {json.dumps(cues)}\nWatch and LISTEN to the attached video (8 frames per second). "
+        "For each cue: is it audible, and does it start within 0.2 s of the matching visible action? Is the final "
+        "success sound fully audible before the end? "
+        'Answer as JSON: {"cues": [{"second": n, "sound": "...", "audible": true/false, "in_sync": true/false, '
+        '"better_second": n}], "all_good": true/false}'
+    )
+    r = gemini.text_json(prompt, "Answer ONLY with valid JSON.", temperature=0.1, model=config.CRITIC_MODEL,
+                         media=[("video/mp4", small.read_bytes())], video_fps=8)
+    return r[0] if isinstance(r, list) and r else r
 
 
 if __name__ == "__main__":

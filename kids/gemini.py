@@ -55,7 +55,7 @@ def _find(obj, key_candidates, mime_prefix):
 
 
 def text(prompt: str, system: str = "", json_mode: bool = True, temperature: float = 1.0,
-         model: str | None = None, media: list[tuple[str, bytes]] | None = None) -> str:
+         model: str | None = None, media: list[tuple[str, bytes]] | None = None, video_fps: float | None = None) -> str:
     """Textaufruf; bei json_mode wird die Antwort als reines JSON angefordert.
 
     `model` = anderes Modell (z. B. config.CRITIC_MODEL), `media` = [(mime, bytes)] für Bild-/Videoprüfung.
@@ -63,7 +63,12 @@ def text(prompt: str, system: str = "", json_mode: bool = True, temperature: flo
     key = "text_call_pro" if model and model != config.TEXT_MODEL else "text_call"
     costs.ensure_budget(key)
     url = f"{config.GEMINI_BASE}/models/{model or config.TEXT_MODEL}:generateContent"
-    parts = [{"inlineData": {"mimeType": m, "data": base64.b64encode(b).decode()}} for m, b in media or []]
+    parts = []
+    for m, b in media or []:
+        part = {"inlineData": {"mimeType": m, "data": base64.b64encode(b).decode()}}
+        if video_fps and m.startswith("video/"):
+            part["videoMetadata"] = {"fps": video_fps}   # Standard ist 1 Bild/s – für genaue Zeiten mehr
+        parts.append(part)
     parts.append({"text": prompt})
     body = {"contents": [{"role": "user", "parts": parts}],
             "generationConfig": {"temperature": temperature}}
@@ -81,8 +86,8 @@ def text(prompt: str, system: str = "", json_mode: bool = True, temperature: flo
 
 
 def text_json(prompt: str, system: str = "", temperature: float = 1.0, model: str | None = None,
-              media: list[tuple[str, bytes]] | None = None) -> dict:
-    raw = text(prompt, system, True, temperature, model=model, media=media)
+              media: list[tuple[str, bytes]] | None = None, video_fps: float | None = None) -> dict:
+    raw = text(prompt, system, True, temperature, model=model, media=media, video_fps=video_fps)
     raw = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.M).strip()
     return json.loads(raw)
 

@@ -179,8 +179,27 @@ def main() -> int:
                     music = None
 
         # 6) Schnitt + QC
-        final = (render.assemble_single(c1, sfx, music, out / "short.mp4") if kling
-                 else render.assemble(c1, c2, music, out / "short.mp4"))
+        if kling:
+            final = render.assemble_single(c1, sfx, music, out / "short.mp4")
+            try:   # Abgleich prüfen; verrutschte Geräusche einmal auf die vorgeschlagene Zeit setzen
+                chk = review.check_sync(final, st.get("sfx_cues", []))
+                result["sound_sync"] = chk
+                fixed, changed = [], False
+                for c, k in zip(st.get("sfx_cues", []), chk.get("cues", [])):
+                    if not k.get("in_sync") and isinstance(k.get("better_second"), (int, float)):
+                        c = {**c, "second": round(float(k["better_second"]), 2)}
+                        changed = True
+                    fixed.append(c)
+                if changed:
+                    st["sfx_cues"] = fixed
+                    sfx = [(sfx_library.path(c["sound"]), c["second"]) for c in fixed if sfx_library.path(c["sound"])]
+                    final = render.assemble_single(c1, sfx, music, out / "short.mp4")
+                    log("Geräusche nachjustiert")
+                log(f"Ton-Abgleich: {'alles synchron' if chk.get('all_good') else 'nachjustiert'}")
+            except Exception as e:  # noqa: BLE001
+                result["warnings"].append(f"Ton-Abgleich übersprungen: {str(e)[:120]}")
+        else:
+            final = render.assemble(c1, c2, music, out / "short.mp4")
         q = render.qc(final, min_bytes=10_000 if args.dry_run else 500_000)
         render.contact_sheet(final, out / "contact_sheet.jpg")
         result["qc"] = q
