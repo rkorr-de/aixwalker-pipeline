@@ -1,4 +1,5 @@
-"""Google Drive: pro Mix ein neuer Ordner unter „AIX WALKER Mixe“, dort ZIP, Album-Cover, Metadaten.
+"""Google Drive: pro Mix ein neuer Ordner unter „AIX WALKER Mixe“ (MP3s, Cover, Video, Thumbnails, Metadaten, Shorts)
+sowie der Unterordner _memory mit dem Gedächtnis des Planers (memory.json, Konzepte, Berichte).
 
 Gleicher OAuth-Client wie YouTube, aber eigenes Refresh-Token DRIVE_REFRESH_TOKEN (Scope drive.file: nur Dateien,
 die diese App selbst anlegt). Google erlaubt YouTube- und Drive-Scopes nicht in einer gemeinsamen Freigabe, daher
@@ -71,3 +72,32 @@ def upload_mix_package(folder_name: str, files: list[Path], subfolders: dict[str
 if __name__ == "__main__":
     import sys
     print(upload_mix_package("Test " + sys.argv[1] if len(sys.argv) > 1 else "Test", [Path("README.md")]))
+
+
+# --- kleine Dateien (JSON/Text) lesen und ersetzen: für das Gedächtnis des Planers (_memory/memory.json) ---
+
+def find_file(svc, name: str, parent: str) -> str | None:
+    q = (f"name = '{name.replace(chr(39), chr(92) + chr(39))}' and '{parent}' in parents "
+         f"and mimeType != '{FOLDER_MIME}' and trashed = false")
+    res = svc.files().list(q=q, fields="files(id,name)", pageSize=5).execute().get("files", [])
+    return res[0]["id"] if res else None
+
+
+def read_text(svc, file_id: str) -> str:
+    return svc.files().get_media(fileId=file_id).execute().decode("utf-8")
+
+
+def write_text(svc, name: str, text: str, parent: str, mime: str = "application/json") -> str:
+    """Legt die Datei an oder ersetzt ihren Inhalt (gleiche ID bleibt erhalten). Liefert die Datei-ID."""
+    from googleapiclient.http import MediaInMemoryUpload
+    media = MediaInMemoryUpload(text.encode("utf-8"), mimetype=mime, resumable=False)
+    fid = find_file(svc, name, parent)
+    if fid:
+        svc.files().update(fileId=fid, media_body=media).execute()
+        return fid
+    return svc.files().create(body={"name": name, "parents": [parent]}, media_body=media, fields="id").execute()["id"]
+
+
+def memory_folder(svc) -> str:
+    from . import config
+    return ensure_folder(svc, config.MEMORY_FOLDER, ensure_folder(svc, ROOT_FOLDER))

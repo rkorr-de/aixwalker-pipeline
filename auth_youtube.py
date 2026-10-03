@@ -11,7 +11,12 @@ Google Drive (eigene Freigabe, weil Google YouTube- und Drive-Scopes nicht zusam
   python auth_youtube.py token drive "<komplette localhost-Adresse>"
   Ausgabe: DRIVE_REFRESH_TOKEN=…
 
-Beide Zeilen in die Umgebungsvariablen (Umgebung AixWalker) eintragen.
+Gmail (Bericht nach jedem Mix per E-Mail, Scope gmail.send):
+  python auth_youtube.py url gmail
+  python auth_youtube.py token gmail "<komplette localhost-Adresse>"
+  Ausgabe: GMAIL_REFRESH_TOKEN=…
+
+Alle Zeilen in die Umgebungsvariablen (Umgebung AixWalker) eintragen.
 """
 import sys
 import urllib.parse
@@ -19,7 +24,7 @@ import urllib.parse
 import requests
 
 from pipeline import config
-from pipeline.youtube import DRIVE_SCOPES, SCOPES
+from pipeline.youtube import DRIVE_SCOPES, GMAIL_SCOPES, SCOPES
 
 REDIRECT = "http://localhost:1"
 
@@ -44,11 +49,12 @@ def exchange(redirected_url: str) -> str:
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    drive = "drive" in args
-    args = [a for a in args if a != "drive"]
+    kind = "drive" if "drive" in args else "gmail" if "gmail" in args else "yt"
+    args = [a for a in args if a not in ("drive", "gmail")]
+    scopes = {"drive": DRIVE_SCOPES, "gmail": GMAIL_SCOPES, "yt": SCOPES}[kind]
     if args and args[0] == "url":
-        print(auth_url(DRIVE_SCOPES if drive else SCOPES))
+        print(auth_url(scopes))
     elif len(args) >= 2 and args[0] == "token":
-        print(f"{'DRIVE' if drive else 'YT'}_REFRESH_TOKEN={exchange(args[1])}")
+        print(f"{kind.upper()}_REFRESH_TOKEN={exchange(args[1])}")
     else:
         print(__doc__)

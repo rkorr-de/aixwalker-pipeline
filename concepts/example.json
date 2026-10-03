@@ -1,99 +1,198 @@
 {
-  "slug": "iron-focus-vol1",
-  "album": "Iron Focus Vol. 1",
+  "album": "Iron Canvas",
   "genre": "Slow Gym Beats",
-  "bpm": 80,
-  "mood": "dark, heavy, hypnotic, focused",
+  "bpm": 90,
+  "mood": "dark, heavy, hypnotic, gritty, rhythmic",
+  "purpose": "late-night gym",
+  "sound_design": "Heavy sub-bass pulses locked to a dragging 90 BPM groove, saturated kick drums, and metallic percussion elements echoing in a large hall. Hypnotic synth textures and low-register brass stabs create a relentless, gritty atmosphere perfect for maintaining focus.",
   "playlist": "gym",
   "minutes_per_track": 5,
   "min_minutes": 60,
   "tracks": [
     {
-      "title": "Beneath the Bar",
-      "variation": "deep 808 sub bass, sparse hi-hats, distant industrial atmosphere"
+      "title": "Alloy Awakening",
+      "variation": "Muffled 808 kicks and distant metallic clangs to build anticipation."
     },
     {
-      "title": "Cold Iron",
-      "variation": "metallic percussion, slow pulsing bass, dark pads"
+      "title": "Brass Knuckles",
+      "variation": "A slow, driving beat driven by a distorted sub-bass."
     },
     {
-      "title": "Weighted Breath",
-      "variation": "breathing rhythm, heavy kick, brooding synth drone"
+      "title": "Canvas Echo",
+      "variation": "Sparse percussion with heavy reverb and a booming bassline."
+    },
+    {
+      "title": "Drip Grind",
+      "variation": "Foley recordings of rain blended with saturated 808 hits."
+    },
+    {
+      "title": "Endurance Lock",
+      "variation": "A hypnotic, repetitive synth arpeggio over a steady 90 BPM groove."
+    },
+    {
+      "title": "Floor Work",
+      "variation": "Gritty, low-end sub frequencies paired with syncopated hi-hats."
+    },
+    {
+      "title": "Grit Protocol",
+      "variation": "Aggressive, low-register brass stabs creating a menacing vibe."
+    },
+    {
+      "title": "Heavy Bag",
+      "variation": "Extremely punchy kick drums and overdrive bass tones."
+    },
+    {
+      "title": "Iron Resolve",
+      "variation": "Distorted snare drum impacts echoing over a deep drone."
+    },
+    {
+      "title": "Jab Cross",
+      "variation": "Sharp, rhythmic synth hits bouncing against a syncopated bassline."
+    },
+    {
+      "title": "Kinetic Impact",
+      "variation": "Peak energy with driving 16th-note sub pulses and heavy claps."
+    },
+    {
+      "title": "Leather And Sweat",
+      "variation": "Heavily filtered drum breaks over a thick, static low-end."
+    },
+    {
+      "title": "Midnight Spar",
+      "variation": "Ominous, detuned bells layering a heavy, trap-influenced beat."
+    },
+    {
+      "title": "Neon Drops",
+      "variation": "A subtle teal-synesthetic synth lead contrasting with dark rain textures."
+    },
+    {
+      "title": "Overhand Hook",
+      "variation": "Crushing, slow kick drums creating a heavy, swaggering rhythm."
+    },
+    {
+      "title": "Pacing Shadows",
+      "variation": "A rolling bassline interacting with industrial, metallic claps."
+    },
+    {
+      "title": "Quartz Grit",
+      "variation": "Tense staccato strings layered over a heavy, dragging groove."
+    },
+    {
+      "title": "Rain Ring",
+      "variation": "Cooling down with atmospheric pads over a steady, unyielding beat."
+    },
+    {
+      "title": "Steadfast Stance",
+      "variation": "Deep low-end rumble paired with sparse, echoing drum hits."
+    },
+    {
+      "title": "Training Grounds",
+      "variation": "Fading energy featuring long synth washes and a slow, methodical kick."
     }
   ],
   "extra_tracks": [
     {
-      "title": "Zero Hour",
-      "variation": "slow build from silence, rising sub bass, minimal percussion"
+      "title": "Undisputed Dark",
+      "variation": "A deep reese bass sweeping under a minimalistic, tight beat."
     },
     {
-      "title": "Zone Out",
-      "variation": "hypnotic loop, muted kick, long reverb tails"
+      "title": "Vault Echoes",
+      "variation": "Reverb-heavy claps and a slow drone emphasizing the acoustic space."
+    },
+    {
+      "title": "Weight Room Shadows",
+      "variation": "Industrial percussion elements striking against a gritty synth pad."
+    },
+    {
+      "title": "Wet Asphalt",
+      "variation": "A continuous rain soundscape enveloping a muffled, distant kick drum."
+    },
+    {
+      "title": "Xenon Glow",
+      "variation": "A glowing, teal-accented synth melody anchoring a heavy 808 bass."
+    },
+    {
+      "title": "Yield No Ground",
+      "variation": "Aggressive brass blasts enforcing a rigid, syncopated rhythm."
+    },
+    {
+      "title": "Zenith Strike",
+      "variation": "Epic low horns and a slow marching beat for a cinematic feel."
+    },
+    {
+      "title": "Zone Entry",
+      "variation": "Hypnotic, descending arpeggios locking into a steady sub-bass."
     }
   ],
-  "art_prompt": "Close-up of a loaded barbell resting on a rack in a dark industrial gym, chalk dust in a shaft of cold light, wet concrete floor reflecting teal light.",
-  "thumbnail_prompt": "Athletic man from behind, shoulders and back, gripping a heavy barbell in a dark industrial gym, dramatic rim light, chalk dust.",
-  "thumbnail_headline": "IRON FOCUS",
-  "thumbnail_sub": "80 BPM · 60 MIN",
-  "yt_title": "Slow Gym Beats · 60 Min · Heavy Lifting Focus (80 BPM) – Iron Focus Vol. 1",
-  "hook": "60 minutes of slow, heavy gym beats at 80 BPM – built for squats, deadlifts and the moment before the set.",
-  "intro": "No EDM screeching, no vocals. Deep sub bass, dark ambient textures and a steady groove that locks you into tunnel vision.",
-  "use_line": "💪 Perfect for: leg day, deadlifts, stairmaster, push/pull/legs, late-night sessions",
-  "cta_question": "Which track pushes you the hardest? Let me know in the comments.",
+  "visual": {
+    "motif_family": "boxing gym",
+    "motif": "worn heavy punching bag in an empty gym",
+    "light": "rain and streetlight"
+  },
+  "art_prompt": "Photorealistic, cinematic view inside a gritty, empty boxing gym at night. An old heavy bag hangs in the center, illuminated by cold teal streetlight shining through rain-streaked windows. Dark, heavy atmosphere, high contrast, deep shadows, no people, no text, no letters, no logos.",
+  "thumbnail_prompt": "16:9 cinematic shot. The right third features a worn heavy punching bag in a dark, empty boxing gym. Cold teal streetlight mixed with rain streaks casts dramatic shadows from a large window on the left. High contrast, atmospheric, late-night gritty vibe. No text, no logos.",
+  "thumbnail_headline": "Late Night Gym",
+  "yt_title": "Slow Gym Beats · {MIN} Min · Late Night (90 BPM) – Iron Canvas",
+  "hook": "Push through the late-night session with {HOURS} of heavy, hypnotic gym beats.",
+  "intro": "Experience relentless 90 BPM instrumentals designed for intense focus and heavy lifting. The gritty sub-bass and steady rhythms lock you into the zone when the rest of the world is asleep.",
+  "use_line": "🥊 Perfect for: late-night gym, heavy lifting, shadow boxing, focused training, deep work.",
+  "cta_question": "Which track gave you the best pump tonight?",
   "hashtags": [
-    "#GymMusic",
-    "#WorkoutMusic",
     "#SlowGymBeats",
-    "#DarkAmbient",
+    "#DarkWorkoutMusic",
+    "#GymMotivation",
+    "#90BPM",
     "#AixWalker"
   ],
   "tags": [
-    "gym music",
-    "workout music",
     "slow gym beats",
-    "80 bpm workout",
-    "dark workout music",
-    "deadlift music",
-    "heavy lifting music",
-    "gym playlist 2026",
-    "dark ambient gym",
-    "deep bass gym mix",
-    "focus music gym",
+    "late night workout music",
+    "dark gym music",
+    "boxing training music",
+    "heavy lifting beats",
+    "workout music 90 bpm",
+    "instrumental workout",
     "aixwalker",
-    "aix walker"
+    "aix walker",
+    "gym beats 2026",
+    "shadow boxing music",
+    "dark atmospheric beats",
+    "focus gym music",
+    "late night gym"
   ],
   "ab_titles": [
-    "Slow Gym Beats · 60 Min · Heavy Lifting Focus (80 BPM) – Iron Focus Vol. 1",
-    "IRON FOCUS 🏋️ 60 Min Dark Gym Beats for Heavy Lifting (80 BPM)",
-    "Heavy Lifting Music · 80 BPM · 1 Hour Slow Dark Gym Mix"
+    "Slow Gym Beats · {MIN} Min · Heavy Training (90 BPM) – Iron Canvas",
+    "Dark Workout Beats · {MIN} Min · Late Night Gym (90 BPM)",
+    "Late Night Gym · {HOURS} Dark Instrumental Beats (90 BPM)"
   ],
   "ab_thumbs": [
-    "HEAVY LIFTING",
-    "80 BPM PUMP"
+    "Focus And Lift",
+    "Dark Gym Beats"
   ],
   "short_overlays": [
-    "the drop before the set",
-    "tunnel vision"
+    "Late night grind",
+    "Push the limit"
   ],
   "short_titles": [
-    "Dark gym beats that lock you in before the set 🏋️ 80 BPM",
-    "Tunnel vision for heavy lifting 🔥 slow gym beats"
+    "Dark Gym Beats for Late Night Grinds 🥊",
+    "Heavy 90 BPM Beats to Keep You Focused 🌧️"
   ],
   "shorts": [
     {
-      "start": "03:10",
-      "end": "03:50",
-      "overlay": "the drop before the set",
-      "why": "Track 2 Intro mit stärkstem Bass-Einsatz"
+      "start": "12:30",
+      "end": "13:00",
+      "overlay": "Late night grind",
+      "why": "Starker Bass-Drop, ideal für Lifting-Clips"
     },
     {
-      "start": "06:40",
-      "end": "07:20",
-      "overlay": "tunnel vision",
-      "why": "ruhigster Teil, gut für Fokus-Clip"
+      "start": "45:15",
+      "end": "45:45",
+      "overlay": "Push the limit",
+      "why": "Hypnotischer Rhythmus, passend für repetitives Training"
     }
   ],
-  "title_de": "Iron Focus Vol. 1 – 60 Minuten Slow Gym Beats (80 BPM)",
-  "teaser_de": "Tiefer Bass, dunkle Flächen, 80 BPM – gemacht für schwere Sätze. Kein Gesang, keine Unterbrechung.",
-  "pinned_comment": "Which track is your favorite? Full tracklist with timestamps in the description 👇"
+  "title_de": "Iron Canvas – Langsame, dunkle Gym Beats (90 BPM)",
+  "teaser_de": "Harte, hypnotische Beats für dein Late-Night-Workout und maximalen Fokus.",
+  "pinned_comment": "What's your favourite track for heavy lifting? Let me know, timestamps are in the description!",
+  "slug": "iron-canvas-example"
 }
