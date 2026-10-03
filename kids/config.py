@@ -17,13 +17,13 @@ REPORT_EMAIL = os.environ.get("KIDS_REPORT_EMAIL", "rolf.korr@gmail.com")
 
 # ---- Modelle ----------------------------------------------------------------------------------------------------
 GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta"
-TEXT_MODEL = os.environ.get("KIDS_TEXT_MODEL", "gemini-2.5-flash")
+TEXT_MODEL = os.environ.get("KIDS_TEXT_MODEL", "gemini-3.8-flash")
 IMAGE_MODEL = os.environ.get("KIDS_IMAGE_MODEL", "gemini-2.5-flash-image")          # Nano Banana
 IMAGE_MODEL_PRO = os.environ.get("KIDS_IMAGE_MODEL_PRO", "gemini-3-pro-image-preview")  # Nano Banana Pro
 # Veo: erster Eintrag ist Standardqualität; die weiteren sind Ausweichmodelle, falls eines nicht freigeschaltet ist.
 VEO_MODELS = [m for m in os.environ.get(
     "KIDS_VEO_MODELS",
-    "veo-3.1-generate-preview,veo-3.1-fast-generate-preview,veo-3.0-generate-001,veo-3.0-fast-generate-001"
+    "veo-3.1-generate-preview,veo-3.1-fast-generate-preview,veo-3.1-lite-generate-preview"
 ).split(",") if m]
 VEO_CLIP_SEC = 8                 # Veo liefert 4/6/8 s; 2 × 8 s → 15 s nach Schnitt
 VEO_RESOLUTION = os.environ.get("KIDS_VEO_RESOLUTION", "1080p")
@@ -40,7 +40,8 @@ TARGET_LUFS = -14.0
 # ---- Kosten / Budget --------------------------------------------------------------------------------------------
 PRICES_USD = {
     "veo_sec_standard": 0.40,    # Veo 3.1 Standard, je Sekunde Video (mit Ton)
-    "veo_sec_fast": 0.15,        # Veo 3.1 Fast
+    "veo_sec_fast": 0.12,        # Veo 3.1 Fast (1080p)
+    "veo_sec_lite": 0.08,        # Veo 3.1 Lite (1080p)
     "image_flash": 0.039,
     "image_pro": 0.134,
     "lyria_track": 0.08,
@@ -55,8 +56,9 @@ BILLING_URL = "https://console.cloud.google.com/billing?project=bodydashboard-fd
 STYLE_BIBLE = (
     "Pixar-style 3D animated render, adorable chibi proportions with a big round head, oversized sparkling glossy "
     "eyes, tiny button nose, rosy cheeks, soft subsurface-scattering skin and fluffy fur, warm golden backlight, "
-    "glowing bokeh light particles, floating butterflies and fireflies, pastel saturated colors (sky blue, sunny "
-    "yellow, pink, lilac, fresh green), shallow depth of field, dreamy whimsical storybook mood, flower meadow "
+    "glowing bokeh light particles, floating butterflies and fireflies, vivid rich candy colors with rainbow "
+    "accents (bright sky blue, sunny yellow, bubblegum pink, lilac, lime green, tangerine), colorful detailed "
+    "background full of flowers and toys – never a plain beige, cream or grey background, shallow depth of field, dreamy whimsical storybook mood, flower meadow "
     "setting, vertical 9:16 composition, ultra detailed, high quality, no text, no letters, no watermark, no logo"
 )
 NEGATIVE_PROMPT = (

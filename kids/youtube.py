@@ -35,17 +35,31 @@ def uploaded_titles(max_items: int = 200) -> list[str]:
     return titles
 
 
+def fit_tags(tags: list[str], limit: int = 450) -> list[str]:
+    """YouTube erlaubt 500 Zeichen Tags gesamt; Tags mit Leerzeichen zählen mit Anführungszeichen, plus Kommas."""
+    out, used = [], 0
+    for t in tags:
+        t = t.strip().replace("<", "").replace(">", "")
+        if not t or len(t) > 100:
+            continue
+        cost = len(t) + (2 if " " in t else 0) + (1 if out else 0)
+        if used + cost > limit:
+            break
+        out.append(t)
+        used += cost
+    return out
+
+
 def upload(video: Path, title: str, description: str, tags: list[str], privacy: str = "private",
            publish_at: str | None = None) -> str:
     """Upload als „für Kinder“ + KI-Label. publish_at (RFC3339, UTC) = geplante Veröffentlichung."""
     body = {
-        "snippet": {"title": title[:100], "description": description[:5000], "tags": tags[:60],
-                    "categoryId": config.CATEGORY_ID, "defaultLanguage": config.DEFAULT_LANGUAGE,
-                    "defaultAudioLanguage": "zxx"},  # zxx = kein sprachlicher Inhalt
+        "snippet": {"title": title[:100], "description": description[:5000], "tags": fit_tags(tags),
+                    "categoryId": config.CATEGORY_ID, "defaultLanguage": config.DEFAULT_LANGUAGE},
+                    # kein defaultAudioLanguage: „zxx“ (keine Sprache) lehnt die API mit INVALID_REQUEST_METADATA ab
         "status": {"privacyStatus": "private" if publish_at else privacy,
                    "selfDeclaredMadeForKids": True,
-                   "containsSyntheticMedia": True,
-                   "license": "youtube", "embeddable": True},
+                   "containsSyntheticMedia": True},
     }
     if publish_at:
         body["status"]["publishAt"] = publish_at

@@ -16,11 +16,13 @@ SCHEMA = {
         "species": "z. B. baby hamster",
         "look": "sehr genaue Beschreibung von Körper, Fell/Haut, Farben, Augen, Kleidung/Accessoire – für Bildkonsistenz",
     },
-    "setting": "Ort/Tageszeit in dieser Welt (Blumenwiese, Licht, Requisiten)",
+    "setting": "Ort/Tageszeit in dieser Welt – farbenfroh (Blumenwiese, Spielzimmer, Licht, Requisiten), nie ein schlichter heller Hintergrund",
+    "goal": "was die Figur will und warum (1 Satz, für ein Kleinkind sofort verständlich)",
+    "logic": "warum die Lösung funktioniert: Ursache → Wirkung, nur mit Dingen, die in Shot 1 schon zu sehen sind",
     "shots": [
-        {"seconds": 8, "action": "Setup + Problem, 1–2 klare Aktionen, Kamera, Mimik, Bewegung in einfachen Worten",
+        {"seconds": 8, "action": "Ziel + Problem: Figur will etwas, ein Hindernis ist sichtbar, 1–2 klare Aktionen, Kamera, Mimik, Bewegung in einfachen Worten",
          "sounds": "welche Töne/Geräusche hörbar sind (keine Stimmen, keine Worte)", "ends_with": "Endbild dieses Shots"},
-        {"seconds": 8, "action": "Wendung + Pointe, endet auf dem Startbild von Shot 1 (Loop)",
+        {"seconds": 8, "action": "Lösung + Pointe: Figur löst das Problem auf logische Weise und erreicht das Ziel, endet auf dem Startbild von Shot 1 (Loop)",
          "sounds": "...", "ends_with": "..."},
     ],
     "music": "Lyria-Prompt: fröhlich, kindgerecht, instrumental, 15 Sekunden, Instrumente",
@@ -33,7 +35,10 @@ SCHEMA = {
 SYSTEM = (
     "You are a children's animation director and YouTube Shorts strategist. You write 15-second wordless stories "
     "for toddlers (age 1–5) in a Pixar-style 3D look: ultra cute original animal characters, bright pastel colors, "
-    "gentle slapstick, a tiny problem, a surprising solution, a happy ending. No speech, no dialogue, no text on "
+    "gentle slapstick and a story that MAKES SENSE: the character clearly wants something, a visible obstacle "
+    "blocks it, the character tries something, and the solution follows logically (cause and effect) from objects "
+    "already shown – then a happy ending where the goal is reached. Nothing random, every prop has a purpose. A "
+    "3-year-old must be able to retell it in one sentence ('the fish wanted X, so it did Y'). No speech, no dialogue, no text on "
     "screen, no scary moments, no real-world brands or known characters. Every shot must be simple enough for a "
     "video model: ONE character, ONE clear action per 4 seconds, camera at child eye level, character centered. "
     "Answer ONLY with valid JSON that matches the given schema."
@@ -82,12 +87,13 @@ def create(used_titles: list[str], theme: str | None = None, seed: int | None = 
         f"Date: {date.today().isoformat()}\n"
         f"Already published titles (do NOT repeat these stories or characters): {json.dumps(used_titles[-60:])}\n\n"
         f"Write the story as JSON with exactly this schema (same keys, English values):\n{json.dumps(SCHEMA, indent=1)}\n\n"
-        "Rules: 2 shots × 8 seconds. Shot 1 = setup + problem, Shot 2 = twist + payoff, and the final frame of shot 2 "
+        "Rules: 2 shots × 8 seconds. Shot 1 = goal + obstacle, Shot 2 = logical solution + payoff (goal reached), and the final frame of shot 2 "
         "must look like the first frame of shot 1 so the video loops seamlessly. Include a half-second pause before "
         "the payoff. Sounds are cartoon SFX and little animal noises only (squeaks, boings, plops, giggles) – never "
         "words. The title must make a parent click: emotion + the animal + what happens, one emoji, ends with #shorts. "
         "Description: first line = the story in one sentence, second line = who it is for (toddlers, calm, no talking), "
-        "then 6–10 search phrases parents use, then hashtags."
+        "then 6–10 search phrases parents use, then hashtags. Before answering, check: does the plot make sense "
+        "step by step? Is the goal reached at the end? Is the setting bright and colorful? If not, rewrite it."
     )
     last = None
     for _ in range(tries):
@@ -119,10 +125,11 @@ def keyframe_prompt(story: dict, shot_idx: int) -> str:
 def veo_prompt(story: dict, shot_idx: int) -> str:
     c = story["character"]
     shot = story["shots"][shot_idx]
+    why = f"Story logic: {story['goal']} {story['logic']} " if story.get("goal") else ""
     return (f"Pixar-style 3D animation, {c['name']} the {c['species']} ({c['look']}) in {story['setting']}. "
-            f"{shot['action']} Ends with: {shot['ends_with']}. Audio: {shot['sounds']} – cute cartoon sound effects "
+            f"{why}This shot: {shot['action']} Ends with: {shot['ends_with']}. Audio: {shot['sounds']} – cute cartoon sound effects "
             f"and soft animal noises only, absolutely no speech, no words, no singing. Smooth, gentle motion, "
-            f"expressive face, bright pastel colors, warm backlight, bokeh particles, shallow depth of field, "
+            f"expressive face, clear readable action, vivid rich candy colors, colorful detailed background, warm backlight, bokeh particles, shallow depth of field, "
             f"vertical 9:16, no text on screen.")
 
 

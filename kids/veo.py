@@ -30,6 +30,8 @@ def _b64(img: Image.Image) -> str:
 
 
 def _price_key(model: str) -> str:
+    if "lite" in model:
+        return "veo_sec_lite"
     return "veo_sec_fast" if "fast" in model else "veo_sec_standard"
 
 
@@ -44,7 +46,7 @@ def _start(model: str, prompt: str, first_frame: Image.Image | None, references:
         inst["referenceImages"] = [{"image": {"bytesBase64Encoded": _b64(r), "mimeType": "image/png"},
                                     "referenceType": "asset"} for r in references[:3]]
     params = {"aspectRatio": "9:16", "durationSeconds": config.VEO_CLIP_SEC, "negativePrompt": config.NEGATIVE_PROMPT,
-              "personGeneration": "dont_allow", "numberOfVideos": 1}
+              "personGeneration": "allow_adult"}   # Veo 3.1 Bild-zu-Video erlaubt nur diesen Wert
     if config.VEO_RESOLUTION and "3.1" in model:
         params["resolution"] = config.VEO_RESOLUTION
     url = f"{config.GEMINI_BASE}/models/{model}:predictLongRunning"
@@ -108,7 +110,7 @@ def generate_clip(prompt: str, out: Path, first_frame: Image.Image | None = None
             key = _price_key(model)
             costs.ensure_budget(key, config.VEO_CLIP_SEC)
             variants = []
-            if references:
+            if references and first_frame is None:   # Veo 3.1: Startbild + Referenzbilder → HTTP 400
                 variants.append(("mit Referenzbildern", references))
             variants.append(("ohne Referenzbilder", []))
             next_model = False
