@@ -17,7 +17,7 @@ REPORT_EMAIL = os.environ.get("KIDS_REPORT_EMAIL", "rolf.korr@gmail.com")
 
 # ---- Modelle ----------------------------------------------------------------------------------------------------
 GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta"
-TEXT_MODEL = os.environ.get("KIDS_TEXT_MODEL", "gemini-2.5-flash")
+TEXT_MODEL = os.environ.get("KIDS_TEXT_MODEL", "gemini-3.8-flash")
 IMAGE_MODEL = os.environ.get("KIDS_IMAGE_MODEL", "gemini-2.5-flash-image")          # Nano Banana
 IMAGE_MODEL_PRO = os.environ.get("KIDS_IMAGE_MODEL_PRO", "gemini-3-pro-image-preview")  # Nano Banana Pro
 # Veo: erster Eintrag ist Standardqualität; die weiteren sind Ausweichmodelle, falls eines nicht freigeschaltet ist.
