@@ -56,8 +56,9 @@ BILLING_URL = "https://console.cloud.google.com/billing?project=bodydashboard-fd
 STYLE_BIBLE = (
     "Pixar-style 3D animated render, adorable chibi proportions with a big round head, oversized sparkling glossy "
     "eyes, tiny button nose, rosy cheeks, soft subsurface-scattering skin and fluffy fur, warm golden backlight, "
-    "glowing bokeh light particles, floating butterflies and fireflies, pastel saturated colors (sky blue, sunny "
-    "yellow, pink, lilac, fresh green), shallow depth of field, dreamy whimsical storybook mood, flower meadow "
+    "glowing bokeh light particles, floating butterflies and fireflies, vivid rich candy colors with rainbow "
+    "accents (bright sky blue, sunny yellow, bubblegum pink, lilac, lime green, tangerine), colorful detailed "
+    "background full of flowers and toys – never a plain beige, cream or grey background, shallow depth of field, dreamy whimsical storybook mood, flower meadow "
     "setting, vertical 9:16 composition, ultra detailed, high quality, no text, no letters, no watermark, no logo"
 )
 NEGATIVE_PROMPT = (
