@@ -131,8 +131,6 @@ def _sanitize(story: dict) -> dict:
     desc = story.get("description", "").strip()
     if "#shorts" not in desc.lower():
         desc += "\n\n" + " ".join(config.HASHTAGS)
-    if config.DESCRIPTION_FOOTER not in desc:
-        desc = desc.rstrip() + "\n\n" + config.DESCRIPTION_FOOTER
     story["description"] = desc[:4800]
     assert len(story["shots"]) == 2, "genau 2 Shots erwartet"
     lib = sfx_library.available()
