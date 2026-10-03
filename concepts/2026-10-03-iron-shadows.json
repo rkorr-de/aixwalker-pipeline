@@ -1,0 +1,208 @@
+{
+  "album": "Iron Shadows",
+  "genre": "Slow Gym Beats",
+  "bpm": 90,
+  "mood": "dark, heavy, hypnotic, gritty, focused",
+  "purpose": "late-night gym",
+  "sound_design": "Slow, sluggish but driving 90 BPM rhythm with distorted 808s and tight industrial percussion mimicking gym equipment. Dissonant, hypnotic synth drones hover over deep sub-bass frequencies to create an intense tunnel-vision focus. The sonic space is tight and claustrophobic, pulling the listener deep into the workout.",
+  "playlist": "gym",
+  "minutes_per_track": 5,
+  "min_minutes": 60,
+  "tracks": [
+    {
+      "title": "Asphalt Arena",
+      "variation": "Subtle rain field recordings mixed with a muffled, pulsing sub-bass intro."
+    },
+    {
+      "title": "Brass Knuckles",
+      "variation": "Introduction of a metallic snare rimshot echoing in a large reverb space."
+    },
+    {
+      "title": "Chalk Dust",
+      "variation": "Dry, gritty hi-hat patterns with a slow, dragging off-beat rhythm."
+    },
+    {
+      "title": "Dead Weight",
+      "variation": "Deep, downward-pitching 808 kicks mimicking heavy physical thuds."
+    },
+    {
+      "title": "Empty Lungs",
+      "variation": "Breathing-like synth swells, rhythmic and highly compressed against the kick."
+    },
+    {
+      "title": "Focus Mitts",
+      "variation": "Snappy, tight percussion layered over a dissonant, droning minor chord."
+    },
+    {
+      "title": "Grim Stare",
+      "variation": "Minimalist arrangement driven entirely by a hypnotic, repeating one-note bassline."
+    },
+    {
+      "title": "Heavy Bag",
+      "variation": "Thick, distorted kick drums and rattling chain foley acting as percussion."
+    },
+    {
+      "title": "Iron Chin",
+      "variation": "Industrial synth stabs on the upbeats creating an aggressive forward momentum."
+    },
+    {
+      "title": "Jab Cross",
+      "variation": "Syncopated kick drum patterns playing against a steady, relentless ride cymbal."
+    },
+    {
+      "title": "Knockout Phase",
+      "variation": "Intense, guttural bass growls modulated slowly over repeating four-bar loops."
+    },
+    {
+      "title": "Leather Impact",
+      "variation": "Snare drums layered with physical slap-back delays and heavy tape saturation."
+    },
+    {
+      "title": "Midnight Sparring",
+      "variation": "Eerie, high-pitched teal-accented synth melody cutting through the dark low end."
+    },
+    {
+      "title": "No Mercy",
+      "variation": "Complex polyrhythmic sub-bass groove that demands physical movement and pacing."
+    },
+    {
+      "title": "Orthostatic Drop",
+      "variation": "Sudden drop in instrumentation mid-track, leaving only a ticking hi-hat and massive sub."
+    },
+    {
+      "title": "Pendulum Swing",
+      "variation": "Panning percussive elements moving rhythmically from the left to the right ear."
+    },
+    {
+      "title": "Quick Pivot",
+      "variation": "Stuttering drum fills and glitchy hi-hats breaking the slow tempo trance temporarily."
+    },
+    {
+      "title": "Ring Canvas",
+      "variation": "Stripped-back groove with muffled, lo-fi drum processing indicating the start of a cooldown."
+    },
+    {
+      "title": "Southpaw Shift",
+      "variation": "Reversed cymbal crashes leading into a smooth, rolling bassline to lower the heart rate."
+    },
+    {
+      "title": "Towel Thrown",
+      "variation": "Fading atmospheric drones with sparse, distant percussive knocks for the final landing."
+    }
+  ],
+  "extra_tracks": [
+    {
+      "title": "Ulnar Shock",
+      "variation": "Sharp, resonant synth plucks echoing over a steady 90 BPM kick drum."
+    },
+    {
+      "title": "Under Pressure",
+      "variation": "Claustrophobic, tight room reverb on the drums with a dominating sub-bass."
+    },
+    {
+      "title": "Venomous Hook",
+      "variation": "Sliding 808 basslines with heavy glide and subtle overdrive distortion."
+    },
+    {
+      "title": "Vicious Cycle",
+      "variation": "Looping, hypnotic arpeggio that slowly opens its filter over three full minutes."
+    },
+    {
+      "title": "Weight Of Iron",
+      "variation": "Slow, stomping groove with layered clanks of metal plates hitting on the two and four."
+    },
+    {
+      "title": "Xeno Form",
+      "variation": "Alien, futuristic sound design applied to classic drum machine samples."
+    },
+    {
+      "title": "Yielding Steel",
+      "variation": "Bending, detuned synth chords that create a feeling of melting metal."
+    },
+    {
+      "title": "Zenith Punch",
+      "variation": "Final massive crescendo of heavy brass-like synths and pounding kicks."
+    }
+  ],
+  "visual": {
+    "motif_family": "boxing gym",
+    "motif": "heavy bag hanging in an empty boxing gym",
+    "light": "rain and streetlight"
+  },
+  "art_prompt": "square album cover, photorealistic boxing gym interior at night, solitary heavy bag hanging from heavy chains in the center, dramatic teal streetlights piercing through rain-streaked windows casting long dark shadows, cinematic and gritty atmosphere, unpopulated, no text, no watermarks, no logos",
+  "thumbnail_prompt": "16:9 YouTube thumbnail, subject positioned on the RIGHT third, an old heavy bag wrapped in chains hanging in a dark boxing gym corner, illuminated by a vivid teal streetlight shining through wet windows, empty space on the left, cinematic lighting, gritty aesthetic, photorealistic, no text, no watermarks, no logos",
+  "thumbnail_headline": "LATE NIGHT GRIND",
+  "yt_title": "Slow Gym Beats · {MIN} Min · Late-Night Gym (90 BPM) – Iron Shadows",
+  "hook": "Step into the ring and find your ultimate focus with {HOURS} of hypnotic, heavy gym beats.",
+  "intro": "This mix delivers slow, heavy rhythms and dark industrial bass designed for total tunnel vision. The sluggish yet powerful 90 BPM tempo matches your heart rate during intense, focused sets, keeping you locked into the zone.",
+  "use_line": "🥊 Perfect for: late-night workouts, shadow boxing, heavy lifting, focused gym sessions, and zoning out.",
+  "cta_question": "Which track kept you pushing through your toughest set?",
+  "hashtags": [
+    "#SlowGymBeats",
+    "#WorkoutMusic",
+    "#LateNightGym",
+    "#DarkGymBeats",
+    "#AixWalker"
+  ],
+  "tags": [
+    "slow gym beats",
+    "dark workout music",
+    "boxing gym music",
+    "late night gym",
+    "heavy lifting music",
+    "hypnotic gym beats",
+    "90 bpm workout",
+    "dark athletic beats",
+    "instrumental gym music",
+    "focus workout mix",
+    "shadow boxing beats",
+    "aixwalker",
+    "aix walker"
+  ],
+  "ab_titles": [
+    "Slow Gym Beats · {MIN} Min · Night Workout (90 BPM) – Iron Shadows",
+    "Dark Gym Beats · {HOURS} · Heavy Focus (90 BPM) – Iron Shadows",
+    "Slow Gym Beats · {MIN} Min · Boxing Training (90 BPM) – Iron Shadows"
+  ],
+  "ab_thumbs": [
+    "GRIND IN SILENCE",
+    "TUNNEL VISION GYM"
+  ],
+  "short_overlays": [
+    "LATE NIGHT GYM",
+    "HEAVY BEATS ONLY"
+  ],
+  "short_titles": [
+    "Dark Gym Beats for Late Night Sessions 🥊",
+    "Slow 90 BPM Workout Music 🦾"
+  ],
+  "shorts": [
+    {
+      "start": "12:30",
+      "end": "13:30",
+      "overlay": "LATE NIGHT GRIND",
+      "why": "Der Drop hier ist extrem basslastig und zieht Zuschauer im Feed direkt in den Bann."
+    },
+    {
+      "start": "35:15",
+      "end": "36:15",
+      "overlay": "NO MERCY",
+      "why": "Hypnotischer Rhythmus, perfekt für schnelle Loops und hohe Retention im Short-Feed."
+    }
+  ],
+  "title_de": "Iron Shadows – Düstere Slow Gym Beats (90 BPM)",
+  "teaser_de": "Betritt das verlassene Boxing-Gym in der Nacht und finde deinen Rhythmus mit schweren, fokussierten Beats.",
+  "pinned_comment": "Which heavy beat gave you the best pump? Let me know your favorite timestamp below! 👇",
+  "slug": "2026-10-03-iron-shadows",
+  "_brief": {
+    "date": "2026-10-03",
+    "genre": "Slow Gym Beats",
+    "playlist": "gym",
+    "bpm": 90,
+    "purpose": "late-night gym",
+    "mood_hint": "dark, heavy, hypnotic",
+    "motif_family": "boxing gym",
+    "light": "rain and streetlight",
+    "last_genre": "Chillout Sleep"
+  }
+}
