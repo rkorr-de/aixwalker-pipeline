@@ -54,28 +54,45 @@ def _find(obj, key_candidates, mime_prefix):
     return None
 
 
-def text(prompt: str, system: str = "", json_mode: bool = True, temperature: float = 1.0) -> str:
-    """Textaufruf; bei json_mode wird die Antwort als reines JSON angefordert."""
-    costs.ensure_budget("text_call")
-    url = f"{config.GEMINI_BASE}/models/{config.TEXT_MODEL}:generateContent"
-    body = {"contents": [{"role": "user", "parts": [{"text": prompt}]}],
+def text(prompt: str, system: str = "", json_mode: bool = True, temperature: float = 1.0,
+         model: str | None = None, media: list[tuple[str, bytes]] | None = None, video_fps: float | None = None) -> str:
+    """Textaufruf; bei json_mode wird die Antwort als reines JSON angefordert.
+
+    `model` = anderes Modell (z. B. config.CRITIC_MODEL), `media` = [(mime, bytes)] für Bild-/Videoprüfung.
+    """
+    key = "text_call_pro" if model and model != config.TEXT_MODEL else "text_call"
+    costs.ensure_budget(key)
+    url = f"{config.GEMINI_BASE}/models/{model or config.TEXT_MODEL}:generateContent"
+    parts = []
+    for m, b in media or []:
+        part = {"inlineData": {"mimeType": m, "data": base64.b64encode(b).decode()}}
+        if video_fps and m.startswith("video/"):
+            part["videoMetadata"] = {"fps": video_fps}   # Standard ist 1 Bild/s – für genaue Zeiten mehr
+        parts.append(part)
+    parts.append({"text": prompt})
+    body = {"contents": [{"role": "user", "parts": parts}],
             "generationConfig": {"temperature": temperature}}
     if system:
         body["systemInstruction"] = {"parts": [{"text": system}]}
     if json_mode:
         body["generationConfig"]["responseMimeType"] = "application/json"
-    data = _post(url, body, timeout=120)
-    costs.count("text_call")
+    data = _post(url, body, timeout=300)
+    costs.count(key)
     try:
-        return data["candidates"][0]["content"]["parts"][0]["text"]
+        return "".join(p.get("text", "") for p in data["candidates"][0]["content"]["parts"]
+                       if not p.get("thought"))
     except (KeyError, IndexError) as e:
         raise RuntimeError(f"Gemini: keine Textantwort: {json.dumps(data)[:400]}") from e
 
 
-def text_json(prompt: str, system: str = "", temperature: float = 1.0) -> dict:
-    raw = text(prompt, system, True, temperature)
+def text_json(prompt: str, system: str = "", temperature: float = 1.0, model: str | None = None,
+              media: list[tuple[str, bytes]] | None = None, video_fps: float | None = None) -> dict:
+    raw = text(prompt, system, True, temperature, model=model, media=media, video_fps=video_fps)
     raw = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.M).strip()
-    return json.loads(raw)
+    data = json.loads(raw)
+    if isinstance(data, list) and len(data) == 1 and isinstance(data[0], dict):   # manchmal als [ {...} ] verpackt
+        data = data[0]
+    return data
 
 
 def image(prompt: str, aspect: str = "9:16", pro: bool = False, references: list[Image.Image] | None = None,

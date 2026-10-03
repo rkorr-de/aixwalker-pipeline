@@ -50,7 +50,7 @@ def report_text(result: dict) -> str:
         "",
         f"Tags: {', '.join(s.get('tags', [])[:15])}",
         "",
-        f"Kosten: {result.get('cost_usd', 0):.2f} $ ≈ {result.get('cost_eur', 0):.2f} € (Budget {config.BUDGET_USD:.0f} $) – Veo-Modell: {result.get('veo_model', '')}",
+        f"Kosten: {result.get('cost_usd', 0):.2f} $ ≈ {result.get('cost_eur', 0):.2f} € (Budget {config.BUDGET_USD:.0f} $) – Videomodell: {result.get('veo_model', '')}",
         f"Laufzeit: {result.get('elapsed_min', 0):.1f} min",
     ]
     if result.get("warnings"):

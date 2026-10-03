@@ -108,6 +108,77 @@ def assemble(clip1: Path, clip2: Path, music: Path | None, out: Path, total: flo
     return out
 
 
+def assemble_single(clip: Path, cues: list[tuple[Path, float]], music: Path | None, out: Path,
+                    total: float = config.SHORT_SEC) -> Path:
+    """Ein durchgehender Clip (Kling): auf `total` s kürzen; Musik als Hauptspur, darüber die Geräusche aus der
+    Bibliothek an ihren Sekunden (cues = [(datei, sekunde)]), −14 LUFS."""
+    out.parent.mkdir(parents=True, exist_ok=True)
+    w, h, fps = config.WIDTH, config.HEIGHT, config.FPS
+    inputs = ["-i", str(clip)]
+    fc = [f"[0:v]scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},fps={fps},format=yuv420p,setsar=1,"
+          f"trim=0:{total},setpts=PTS-STARTPTS,fade=t=out:st={total - 0.25:.2f}:d=0.25[vout]"]
+    parts, idx = [], 1
+    if has_audio(clip):
+        fc.append("[0:a]aformat=sample_rates=48000:channel_layouts=stereo[a0]")
+        parts.append("[a0]")
+    for n, (f, t) in enumerate(cues):
+        inputs += ["-i", str(f)]
+        ms = int(max(0.0, t) * 1000)
+        fc.append(f"[{idx}:a]aformat=sample_rates=48000:channel_layouts=stereo,volume={config.SFX_GAIN_DB}dB,"
+                  f"adelay={ms}|{ms}[fx{n}]")
+        parts.append(f"[fx{n}]")
+        idx += 1
+    if music and music.exists():
+        inputs += ["-stream_loop", "-1", "-i", str(music)]
+        fc.append(f"[{idx}:a]aformat=sample_rates=48000:channel_layouts=stereo,volume={config.MUSIC_BED_GAIN_DB}dB,"
+                  f"afade=t=in:d=0.3[mus]")
+        parts.append("[mus]")
+    if not parts:   # stille Tonspur, damit YouTube/QC eine Audiospur sehen
+        inputs += ["-f", "lavfi", "-t", str(total), "-i", "anullsrc=r=48000:cl=stereo"]
+        fc.append(f"[{idx}:a]anull[sil]")
+        parts.append("[sil]")
+    fx = [p for p in parts if p.startswith("[fx") or p == "[a0]"]   # Geräusche (Bibliothek oder Kling-Ton)
+    if fx and "[mus]" in parts:
+        # Musik geht bei jedem Geräusch kurz zurück (Ducking), damit die Geräusche klar hörbar sind
+        fc.append(f"{''.join(fx)}amix=inputs={len(fx)}:duration=longest:dropout_transition=0:normalize=0,"
+                  f"apad=whole_dur={total}[fxall]" if len(fx) > 1 else f"{fx[0]}apad=whole_dur={total}[fxall]")
+        fc.append("[fxall]asplit=2[fxa][fxkey]")
+        fc.append("[mus][fxkey]sidechaincompress=threshold=0.02:ratio=8:attack=5:release=350:makeup=1[musd]")
+        parts = [p for p in parts if p not in fx and p != "[mus]"] + ["[musd]", "[fxa]"]
+    mix = parts[0] if len(parts) == 1 else "[mix]"
+    if len(parts) > 1:
+        fc.append(f"{''.join(parts)}amix=inputs={len(parts)}:duration=longest:dropout_transition=0:normalize=0[mix]")
+    fc.append(f"{mix}atrim=0:{total},asetpts=PTS-STARTPTS,loudnorm=I={config.TARGET_LUFS}:TP=-1.0:LRA=9,"
+              f"afade=t=out:st={total - 0.4:.2f}:d=0.4[aout]")
+    _run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", *inputs, "-filter_complex", ";".join(fc),
+          "-map", "[vout]", "-map", "[aout]", "-t", f"{total}",
+          "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-pix_fmt", "yuv420p", "-r", str(fps),
+          "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", str(out)])
+    return out
+
+
+def mean_db(video: Path, start: float, length: float) -> float:
+    r = subprocess.run(["ffmpeg", "-hide_banner", "-ss", f"{start:.2f}", "-t", f"{length:.2f}", "-i", str(video),
+                        "-af", "volumedetect", "-vn", "-f", "null", "-"], capture_output=True, text=True).stderr
+    line = next((l for l in r.splitlines() if "mean_volume" in l), "mean_volume: -91 dB")
+    return float(line.split(":")[-1].split()[0])
+
+
+def cue_levels(video: Path, cues: list[dict], total: float = config.SHORT_SEC) -> dict:
+    """Misst, ob jedes Geräusch hörbar über der Musik liegt (Abstand zur ruhigsten Musikstelle in dB)."""
+    busy = [(c["second"], c["second"] + 1.0) for c in cues]
+    quiet, t = [], 0.3
+    while t + 1.0 < total - 0.5:
+        if all(t + 1.0 <= a or t >= b for a, b in busy):
+            quiet.append(mean_db(video, t, 1.0))
+        t += 0.5
+    music = sorted(quiet)[len(quiet) // 2] if quiet else -30.0
+    rows = [{**c, "db": mean_db(video, c["second"], 0.6)} for c in cues]
+    for r in rows:
+        r["above_music_db"] = round(r["db"] - music, 1)
+    return {"music_db": music, "cues": rows, "ok": all(r["above_music_db"] >= 4 for r in rows)}
+
+
 def qc(video: Path, min_bytes: int = 500_000) -> dict:
     """Technische Prüfung: Dauer, Auflösung, Tonspur. Liefert dict mit ok/Gründen."""
     p = probe(video)
