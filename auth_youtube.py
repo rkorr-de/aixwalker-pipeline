@@ -36,7 +36,7 @@ REDIRECT = "http://localhost:1"
 
 def auth_url(scopes: list[str]) -> str:
     q = {"client_id": config.require("YT_CLIENT_ID"), "redirect_uri": REDIRECT, "response_type": "code",
-         "scope": " ".join(scopes), "access_type": "offline", "prompt": "consent"}
+         "scope": " ".join(scopes), "access_type": "offline", "prompt": "select_account consent"}  # Konto-/Kanalauswahl erzwingen
     return "https://accounts.google.com/o/oauth2/v2/auth?" + urllib.parse.urlencode(q)
 
 
