@@ -253,6 +253,24 @@ def veo_prompt(story: dict, shot_idx: int) -> str:
             f"colors, colorful detailed background, warm light, vertical 9:16, no text on screen.")
 
 
+def kling_prompt(story: dict) -> str:
+    """Ein durchgehender 15-s-Clip: beide Shots als Zeitablauf, ruhige Kamera, keine Schnitte."""
+    s1, s2 = story["shots"]
+    return (f"Pixar-style 3D animation for toddlers, one continuous shot, no cuts. {_cast(story)} "
+            f"Place: {story['setting']}. Story: {story['summary']} "
+            f"0–8 s: {s1['action']} 8–15 s: {s2['action']} Ends with: {s2['ends_with']}. "
+            f"Slow, simple, clearly readable motion, stable camera at child eye level, characters keep exactly the "
+            f"same look, correct anatomy for the animal, objects stay solid and stay in place unless pushed, "
+            f"nothing appears or disappears, vivid rich candy colors, colorful detailed background, warm light, "
+            f"no text on screen.")
+
+
+def sfx_prompt(story: dict) -> str:
+    s1, s2 = story["shots"]
+    return (f"Cute cartoon sound effects for a 15-second toddler animation, no voices, no words, no music. "
+            f"First half: {s1['sounds']}. Second half: {s2['sounds']}. Soft, gentle, playful foley.")
+
+
 def thumbnail_prompt(story: dict) -> str:
     c = story["character"]
     return (f"YouTube thumbnail: close-up of {c['name']} the {c['species']} ({c['look']}) with a huge happy, "

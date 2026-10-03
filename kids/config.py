@@ -28,6 +28,9 @@ VEO_MODELS = [m for m in os.environ.get(
     "KIDS_VEO_MODELS",
     "veo-3.1-fast-generate-preview,veo-3.1-lite-generate-preview"
 ).split(",") if m]
+# Videoquelle: "kling" (fal.ai, Kling 3.0, 15 s am Stück) oder "veo" (Gemini API, 2 × 8 s)
+VIDEO_PROVIDER = os.environ.get("KIDS_VIDEO_PROVIDER", "kling")
+KLING_TIER = os.environ.get("KIDS_KLING_TIER", "pro")          # "pro" oder "standard"
 VEO_CLIP_SEC = 8                 # Veo liefert 4/6/8 s; 2 × 8 s → 15 s nach Schnitt
 VEO_RESOLUTION = os.environ.get("KIDS_VEO_RESOLUTION", "1080p")
 LYRIA_MODEL = os.environ.get("LYRIA_MODEL", "lyria-3.5")
@@ -49,7 +52,12 @@ PRICES_USD = {
     "image_pro": 0.134,
     "lyria_track": 0.08,
     "text_call": 0.01,           # Pauschale je Gemini-Text-Aufruf (real meist < 0,005 $)
-    "text_call_pro": 0.05,       # Pauschale je Prüf-Aufruf mit CRITIC_MODEL (Story-/Videoprüfung)
+    "text_call_pro": 0.05,
+    "kling_sec_pro": 0.112,      # fal.ai Kling 3.0 Pro, ohne Ton, je Sekunde
+    "kling_sec_pro_audio": 0.168,
+    "kling_sec_standard": 0.084,
+    "kling_sec_standard_audio": 0.126,
+    "sfx_sec": 0.002,            # fal.ai ElevenLabs Sound Effects V2, je Sekunde       # Pauschale je Prüf-Aufruf mit CRITIC_MODEL (Story-/Videoprüfung)
 }
 USD_EUR_RATE = float(os.environ.get("USD_EUR_RATE", "0.92"))
 BUDGET_USD = float(os.environ.get("KIDS_BUDGET_USD", "10.0"))   # harte Obergrenze je Lauf (Abbruch statt Upload)

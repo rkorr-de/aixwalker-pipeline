@@ -16,7 +16,7 @@ ROOT_FOLDER = os.environ.get("KIDS_DRIVE_ROOT", "Giggle Meadow Shorts")
 # Dateien aus dem Build-Ordner, die abgelegt werden (Reihenfolge = Reihenfolge im Ordner)
 MAIN_FILES = ["short.mp4", "thumbnail.jpg", "story.json", "result.json", "costs.json", "contact_sheet.jpg"]
 SOURCE_FILES = ["clip_1.mp4", "clip_2.mp4", "character_sheet.png", "keyframe_1.png", "thumbnail_art.png",
-                "clip_1_last.png", "music.mp3"]
+                "clip_1_last.png", "music.mp3", "sfx.mp3"]
 
 
 def available() -> bool:

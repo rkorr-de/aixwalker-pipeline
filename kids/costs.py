@@ -13,6 +13,8 @@ _lock = threading.Lock()
 _path: Path | None = None
 _ledger: dict = {"veo_sec_standard": 0, "veo_sec_fast": 0, "veo_sec_lite": 0, "image_flash": 0, "image_pro": 0,
                  "lyria_track": 0, "text_call": 0, "text_call_pro": 0,
+                 "kling_sec_pro": 0, "kling_sec_pro_audio": 0, "kling_sec_standard": 0, "kling_sec_standard_audio": 0,
+                 "sfx_sec": 0,
                  "veo_failed": 0}
 
 
@@ -65,7 +67,17 @@ def count(key: str, n: float = 1) -> None:
 
 
 def estimate(standard: bool = True, retries: int = 1) -> dict:
-    """Voranschlag: 2 Clips × 8 s (+ Reserve), Bilder, Musik, Textaufrufe."""
+    """Voranschlag: Video (Kling 15 s oder Veo 2 × 8 s, + 1 Reserve-Durchgang), Bilder, Musik, Prüfungen."""
+    if config.VIDEO_PROVIDER == "kling":
+        vid = price(f"kling_sec_{config.KLING_TIER}", 15)
+        sfx = price("sfx_sec", 15)
+        imgs = price("image_flash", 2) + price("image_pro", 1)
+        rest = price("lyria_track", 1) + price("text_call", 4) + price("text_call_pro", 6)
+        usd = round(vid + sfx + imgs + rest, 2)
+        return {"usd": usd, "eur": eur(usd), "lines": [
+            f"Kling 3.0 {config.KLING_TIER} 15 s = {vid:.2f} $, Geräusche {sfx:.2f} $",
+            f"2 Nano-Banana-Bilder + 1 Pro-Thumbnail = {imgs:.2f} $",
+            f"Musik + Story-/Videoprüfung ≈ {rest:.2f} $ (Neuversuch bei abgelehnter Prüfung kostet erneut)"]}
     sec_key = "veo_sec_standard" if standard else "veo_sec_fast"
     clips = 2 + retries
     veo = price(sec_key, clips * config.VEO_CLIP_SEC)
@@ -82,7 +94,8 @@ def estimate(standard: bool = True, retries: int = 1) -> dict:
 def report() -> str:
     u = total_usd()
     return (f"Tatsächlicher API-Verbrauch: {u:.2f} $ ≈ {eur(u):.2f} € "
-            f"(Veo {_ledger['veo_sec_standard'] + _ledger['veo_sec_fast'] + _ledger['veo_sec_lite']} s, {_ledger['image_flash']} Flash-Bilder, "
+            f"(Kling {_ledger['kling_sec_pro'] + _ledger['kling_sec_standard'] + _ledger['kling_sec_pro_audio'] + _ledger['kling_sec_standard_audio']} s, "
+            f"Veo {_ledger['veo_sec_standard'] + _ledger['veo_sec_fast'] + _ledger['veo_sec_lite']} s, {_ledger['image_flash']} Flash-Bilder, "
             f"{_ledger['image_pro']} Pro-Bilder, {_ledger['lyria_track']} Lyria, {_ledger['text_call']} Textaufrufe, "
             f"{_ledger['veo_failed']} fehlgeschlagene Veo-Versuche). Monatsstand: {config.BILLING_URL}")
 

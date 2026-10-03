@@ -25,7 +25,7 @@ from zoneinfo import ZoneInfo
 
 from PIL import Image
 
-from kids import config, costs, drive, gemini, history, mail, render, review, story as story_mod, veo
+from kids import config, costs, drive, fal, gemini, history, mail, render, review, story as story_mod, veo
 from kids import youtube as yt
 
 BERLIN = ZoneInfo("Europe/Berlin")
@@ -127,9 +127,19 @@ def main() -> int:
         render.make_thumbnail(thumb_art, out / "thumbnail.jpg")
         log("Charakter-Sheet, Keyframe und Thumbnail fertig")
 
-        # 4) Veo-Clips (Clip 2 startet mit dem letzten Bild von Clip 1)
+        # 4) Video: Kling (ein 15-s-Clip, fal.ai) oder Veo (2 Clips, Clip 2 startet mit dem letzten Bild von Clip 1)
         c1, c2 = out / "clip_1.mp4", out / "clip_2.mp4"
-        if args.dry_run:
+        kling = config.VIDEO_PROVIDER == "kling" and not args.dry_run
+        sfx = None
+        if kling:
+            fal.kling_clip(story_mod.kling_prompt(st), kf1, c1, seconds=15)
+            log(f"Kling-Clip fertig (Kling 3.0 {config.KLING_TIER}, 15 s)")
+            try:
+                sfx = fal.sound_effects(story_mod.sfx_prompt(st), out / "sfx.mp3")
+                log("Geräusche fertig")
+            except Exception as e:  # noqa: BLE001
+                result["warnings"].append(f"Geräusche übersprungen: {str(e)[:120]}")
+        elif args.dry_run:
             dry_clip(c1, "skyblue")
             dry_clip(c2, "pink")
         else:
@@ -140,7 +150,8 @@ def main() -> int:
             lf = Image.open(render.last_frame(c1, out / "clip_1_last.png"))
             veo.generate_clip(story_mod.veo_prompt(st, 1), c2, first_frame=lf, references=[sheet])
             log("Clip 2 fertig")
-        result["veo_model"] = veo.current_model() or ("dry-run" if args.dry_run else "")
+        result["veo_model"] = (f"kling-3.0-{config.KLING_TIER} (fal.ai)" if kling
+                               else veo.current_model() or ("dry-run" if args.dry_run else ""))
 
         # 5) Musikbett
         music = None
@@ -160,7 +171,8 @@ def main() -> int:
                     music = None
 
         # 6) Schnitt + QC
-        final = render.assemble(c1, c2, music, out / "short.mp4")
+        final = (render.assemble_single(c1, sfx, music, out / "short.mp4") if kling
+                 else render.assemble(c1, c2, music, out / "short.mp4"))
         q = render.qc(final, min_bytes=10_000 if args.dry_run else 500_000)
         render.contact_sheet(final, out / "contact_sheet.jpg")
         result["qc"] = q

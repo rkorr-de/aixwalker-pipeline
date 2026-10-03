@@ -108,6 +108,44 @@ def assemble(clip1: Path, clip2: Path, music: Path | None, out: Path, total: flo
     return out
 
 
+def assemble_single(clip: Path, sfx: Path | None, music: Path | None, out: Path,
+                    total: float = config.SHORT_SEC) -> Path:
+    """Ein durchgehender Clip (Kling): auf `total` s kürzen, Geräusche + leise Musik mischen, −14 LUFS."""
+    out.parent.mkdir(parents=True, exist_ok=True)
+    w, h, fps = config.WIDTH, config.HEIGHT, config.FPS
+    inputs = ["-i", str(clip)]
+    fc = [f"[0:v]scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},fps={fps},format=yuv420p,setsar=1,"
+          f"trim=0:{total},setpts=PTS-STARTPTS,fade=t=out:st={total - 0.25:.2f}:d=0.25[vout]"]
+    parts, idx = [], 1
+    if has_audio(clip):
+        fc.append("[0:a]aformat=sample_rates=48000:channel_layouts=stereo[a0]")
+        parts.append("[a0]")
+    if sfx and sfx.exists():
+        inputs += ["-i", str(sfx)]
+        fc.append(f"[{idx}:a]aformat=sample_rates=48000:channel_layouts=stereo[fx]")
+        parts.append("[fx]")
+        idx += 1
+    if music and music.exists():
+        inputs += ["-stream_loop", "-1", "-i", str(music)]
+        fc.append(f"[{idx}:a]aformat=sample_rates=48000:channel_layouts=stereo,volume={config.MUSIC_GAIN_DB}dB,"
+                  f"afade=t=in:d=0.5[mus]")
+        parts.append("[mus]")
+    if not parts:   # stille Tonspur, damit YouTube/QC eine Audiospur sehen
+        inputs += ["-f", "lavfi", "-t", str(total), "-i", "anullsrc=r=48000:cl=stereo"]
+        fc.append(f"[{idx}:a]anull[sil]")
+        parts.append("[sil]")
+    mix = parts[0] if len(parts) == 1 else "[mix]"
+    if len(parts) > 1:
+        fc.append(f"{''.join(parts)}amix=inputs={len(parts)}:duration=longest:dropout_transition=0:normalize=0[mix]")
+    fc.append(f"{mix}atrim=0:{total},asetpts=PTS-STARTPTS,loudnorm=I={config.TARGET_LUFS}:TP=-1.0:LRA=9,"
+              f"afade=t=out:st={total - 0.4:.2f}:d=0.4[aout]")
+    _run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", *inputs, "-filter_complex", ";".join(fc),
+          "-map", "[vout]", "-map", "[aout]", "-t", f"{total}",
+          "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-pix_fmt", "yuv420p", "-r", str(fps),
+          "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", str(out)])
+    return out
+
+
 def qc(video: Path, min_bytes: int = 500_000) -> dict:
     """Technische Prüfung: Dauer, Auflösung, Tonspur. Liefert dict mit ok/Gründen."""
     p = probe(video)
