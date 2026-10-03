@@ -68,7 +68,8 @@ prüfen. Erst wenn `public` bestätigt ist, geht es zu Schritt 5.
 
 Sende an **rolf.korr@gmail.com** – ausschließlich an diese Adresse – eine Klartext-Mail:
 
-- Bevorzugt mit dem Gmail-Tool `mcp__Gmail__send_message` (ggf. per ToolSearch laden).
+- **Bevorzugt** mit dem Gmail-Tool `mcp__Gmail__send_message` (ggf. per ToolSearch laden) – am 03.10.2026
+  getestet, Mail kam an.
 - Ist das Gmail-Tool nicht verfügbar: `python -c "from kids import mail; import json; r=json.load(open('build/kids/<Datum>/result.json')); mail.send('[Kids-Short] <Datum> – online', mail.report_text(r))"`
   (nutzt `GMAIL_REFRESH_TOKEN`). Fehlt auch der: Report per SendUserMessage ausgeben und deutlich melden, dass
   keine Mail möglich war.
