@@ -8,7 +8,7 @@ import json
 import subprocess
 from pathlib import Path
 
-from . import config, gemini
+from . import config, gemini, sfx_library
 
 SYSTEM = (
     "You are the strict quality controller of a YouTube channel for toddlers. You watch AI-generated 15-second "
@@ -41,8 +41,11 @@ def review_video(video: Path, story: dict, contact_sheet: Path | None = None) ->
         "- physics: objects stay solid, nothing appears/disappears/morphs, no impossible motion, no weird liquids\n"
         "- story: the planned story is clearly understandable from the pictures alone – want, problem, solution, "
         "happy end – and it makes sense\n"
-        "- quality: clean image, no flicker, no text/letters/watermarks, bright and colorful, cute\n\n"
-        'Answer as JSON: {"scores": {"anatomy": n, "consistency": n, "physics": n, "story": n, "quality": n}, '
+        "- quality: clean image, no flicker, no text/letters/watermarks, bright and colorful, cute\n"
+        "- sound: LISTEN to the audio: cheerful music clearly audible, sounds are soft, cute and child-friendly and "
+        "fit the action; NO shrill squeaking, chipmunk babble, voices, grunts, harsh or loud noises\n\n"
+        'Answer as JSON: {"scores": {"anatomy": n, "consistency": n, "physics": n, "story": n, "quality": n, '
+        '"sound": n}, '
         '"errors": ["concrete visible error with approximate second", ...], "verdict": "publish" or "reject"}'
     )
     r = gemini.text_json(prompt, SYSTEM, temperature=0.1, model=config.CRITIC_MODEL, media=media)
@@ -51,6 +54,28 @@ def review_video(video: Path, story: dict, contact_sheet: Path | None = None) ->
     r["min_score"] = min(scores.values()) if scores else 0
     r["passed"] = bool(scores) and r["min_score"] >= config.VIDEO_MIN_SCORE and r.get("verdict") != "reject"
     return r
+
+
+def place_sounds(clip: Path, story: dict) -> list[dict]:
+    """Die KI schaut den (stummen) Clip an und legt Geräusche aus der Bibliothek genau auf sichtbare Aktionen."""
+    lib = sfx_library.available()
+    small = clip.with_name("sfx_preview.mp4")
+    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(clip), "-vf", "scale=540:-2",
+                    "-an", "-c:v", "libx264", "-crf", "28", "-preset", "veryfast", str(small)], check=True)
+    prompt = (
+        f"You are the sound designer of a gentle toddler cartoon. Story: {story.get('summary', '')}\n"
+        f"Watch the attached silent video and place 4–7 sound effects from this LIBRARY exactly when the matching "
+        f"action is visible (footsteps while walking, thud when something lands, idea when the solution starts, "
+        f"tada/sparkle/clap at the happy end, at least one cute animal sound such as squeak_happy, chirp_happy, "
+        f"coo or purr when the character reacts). At least 1 second between cues. Keep it calm – fewer is better "
+        f"than too many.\nLIBRARY: {json.dumps(lib)}\n"
+        'Answer as JSON: {"cues": [{"second": 1.5, "sound": "footsteps", "why": "..."}]}'
+    )
+    r = gemini.text_json(prompt, "Answer ONLY with valid JSON.", temperature=0.2, model=config.CRITIC_MODEL,
+                         media=[("video/mp4", small.read_bytes())])
+    cues = [{"second": round(float(c["second"]), 2), "sound": c["sound"]} for c in r.get("cues", [])
+            if c.get("sound") in lib and 0 <= float(c.get("second", -1)) <= 14.5]
+    return sorted(cues, key=lambda c: c["second"])[:8]
 
 
 if __name__ == "__main__":

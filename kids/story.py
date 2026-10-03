@@ -13,7 +13,7 @@ import json
 import random
 import re
 
-from . import config, gemini
+from . import config, gemini, sfx_library
 
 SCHEMA = {
     "slug": "kebab-case-id",
@@ -39,7 +39,8 @@ SCHEMA = {
         {"seconds": 8, "action": "beats 3+4 in plain words, continuing exactly from the end of shot 1",
          "sounds": "...", "ends_with": "final happy image"},
     ],
-    "music": "Lyria prompt: cheerful, child-friendly, instrumental, 15 seconds, instruments",
+    "sfx_cues": [{"second": "0–14.5, when the sound happens", "sound": "one key from the SOUND LIBRARY below"}],
+    "music": "Lyria prompt: cheerful, gentle, child-friendly instrumental (glockenspiel, xylophone, ukulele, soft piano), 15 seconds",
     "title": "YouTube title (EN, < 70 characters, emotion + animal + what happens, 1 emoji, ends with #shorts)",
     "description": "YouTube description (EN, 3–5 lines: story in 1 sentence, what children learn, keywords for parents, hashtags)",
     "tags": ["10–20 English tags"],
@@ -116,6 +117,16 @@ def _sanitize(story: dict) -> dict:
         desc += "\n\n" + " ".join(config.HASHTAGS)
     story["description"] = desc[:4800]
     assert len(story["shots"]) == 2, "genau 2 Shots erwartet"
+    lib = sfx_library.available()
+    cues = []
+    for c in story.get("sfx_cues") or []:
+        try:
+            t = float(str(c.get("second")).replace(",", "."))
+        except (TypeError, ValueError):
+            continue
+        if c.get("sound") in lib and 0 <= t <= 14.5:
+            cues.append({"second": round(t, 2), "sound": c["sound"]})
+    story["sfx_cues"] = sorted(cues, key=lambda c: c["second"])[:8]
     assert story.get("summary") and story.get("character", {}).get("species"), "summary/species fehlen"
     return story
 
@@ -188,9 +199,13 @@ def _write(species: str, lesson: str, history: list[dict], rounds: int, log) -> 
         f"Stories already published (do NOT reuse their animal, plot or idea):\n{_history_text(history)}\n\n"
         f"Write a completely NEW story as JSON with exactly this schema (same keys, English values):\n"
         f"{json.dumps(SCHEMA, indent=1)}\n\n"
+        f"SOUND LIBRARY (only these keys are allowed in sfx_cues; choose 4–7 cues that match the action exactly, "
+        f"e.g. footsteps while walking, 'idea' when the solution comes, 'tada' or 'sparkle' at the happy end; at "
+        f"least one cute animal sound; at least 1 s between cues):\n"
+        f"{json.dumps(sfx_library.available(), indent=1)}\n\n"
         "Rules: 2 shots × 8 seconds that together tell the 4 beats. Shot 2 starts exactly where shot 1 ends (same "
         "place, same props, same character position). Sounds are cartoon SFX and little animal noises only (squeaks, "
-        "giggles, soft taps, a happy 'ta-da' chime) – never words. The setting is bright and colorful. "
+        "giggles, soft taps, a happy 'ta-da' chime) – never words, never grunts or babbling. The setting is bright and colorful. "
         "Title: emotion + animal + what happens, one emoji, ends with #shorts. Description: line 1 = the story in "
         "one sentence, line 2 = what children learn, then 6–10 search phrases parents use, then hashtags.\n\n"
         "A strict reviewer will score your story 1–10 on: logic, clarity (understandable without words for a "

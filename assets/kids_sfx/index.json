@@ -1,0 +1,227 @@
+{
+ "footsteps": {
+  "ok": true,
+  "attempt": 2,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "Four soft, padded, cartoonish footstep sounds, like walking on a carpet."
+ },
+ "tiptoe": {
+  "ok": false,
+  "attempt": 3,
+  "matches": false,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": true,
+  "toddler_friendly": 3,
+  "description": "A rapid, high-pitched mechanical ringing sound, like an old-fashioned telephone or alarm clock."
+ },
+ "slide": {
+  "ok": false,
+  "attempt": 3,
+  "matches": false,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 5,
+  "description": "A fast, rattling clatter, like a wooden stick dragged quickly across a ridged surface or washboard."
+ },
+ "thud": {
+  "ok": true,
+  "attempt": 1,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "A very soft, gentle, and muffled thud, like a light object dropping onto a padded surface."
+ },
+ "boing": {
+  "ok": true,
+  "attempt": 1,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "A single, soft, gentle, and warm cartoon boing sound effect at a low volume."
+ },
+ "pop": {
+  "ok": true,
+  "attempt": 1,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "A single, soft, and cute cartoon bubble pop sound."
+ },
+ "whoosh": {
+  "ok": true,
+  "attempt": 1,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "A gentle, soft, airy whoosh sound, resembling a small toy or object swiping through the air."
+ },
+ "sparkle": {
+  "ok": true,
+  "attempt": 1,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "A soft, magical twinkling chime sound, like fairy dust or a magic wand sparkling."
+ },
+ "tada": {
+  "ok": true,
+  "attempt": 1,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "Three bright, cheerful, rising notes played on a soft glockenspiel or xylophone, creating a success jingle."
+ },
+ "oh_no": {
+  "ok": true,
+  "attempt": 1,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "A gentle, descending two-note marimba melody resembling a cute 'uh-oh' sound."
+ },
+ "question": {
+  "ok": true,
+  "attempt": 1,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "A soft, rising two-note xylophone melody conveying a curious, questioning tone."
+ },
+ "idea": {
+  "ok": true,
+  "attempt": 1,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "A bright, soft, single bell ding, resembling a classic cartoon light bulb idea moment."
+ },
+ "clap": {
+  "ok": true,
+  "attempt": 1,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 9,
+  "description": "Four quick, gentle hand claps. Soft and playful, fitting well for a toddler cartoon."
+ },
+ "hug": {
+  "ok": true,
+  "attempt": 1,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "Soft fabric rustling followed by a gentle, magical harp shimmer. Very soothing and cozy."
+ },
+ "munch": {
+  "ok": true,
+  "attempt": 1,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "Three distinct, crisp, and soft crunching sounds, exactly like someone taking small bites of an apple."
+ },
+ "rustle": {
+  "ok": true,
+  "attempt": 1,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 9,
+  "description": "A soft, gentle rustling sound of leaves and grass moving lightly in the breeze."
+ },
+ "ball": {
+  "ok": true,
+  "attempt": 2,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "Three gentle, rhythmic thuds of a soft rubber ball bouncing on a wooden surface."
+ },
+ "heart": {
+  "ok": true,
+  "attempt": 1,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "A sweet, ascending, magical harp and chime glissando that sounds warm and loving."
+ },
+ "squeak_happy": {
+  "ok": true,
+  "attempt": 2,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "A single, short, high-pitched, and cute squeak, like a cartoon baby hamster."
+ },
+ "chirp_happy": {
+  "ok": true,
+  "attempt": 1,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "A single, soft, high-pitched, and sweet chirp resembling a happy baby bird."
+ },
+ "purr": {
+  "ok": true,
+  "attempt": 1,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "A soft, rhythmic, and gentle purring sound of a cat or kitten."
+ },
+ "coo": {
+  "ok": true,
+  "attempt": 2,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "A soft, gentle, high-pitched cooing or whining sound, resembling a baby dove or small animal."
+ },
+ "yawn_soft": {
+  "ok": false,
+  "attempt": 3,
+  "matches": true,
+  "has_voice_or_babble": true,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "A soft, gentle, high-pitched vocal sigh or yawn, sounding like a sleepy cute cartoon character."
+ },
+ "giggle_toy": {
+  "ok": true,
+  "attempt": 1,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "A single, short, high-pitched squeak, like a rubber duck or small squeaky toy being squeezed."
+ },
+ "pluck": {
+  "ok": true,
+  "attempt": 1,
+  "matches": true,
+  "has_voice_or_babble": false,
+  "harsh_or_shrill": false,
+  "toddler_friendly": 10,
+  "description": "A single, soft, playful pizzicato string pluck."
+ }
+}

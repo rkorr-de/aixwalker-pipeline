@@ -25,7 +25,7 @@ from zoneinfo import ZoneInfo
 
 from PIL import Image
 
-from kids import config, costs, drive, fal, gemini, history, mail, render, review, story as story_mod, veo
+from kids import config, costs, drive, fal, gemini, history, mail, render, review, sfx_library, story as story_mod, veo
 from kids import youtube as yt
 
 BERLIN = ZoneInfo("Europe/Berlin")
@@ -130,15 +130,23 @@ def main() -> int:
         # 4) Video: Kling (ein 15-s-Clip, fal.ai) oder Veo (2 Clips, Clip 2 startet mit dem letzten Bild von Clip 1)
         c1, c2 = out / "clip_1.mp4", out / "clip_2.mp4"
         kling = config.VIDEO_PROVIDER == "kling" and not args.dry_run
-        sfx = None
+        sfx: list = []
         if kling:
             fal.kling_clip(story_mod.kling_prompt(st), kf1, c1, seconds=15)
             log(f"Kling-Clip fertig (Kling 3.0 {config.KLING_TIER}, 15 s)")
-            try:
-                sfx = fal.sound_effects(story_mod.sfx_prompt(st), out / "sfx.mp3")
-                log("Geräusche fertig")
+            try:   # Geräusche an die tatsächlich sichtbaren Aktionen anpassen (Kling hält Zeiten nicht exakt ein)
+                placed = review.place_sounds(c1, st)
+                if placed:
+                    st["sfx_cues"] = placed
+                    (out / "story.json").write_text(json.dumps(st, indent=2, ensure_ascii=False))
             except Exception as e:  # noqa: BLE001
-                result["warnings"].append(f"Geräusche übersprungen: {str(e)[:120]}")
+                result["warnings"].append(f"Geräusch-Platzierung per Video übersprungen: {str(e)[:120]}")
+            sfx = [(sfx_library.path(c["sound"]), c["second"]) for c in st.get("sfx_cues", [])]
+            sfx = [(f, t) for f, t in sfx if f]
+            cue_txt = ", ".join("%.1fs %s" % (c["second"], c["sound"]) for c in st.get("sfx_cues", []))
+            log(f"Geräusche: {cue_txt}")
+            if not sfx:
+                result["warnings"].append("keine Geräusche aus der Bibliothek gewählt – nur Musik")
         elif args.dry_run:
             dry_clip(c1, "skyblue")
             dry_clip(c2, "pink")

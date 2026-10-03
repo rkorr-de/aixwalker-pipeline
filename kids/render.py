@@ -108,9 +108,10 @@ def assemble(clip1: Path, clip2: Path, music: Path | None, out: Path, total: flo
     return out
 
 
-def assemble_single(clip: Path, sfx: Path | None, music: Path | None, out: Path,
+def assemble_single(clip: Path, cues: list[tuple[Path, float]], music: Path | None, out: Path,
                     total: float = config.SHORT_SEC) -> Path:
-    """Ein durchgehender Clip (Kling): auf `total` s kürzen, Geräusche + leise Musik mischen, −14 LUFS."""
+    """Ein durchgehender Clip (Kling): auf `total` s kürzen; Musik als Hauptspur, darüber die Geräusche aus der
+    Bibliothek an ihren Sekunden (cues = [(datei, sekunde)]), −14 LUFS."""
     out.parent.mkdir(parents=True, exist_ok=True)
     w, h, fps = config.WIDTH, config.HEIGHT, config.FPS
     inputs = ["-i", str(clip)]
@@ -120,15 +121,17 @@ def assemble_single(clip: Path, sfx: Path | None, music: Path | None, out: Path,
     if has_audio(clip):
         fc.append("[0:a]aformat=sample_rates=48000:channel_layouts=stereo[a0]")
         parts.append("[a0]")
-    if sfx and sfx.exists():
-        inputs += ["-i", str(sfx)]
-        fc.append(f"[{idx}:a]aformat=sample_rates=48000:channel_layouts=stereo[fx]")
-        parts.append("[fx]")
+    for n, (f, t) in enumerate(cues):
+        inputs += ["-i", str(f)]
+        ms = int(max(0.0, t) * 1000)
+        fc.append(f"[{idx}:a]aformat=sample_rates=48000:channel_layouts=stereo,volume={config.SFX_GAIN_DB}dB,"
+                  f"adelay={ms}|{ms}[fx{n}]")
+        parts.append(f"[fx{n}]")
         idx += 1
     if music and music.exists():
         inputs += ["-stream_loop", "-1", "-i", str(music)]
-        fc.append(f"[{idx}:a]aformat=sample_rates=48000:channel_layouts=stereo,volume={config.MUSIC_GAIN_DB}dB,"
-                  f"afade=t=in:d=0.5[mus]")
+        fc.append(f"[{idx}:a]aformat=sample_rates=48000:channel_layouts=stereo,volume={config.MUSIC_BED_GAIN_DB}dB,"
+                  f"afade=t=in:d=0.3[mus]")
         parts.append("[mus]")
     if not parts:   # stille Tonspur, damit YouTube/QC eine Audiospur sehen
         inputs += ["-f", "lavfi", "-t", str(total), "-i", "anullsrc=r=48000:cl=stereo"]
