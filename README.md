@@ -41,7 +41,8 @@ python run_auto.py --concept concepts/x.json    # fertiges Konzept statt Planer
 | `YT_REFRESH_TOKEN` | einmalig mit `auth_youtube.py url` / `token` erzeugt (YouTube Upload/Verwaltung, Analytics) |
 | `DRIVE_REFRESH_TOKEN` | einmalig mit `auth_youtube.py url drive` / `token drive` erzeugt (Drive `drive.file`, getrennte Freigabe) |
 | `GMAIL_REFRESH_TOKEN` | einmalig mit `auth_youtube.py url gmail` / `token gmail` erzeugt (Bericht per E-Mail) |
-| `REPORT_EMAIL`, `DISTROKID_SONGWRITER`, `BUDGET_MAX_USD`, `TEXT_MODEL` | optional (siehe oben) |
+| `REPORT_EMAIL` | Empfänger des Berichts (nötig, da gmail.send das eigene Profil nicht lesen darf) |
+| `DISTROKID_SONGWRITER`, `BUDGET_MAX_USD`, `TEXT_MODEL` | optional (siehe oben) |
 
 Systemwerkzeuge: `ffmpeg`, `ffprobe`, Python 3.11+. Abhängigkeiten: `pip install -r requirements.txt`.
 

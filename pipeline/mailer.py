@@ -112,7 +112,12 @@ def send_report(concept: dict, result: dict, out_dir: Path, estimate_usd: float 
     if not config.GMAIL_REFRESH_TOKEN:
         return {"sent": False, "reason": "GMAIL_REFRESH_TOKEN fehlt (python auth_youtube.py url gmail)", "file": str(report_path)}
     svc = _service()
-    to = config.REPORT_EMAIL or svc.users().getProfile(userId="me").execute()["emailAddress"]
+    to = config.REPORT_EMAIL
+    if not to:
+        try:   # gmail.send allein erlaubt getProfile nicht – dann muss REPORT_EMAIL gesetzt sein
+            to = svc.users().getProfile(userId="me").execute()["emailAddress"]
+        except Exception as e:  # noqa: BLE001
+            raise RuntimeError(f"REPORT_EMAIL fehlt und Gmail-Profil nicht lesbar ({str(e)[:80]})") from e
     msg = EmailMessage()
     msg["To"] = to
     msg["From"] = "me"

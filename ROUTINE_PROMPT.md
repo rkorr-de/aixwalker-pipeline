@@ -34,7 +34,7 @@ Zweimal pro Woche (Dienstag und Freitag) erscheint ein neuer Mix, der wie ein ku
    `which ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)` und
    `pip install -q -r requirements.txt --break-system-packages`.
 2. Umgebungsvariablen prüfen: GOOGLE_API_KEY, YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN, DRIVE_REFRESH_TOKEN,
-   GMAIL_REFRESH_TOKEN. Fehlt etwas: trotzdem laufen lassen (die Pipeline überspringt nur den betroffenen Teil) und
+   GMAIL_REFRESH_TOKEN, REPORT_EMAIL. Fehlt etwas: trotzdem laufen lassen (die Pipeline überspringt nur den betroffenen Teil) und
    das Fehlende am Ende klar nennen – ohne GMAIL_REFRESH_TOKEN den Bericht `build/<slug>/report.md` komplett im
    Chat ausgeben.
 3. Lauf starten: `BASH_DEFAULT_TIMEOUT_MS=5400000 python run_auto.py` (Dauer 45–80 Min; im Hintergrund starten und
