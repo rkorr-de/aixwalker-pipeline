@@ -127,6 +127,12 @@ PARENT_KEYWORDS = [
     "calm video for kids", "cute animation for babies", "bedtime cartoon", "preschool cartoon", "cute animals for kids",
     "3d animation kids", "short cartoon for children", "baby sensory video", "silly animal cartoon", "wholesome kids video",
 ]
+# Fester Abschluss jeder Beschreibung: Abo-Aufforderung + Serienname (Wiedererkennung, Abos)
+DESCRIPTION_FOOTER = ("🌼 A brand-new Giggle Meadow story every day at 4 pm – tap SUBSCRIBE so your little one never "
+                      "misses the next cute surprise! 🐾")
+PLAYLIST_TITLE = "Giggle Meadow – Cute Baby Animal Stories for Toddlers"
+PLAYLIST_DESCRIPTION = ("All Giggle Meadow 15-second cartoons in one place: super cute baby animals, gentle stories, "
+                        "happy endings, no talking. Made for toddlers and preschoolers (ages 1–5).")
 HASHTAGS = ["#shorts", "#kids", "#toddlers", "#cutecartoon", "#babyanimals", "#kidsvideos", "#3danimation"]
 
 # YouTube-Kategorie „Film & Animation“

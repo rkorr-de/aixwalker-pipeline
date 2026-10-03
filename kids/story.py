@@ -79,6 +79,21 @@ def _recent(history: list[dict], key: str, n: int) -> list[str]:
     return [str(e.get(key, "")).lower() for e in history[-n:] if e.get(key)]
 
 
+def _weights(candidates: list[str], history: list[dict], key: str) -> list[float]:
+    """Lernen aus der Wirkung: Themen, deren frühere Shorts mehr Aufrufe hatten, werden öfter gewählt.
+    Noch nie getestete Themen bekommen einen Erkundungs-Bonus; ohne Aufrufdaten sind alle gleich wahrscheinlich."""
+    seen: dict[str, list[int]] = {}
+    for e in history:
+        if e.get("views") is not None and e.get(key):
+            seen.setdefault(str(e[key]).lower().split("(")[0].strip(), []).append(int(e["views"]))
+    if not seen:
+        return [1.0] * len(candidates)
+    avg = {k: sum(v) / len(v) for k, v in seen.items()}
+    top = max(avg.values()) or 1
+    return [1.5 if c.lower().split("(")[0].strip() not in avg
+            else 1.0 + 2.0 * avg[c.lower().split("(")[0].strip()] / top for c in candidates]
+
+
 def pick(history: list[dict], used_titles: list[str], rnd: random.Random | None = None) -> tuple[str, str]:
     """Tier und Lehrinhalt, die zuletzt nicht vorkamen (auch nicht in YouTube-Titeln)."""
     rnd = rnd or random.SystemRandom()
@@ -95,7 +110,8 @@ def pick(history: list[dict], used_titles: list[str], rnd: random.Random | None 
     species = [s for s in config.SPECIES_POOL if not species_used(s)] or list(config.SPECIES_POOL)
     recent_lessons = _recent(history, "lesson", config.AVOID_LESSON_DAYS)
     lessons = [l for l in config.LESSON_POOL if l.lower() not in recent_lessons] or list(config.LESSON_POOL)
-    return rnd.choice(species), rnd.choice(lessons)
+    return (rnd.choices(species, _weights(species, history, "species"))[0],
+            rnd.choices(lessons, _weights(lessons, history, "lesson"))[0])
 
 
 def _sanitize(story: dict) -> dict:
@@ -115,6 +131,8 @@ def _sanitize(story: dict) -> dict:
     desc = story.get("description", "").strip()
     if "#shorts" not in desc.lower():
         desc += "\n\n" + " ".join(config.HASHTAGS)
+    if config.DESCRIPTION_FOOTER not in desc:
+        desc = desc.rstrip() + "\n\n" + config.DESCRIPTION_FOOTER
     story["description"] = desc[:4800]
     assert len(story["shots"]) == 2, "genau 2 Shots erwartet"
     lib = sfx_library.available()

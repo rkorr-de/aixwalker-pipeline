@@ -102,6 +102,11 @@ def main() -> int:
                 st["theme"] = args.theme
         else:
             past = history.load()
+            try:
+                past = history.refresh_views(past)
+                history.save(past)
+            except Exception as e:  # noqa: BLE001
+                log(f"Aufrufzahlen nicht aktualisiert ({e}) – wähle ohne Lernen aus der Wirkung")
             log(f"Verlauf: {len(past)} bisherige Shorts")
             st = story_mod.create(past, used, theme=args.theme, log=log)
         (out / "story.json").write_text(json.dumps(st, indent=2, ensure_ascii=False))
@@ -243,6 +248,10 @@ def main() -> int:
                 yt.set_thumbnail(vid, out / "thumbnail.jpg")
             except Exception as e:  # noqa: BLE001
                 result["warnings"].append(f"Thumbnail nicht gesetzt: {str(e)[:120]}")
+            try:
+                yt.add_to_playlist(vid)
+            except Exception as e:  # noqa: BLE001
+                result["warnings"].append(f"Playlist nicht gesetzt: {str(e)[:120]}")
             s = yt.status(vid).get("status", {})
             result.update({"video_id": vid, "url": f"https://www.youtube.com/shorts/{vid}",
                            "privacy": s.get("privacyStatus", privacy), "publish_at": s.get("publishAt", args.publish_at)})
