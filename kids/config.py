@@ -12,7 +12,7 @@ BUILD = ROOT / "build" / "kids"
 # Eigener Kids-Kanal im selben Google-Konto: Refresh-Token mit `python auth_youtube.py url` (Kanal „Kids“ wählen).
 # Fehlt KIDS_YT_REFRESH_TOKEN, wird YT_REFRESH_TOKEN (Aix Walker) genutzt – nur für Tests gedacht.
 KIDS_TOKEN_VAR = "KIDS_YT_REFRESH_TOKEN" if os.environ.get("KIDS_YT_REFRESH_TOKEN") else "YT_REFRESH_TOKEN"
-CHANNEL_NAME = os.environ.get("KIDS_CHANNEL_NAME", "Tiny Tales")      # Anzeigename, nur für Texte
+CHANNEL_NAME = os.environ.get("KIDS_CHANNEL_NAME", "Giggle Meadow")      # Anzeigename, nur für Texte
 REPORT_EMAIL = os.environ.get("KIDS_REPORT_EMAIL", "rolf.korr@gmail.com")
 
 # ---- Modelle ----------------------------------------------------------------------------------------------------

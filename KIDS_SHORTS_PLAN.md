@@ -5,7 +5,7 @@ Claude liest dann diese Datei und arbeitet die Schritte der Reihe nach ab. Antwo
 Anweisungen an Rolf in Anfänger-Sprache** (jeder Klick benannt, kein Fachjargon, nichts voraussetzen).
 
 Vereinbart mit Rolf am 03.10.2026:
-- eigener **Kids-Kanal** im selben Google-Konto (Aix Walker bleibt Gym-Musik)
+- eigener **Kids-Kanal** „Giggle Meadow“ (@GiggleMeadowShorts) im selben Google-Konto – bereits angelegt und gestaltet
 - Budget **10 $ pro Tag** (Veo 3.1 Standard, 1 Neuversuch), harte Grenze im Skript
 - Metadaten **nur Englisch**, Look wie das Referenz-Short „Dancing baby duck“ (Pixar-3D, Pastell, Bokeh)
 - täglich **16:00 Uhr Berlin öffentlich**, danach **E-Mail an rolf.korr@gmail.com**
@@ -47,27 +47,26 @@ EOF
   dort anpassen und committen.
 - Clip mit `Read` auf `build/kids/veotest/clip.mp4`-Frames (`python -c "from kids import render; from pathlib import Path; render.contact_sheet(Path('build/kids/veotest/clip.mp4'), Path('build/kids/veotest/cs.jpg'))"`) sichten: Look passend? Sonst `STYLE_BIBLE` in `kids/config.py` nachschärfen.
 
-## Schritt 2 – Kids-Kanal anlegen und freigeben (mit Rolf, ca. 5 Minuten)
+## Schritt 2 – Kids-Kanal freigeben (mit Rolf, ca. 3 Minuten)
+
+**Der Kanal existiert bereits** (am 03.10.2026 angelegt): **Giggle Meadow**, Handle **@GiggleMeadowShorts**,
+Kanal-ID `UCOK6fcGh9NrGoROqDg71NOQ`, URL https://www.youtube.com/@GiggleMeadowShorts. Logo, Banner,
+Beschreibung, Keywords, Land (Deutschland), Zielgruppe „speziell für Kinder“ und Upload-Standards (Englisch,
+Film & Animation) sind gesetzt. Es fehlt nur noch die Freigabe für die Pipeline:
 
 Erkläre Rolf Schritt für Schritt (Anfänger):
-1. Im Browser **youtube.com** öffnen, oben rechts auf das runde Profilbild klicken → „Konto wechseln“ →
-   „Alle Kanäle anzeigen oder neuen Kanal erstellen“ → „Kanal erstellen“.
-2. Kanalname eingeben (Vorschlag: **Tiny Tales** – oder ein eigener Name; Claude schlägt 3 Namen vor, Rolf wählt)
-   → „Erstellen“. Danach einmal auf den neuen Kanal wechseln, damit er aktiv ist.
-3. Claude führt `python auth_youtube.py url kids` aus und schickt Rolf den Link mit dem Hinweis: Link öffnen,
-   **im Google-Dialog den neuen Kids-Kanal auswählen** (nicht AIX WALKER), bei „Google hat diese App nicht
+1. Claude führt `python auth_youtube.py url kids` aus und schickt Rolf den Link mit dem Hinweis: Link öffnen,
+   **im Google-Dialog den Kanal „Giggle Meadow“ auswählen** (nicht AIX WALKER), bei „Google hat diese App nicht
    überprüft“ auf „Erweitert“ und dann „Zu AixWalker Uploader (unsicher)“ klicken, alle Häkchen setzen,
    „Weiter“. Es erscheint eine Fehlerseite „Seite nicht erreichbar“ – das ist richtig. Rolf kopiert die komplette
    Adresse aus der Adressleiste (beginnt mit `http://localhost:1/?...`) und schickt sie Claude.
-4. Claude führt `python auth_youtube.py token kids "<Adresse>"` aus → Zeile `KIDS_YT_REFRESH_TOKEN=...`.
+2. Claude führt `python auth_youtube.py token kids "<Adresse>"` aus → Zeile `KIDS_YT_REFRESH_TOKEN=...`.
    Rolf trägt sie als Umgebungsvariable der **AixWalker-Umgebung** ein (Anleitung: in Claude links die Umgebung
    AixWalker öffnen → Einstellungen/Umgebungsvariablen → „Hinzufügen“ → Name `KIDS_YT_REFRESH_TOKEN`, Wert einfügen
-   → speichern). Dann **neue Sitzung** starten, damit die Variable gilt; weiter mit Schritt 3.
-5. Kontrolle: `python -m kids.youtube` muss den **Kids-Kanal** zeigen.
-
-Kanal-Grundeinstellungen (Rolf, in YouTube Studio → Einstellungen → Kanal → Erweiterte Einstellungen):
-„Ja, diesen Kanal als für Kinder bestimmt festlegen“ wählen. Claude erklärt, warum (COPPA, Pflicht bei
-Kinder-Inhalten; Folge: keine personalisierte Werbung, keine Kommentare).
+   → speichern). Zusätzlich `KIDS_CHANNEL_NAME` = `Giggle Meadow`. Dann **neue Sitzung** starten, damit die
+   Variablen gelten; weiter mit Schritt 3 (Startsatz erneut eingeben, der Plan erkennt am gesetzten Token, wo er
+   weitermachen muss).
+3. Kontrolle: `python -m kids.youtube` muss **Giggle Meadow** zeigen.
 
 Gmail-Fallback (optional, aber empfohlen – dann klappt die Mail auch ohne Connector):
 `python auth_youtube.py url gmail` → gleicher Ablauf, Konto rolf.korr@gmail.com, Häkchen „E-Mails senden“ →
