@@ -72,7 +72,8 @@ def kling_clip(prompt: str, first_frame: Image.Image, out: Path, seconds: int = 
     costs.ensure_budget(key, seconds)
     app = f"fal-ai/kling-video/v3/{tier}/image-to-video"
     res = run(app, {"prompt": prompt[:2500], "start_image_url": _data_uri(first_frame), "duration": str(seconds),
-                    "generate_audio": audio, "negative_prompt": config.NEGATIVE_PROMPT[:500], "cfg_scale": 0.5})
+                    "generate_audio": audio, "cfg_scale": 0.5,
+                    "negative_prompt": (config.NEGATIVE_PROMPT + ", voice, babbling, chipmunk voice, music")[:500]})
     costs.count(key, seconds)
     return _download(res["video"]["url"], out)
 

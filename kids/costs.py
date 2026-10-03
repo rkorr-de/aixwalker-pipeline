@@ -69,8 +69,8 @@ def count(key: str, n: float = 1) -> None:
 def estimate(standard: bool = True, retries: int = 1) -> dict:
     """Voranschlag: Video (Kling 15 s oder Veo 2 × 8 s, + 1 Reserve-Durchgang), Bilder, Musik, Prüfungen."""
     if config.VIDEO_PROVIDER == "kling":
-        vid = price(f"kling_sec_{config.KLING_TIER}", 15)
-        sfx = price("sfx_sec", 15)
+        vid = price(f"kling_sec_{config.KLING_TIER}" + ("_audio" if config.KLING_AUDIO else ""), 15)
+        sfx = 0.0
         imgs = price("image_flash", 2) + price("image_pro", 1)
         rest = price("lyria_track", 1) + price("text_call", 4) + price("text_call_pro", 6)
         usd = round(vid + sfx + imgs + rest, 2)

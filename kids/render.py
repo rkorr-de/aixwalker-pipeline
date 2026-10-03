@@ -137,7 +137,7 @@ def assemble_single(clip: Path, cues: list[tuple[Path, float]], music: Path | No
         inputs += ["-f", "lavfi", "-t", str(total), "-i", "anullsrc=r=48000:cl=stereo"]
         fc.append(f"[{idx}:a]anull[sil]")
         parts.append("[sil]")
-    fx = [p for p in parts if p.startswith("[fx")]
+    fx = [p for p in parts if p.startswith("[fx") or p == "[a0]"]   # Geräusche (Bibliothek oder Kling-Ton)
     if fx and "[mus]" in parts:
         # Musik geht bei jedem Geräusch kurz zurück (Ducking), damit die Geräusche klar hörbar sind
         fc.append(f"{''.join(fx)}amix=inputs={len(fx)}:duration=longest:dropout_transition=0:normalize=0,"

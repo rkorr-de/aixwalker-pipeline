@@ -132,8 +132,11 @@ def main() -> int:
         kling = config.VIDEO_PROVIDER == "kling" and not args.dry_run
         sfx: list = []
         if kling:
-            fal.kling_clip(story_mod.kling_prompt(st), kf1, c1, seconds=15)
-            log(f"Kling-Clip fertig (Kling 3.0 {config.KLING_TIER}, 15 s)")
+            fal.kling_clip(story_mod.kling_prompt(st), kf1, c1, seconds=15, audio=config.KLING_AUDIO)
+            log(f"Kling-Clip fertig (Kling 3.0 {config.KLING_TIER}, 15 s, {'mit' if config.KLING_AUDIO else 'ohne'} Ton)")
+        if kling and config.KLING_AUDIO:
+            st["sfx_cues"] = []    # Kling-Ton ist schon synchron – keine nachträglichen Geräusche
+        elif kling:
             try:   # Geräusche an die tatsächlich sichtbaren Aktionen anpassen (Kling hält Zeiten nicht exakt ein)
                 placed = review.place_sounds(c1, st)
                 if placed:
@@ -181,7 +184,9 @@ def main() -> int:
         # 6) Schnitt + QC
         if kling:
             final = render.assemble_single(c1, sfx, music, out / "short.mp4")
-            try:   # Abgleich prüfen; verrutschte Geräusche einmal auf die vorgeschlagene Zeit setzen
+            try:   # nur bei Bibliotheks-Geräuschen: Abgleich prüfen, verrutschte Geräusche einmal nachsetzen
+                if not st.get("sfx_cues"):
+                    raise StopIteration
                 chk = review.check_sync(final, st.get("sfx_cues", []))
                 result["sound_sync"] = chk
                 fixed, changed = [], False
@@ -202,6 +207,8 @@ def main() -> int:
                                                                   for r in lv["cues"]))
                 if not lv["ok"]:
                     result["warnings"].append("mindestens ein Geräusch kaum lauter als die Musik")
+            except StopIteration:
+                pass
             except Exception as e:  # noqa: BLE001
                 result["warnings"].append(f"Ton-Abgleich übersprungen: {str(e)[:120]}")
         else:
