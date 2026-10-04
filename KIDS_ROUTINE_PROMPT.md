@@ -18,7 +18,9 @@ Danach bekommt Rolf eine E-Mail mit Link und allen Infos.
 
 1. Arbeitsverzeichnis ist das Repo `aixwalker-pipeline` (prüfe mit `ls`: run_kids_short.py, kids/).
 2. `which ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)` und
-   `pip install -q -r requirements.txt --break-system-packages`.
+   `pip install -q -r requirements.txt --break-system-packages` (enthält `rembg` fürs Freistellen der Figur in den
+   Thumbnails; das Modell lädt beim ersten Aufruf ≈ 170 MB von GitHub – schlägt das fehl, fällt das Thumbnail
+   automatisch auf die Variante ohne Freisteller zurück, kein Abbruch).
 3. Prüfe, dass `GOOGLE_API_KEY`, `YT_CLIENT_ID`, `YT_CLIENT_SECRET`, `KIDS_YT_REFRESH_TOKEN`, `FAL_KEY`,
    `DRIVE_REFRESH_TOKEN` gesetzt sind (`env | grep -c -E '^(GOOGLE_API_KEY|YT_CLIENT_ID|YT_CLIENT_SECRET|KIDS_YT_REFRESH_TOKEN|FAL_KEY|DRIVE_REFRESH_TOKEN)='`
    muss 6 ergeben). Fehlt nur `DRIVE_REFRESH_TOKEN`: Lauf trotzdem starten, in der Mail klar melden, dass die

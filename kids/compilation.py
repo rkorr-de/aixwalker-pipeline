@@ -300,12 +300,29 @@ def concat(segments: list[Path], out: Path) -> Path:
 
 
 # ---------------------------------------------------------------- Thumbnail + Kapitel --------------------------------
+def cutout(art: Image.Image) -> Image.Image | None:
+    """Figur freistellen (rembg/u2net, lokal, kostenlos). None, wenn rembg fehlt oder scheitert."""
+    try:
+        from rembg import new_session, remove
+        sess = new_session("u2net")
+        out = remove(art.convert("RGB"), session=sess, alpha_matting=False)
+        # zu kleine Maske = Fehlschlag (z. B. alles „Vordergrund“ oder nichts)
+        bbox = out.getchannel("A").getbbox()
+        if not bbox or (bbox[2] - bbox[0]) * (bbox[3] - bbox[1]) < 0.08 * out.width * out.height:
+            return None
+        return out
+    except Exception as e:  # noqa: BLE001
+        print(f"[compilation] Freistellen nicht möglich: {e}")
+        return None
+
+
 def make_thumbnail(today_art: Path | None, count: int, mode: str, out: Path) -> Path:
     """1280×720 im Kanal-Stil: Figur groß und mittig (aus dem 9:16-Figurenbild des Tages), „Giggle Meadow“ oben in
     Orange, unten „CUTE STORIES for toddlers“ in Weiß, weißer Rahmen, Zahl-Badge links oben. Keine API-Kosten."""
     tw, th = 1280, 720
     bg_col = PASTELS[count % len(PASTELS)]
     img = Image.new("RGB", (tw, th), bg_col)
+    fig_rgba = None
     if today_art and today_art.exists():
         art = Image.open(today_art).convert("RGB")
         aw, ah = art.size
@@ -313,23 +330,48 @@ def make_thumbnail(today_art: Path | None, count: int, mode: str, out: Path) -> 
         bg = art.resize((tw, int(ah * tw / aw)), Image.LANCZOS)
         bg = bg.crop((0, (bg.height - th) // 2, tw, (bg.height - th) // 2 + th)).filter(ImageFilter.GaussianBlur(26))
         img = Image.blend(bg, Image.new("RGB", (tw, th), (255, 250, 235)), 0.18)
-        # Figur: komplett sichtbar, 78 % der Höhe, unten bündig, mittig – oben bleibt Platz für den Titel
-        fh = int(th * 0.80)
-        fig = art.resize((int(aw * fh / ah), fh), Image.LANCZOS)
-        mask = Image.new("L", fig.size, 0)
-        ImageDraw.Draw(mask).rounded_rectangle((0, 0, fig.width - 1, fig.height - 1), radius=60, fill=255)
-        mask = mask.filter(ImageFilter.GaussianBlur(18))
-        img.paste(fig, ((tw - fig.width) // 2, th - fh + 12), mask)
         img = ImageEnhance.Color(img).enhance(1.1)
+        cut = cutout(art)
+        if cut is not None:
+            # Freisteller auf die Umrisse zuschneiden und so skalieren, dass der Kopf bei y=118 beginnt:
+            # der Titel (y 44–170) wird in seiner unteren Hälfte verdeckt → 3D-Effekt, bleibt aber lesbar
+            bb = cut.getchannel("A").getbbox()
+            cut = cut.crop(bb)
+            head_y = 118
+            fh = th - head_y
+            fw = int(cut.width * fh / cut.height)
+            if fw > int(tw * 0.62):          # sehr breite Figuren etwas kleiner, damit die Zahl links frei bleibt
+                fw = int(tw * 0.62)
+                fh = int(cut.height * fw / cut.width)
+            fig_rgba = cut.resize((fw, fh), Image.LANCZOS)
+        else:
+            fh = int(th * 0.80)
+            fig = art.resize((int(aw * fh / ah), fh), Image.LANCZOS)
+            mask = Image.new("L", fig.size, 0)
+            ImageDraw.Draw(mask).rounded_rectangle((0, 0, fig.width - 1, fig.height - 1), radius=60, fill=255)
+            mask = mask.filter(ImageFilter.GaussianBlur(18))
+            img.paste(fig, ((tw - fig.width) // 2, th - fh + 12), mask)
+    d = ImageDraw.Draw(img)
+    # Kanalname oben – Figur wird DANACH darübergelegt, damit der Kopf den Schriftzug leicht verdeckt
+    f_top = _font(124)
+    t = "Giggle Meadow"
+    x = (tw - d.textlength(t, font=f_top)) / 2
+    d.text((x + 6, 44 + 8), t, font=f_top, fill=(120, 70, 20))
+    d.text((x, 44), t, font=f_top, fill=(255, 150, 40), stroke_width=5, stroke_fill=(255, 245, 225))
+    if fig_rgba is not None:
+        # weicher Schatten unter der Figur, dann die Figur
+        sh = Image.new("RGBA", (tw, th), (0, 0, 0, 0))
+        a = fig_rgba.getchannel("A").point(lambda v: int(v * 0.45))
+        shadow = Image.new("RGBA", fig_rgba.size, (60, 30, 0, 0))
+        shadow.putalpha(a)
+        sh.paste(shadow, ((tw - fig_rgba.width) // 2 + 10, th - fig_rgba.height + 14))
+        sh = sh.filter(ImageFilter.GaussianBlur(10))
+        img = Image.alpha_composite(img.convert("RGBA"), sh)
+        img.alpha_composite(fig_rgba, ((tw - fig_rgba.width) // 2, th - fig_rgba.height))
+        img = img.convert("RGB")
     d = ImageDraw.Draw(img)
     # weißer Rahmen
     d.rectangle((14, 14, tw - 15, th - 15), outline=(255, 255, 255), width=10)
-    # Kanalname oben – mit dunklem Schlagschatten, niemals über dem Gesicht (nur obere 150 px)
-    f_top = _font(118)
-    t = "Giggle Meadow"
-    x = (tw - d.textlength(t, font=f_top)) / 2
-    d.text((x + 5, 38 + 6), t, font=f_top, fill=(120, 70, 20))
-    d.text((x, 38), t, font=f_top, fill=(255, 150, 40), stroke_width=4, stroke_fill=(255, 245, 225))
     # Nutzen unten
     f_b1, f_b2 = _font(86), _font(66, "SemiBold")
     label = {"daily": "CUTE STORIES", "weekly": "BEST OF THE WEEK", "monthly": "STORY MARATHON", "shorts": "STORIES IN A ROW"}[mode]
@@ -355,23 +397,49 @@ def make_thumbnail(today_art: Path | None, count: int, mode: str, out: Path) -> 
 
 
 def make_thumbnail_vertical(today_art: Path | None, count: int, out: Path) -> Path:
-    """1080×1920 für den langen Short: Figurenbild des Tages + Zahl-Badge + „stories in a row“."""
+    """1080×1920 für den langen Short: Figur des Tages freigestellt vor „Giggle Meadow“ (3D-Effekt), Zahl-Badge."""
     vw, vh = 1080, 1920
+    img = Image.new("RGB", (vw, vh), PASTELS[count % len(PASTELS)])
+    fig_rgba = None
     if today_art and today_art.exists():
-        img = Image.open(today_art).convert("RGB").resize((vw, vh), Image.LANCZOS)
-    else:
-        img = Image.new("RGB", (vw, vh), PASTELS[count % len(PASTELS)])
+        art = Image.open(today_art).convert("RGB")
+        img = art.resize((vw, vh), Image.LANCZOS)
+        cut = cutout(art)
+        if cut is not None:
+            img = img.filter(ImageFilter.GaussianBlur(18))
+            img = Image.blend(img, Image.new("RGB", (vw, vh), (255, 250, 235)), 0.15)
+            bb = cut.getchannel("A").getbbox()
+            cut = cut.crop(bb)
+            head_y = 470                      # Titel steht bei y 300–580 → Kopf verdeckt die untere Hälfte von „Meadow“
+            fh = vh - head_y
+            fw = int(cut.width * fh / cut.height)
+            if fw > vw:
+                fw = vw
+                fh = int(cut.height * fw / cut.width)
+            fig_rgba = Image.new("RGBA", (vw, vh), (0, 0, 0, 0))
+            fig_rgba.paste(cut.resize((fw, fh), Image.LANCZOS), ((vw - fw) // 2, vh - fh))
+    d = ImageDraw.Draw(img)
+    f_top = _font(132)
+    for i, t in enumerate(("Giggle", "Meadow")):
+        x = (vw - d.textlength(t, font=f_top)) / 2
+        y = 300 + i * 150
+        d.text((x + 6, y + 8), t, font=f_top, fill=(120, 70, 20))
+        d.text((x, y), t, font=f_top, fill=(255, 150, 40), stroke_width=5, stroke_fill=(255, 245, 225))
+    if fig_rgba is not None:
+        img = img.convert("RGBA")
+        img.alpha_composite(fig_rgba)
+        img = img.convert("RGB")
     d = ImageDraw.Draw(img)
     f_n, f_s = _font(150), _font(54, "SemiBold")
     num = str(count)
     bw = int(max(d.textlength(num, font=f_n), d.textlength("STORIES", font=f_s)) + 80)
-    bx, by, bh = 60, 260, 270
+    bx, by, bh = 60, 1180, 270
     d.rounded_rectangle((bx, by, bx + bw, by + bh), radius=44, fill=(255, 92, 120), outline=(255, 255, 255), width=10)
     d.text((bx + (bw - d.textlength(num, font=f_n)) / 2, by + 4), num, font=f_n, fill=(255, 255, 255))
     d.text((bx + (bw - d.textlength("STORIES", font=f_s)) / 2, by + 190), "STORIES", font=f_s, fill=(255, 255, 255))
-    f_b = _font(92)
+    f_b = _font(96)
     t = "in a row!"
-    d.text(((vw - d.textlength(t, font=f_b)) / 2, vh - 330), t, font=f_b, fill=(255, 255, 255), stroke_width=8, stroke_fill=(70, 45, 110))
+    d.text(((vw - d.textlength(t, font=f_b)) / 2, vh - 300), t, font=f_b, fill=(255, 255, 255), stroke_width=8, stroke_fill=(70, 45, 110))
     out.parent.mkdir(parents=True, exist_ok=True)
     for q in (92, 85, 78):
         img.save(out, "JPEG", quality=q)
