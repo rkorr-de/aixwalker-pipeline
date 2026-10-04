@@ -127,9 +127,13 @@ PARENT_KEYWORDS = [
     "calm video for kids", "cute animation for babies", "bedtime cartoon", "preschool cartoon", "cute animals for kids",
     "3d animation kids", "short cartoon for children", "baby sensory video", "silly animal cartoon", "wholesome kids video",
 ]
-PLAYLIST_TITLE = "Giggle Meadow – Cute Baby Animal Stories for Toddlers"
-PLAYLIST_DESCRIPTION = ("All Giggle Meadow 15-second cartoons in one place: super cute baby animals, gentle stories, "
-                        "happy endings, no talking. Made for toddlers and preschoolers (ages 1–5).")
+PLAYLIST_TITLE = '🧸 Cute Baby Animal Cartoons for Toddlers – Giggle Meadow 🌼'
+PLAYLIST_DESCRIPTION = (
+    '🌼 Cute baby animal cartoons for toddlers – with a little lesson in every story! 🐣 Each 15-second Giggle Meadow short shows a super cute baby animal facing a small everyday problem, like sharing a toy, waiting for a turn, trying again or helping a friend, and solving it in a kind way that little ones can copy. 🐾'
+    '\n\n'
+    '🧠 Inspired by social-emotional learning: children learn best by watching, so every story shows feelings, cause and effect and friendly behavior in a clear, simple way, without words. Watching together and talking about it afterwards ("How did the bunny feel? What did the puppy do?") makes it even better. 💛'
+    '\n\n'
+    '🧸 Gentle sounds, bright colors, no talking, nothing scary, always a happy ending. Made for toddlers and preschoolers (ages 1–5). 🌈')
 HASHTAGS = ["#shorts", "#kids", "#toddlers", "#cutecartoon", "#babyanimals", "#kidsvideos", "#3danimation"]
 
 # YouTube-Kategorie „Film & Animation“
