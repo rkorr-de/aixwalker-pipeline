@@ -115,6 +115,7 @@ python run_kids_short.py --upload --private         # Testlauf, privat
 python run_kids_short.py --publish-local 16:00      # Produktion: heute 16:00 Uhr Berlin öffentlich
 python run_kids_compilation.py --upload             # danach: 16:9-Zusammenschnitt (Intro + Shorts), sofort öffentlich
 python run_kids_compilation.py --dry-run            # Zusammenschnitt-Funktionstest ohne Drive/Upload
+python run_kids_compilation.py --vertical --if-due --upload --publish-tomorrow 09:00   # langer Short (Mo/Mi/Fr → Di/Do/Sa 09:00)
 ```
 
 | Variable | Zweck |
@@ -124,4 +125,6 @@ python run_kids_compilation.py --dry-run            # Zusammenschnitt-Funktionst
 | `KIDS_VEO_MODELS` | Komma-Liste der Veo-Modelle, Standard zuerst |
 | `GMAIL_REFRESH_TOKEN` | optional: Report-Mail ohne Gmail-Connector (`auth_youtube.py url gmail`) |
 | `KIDS_CHANNEL_NAME` | Anzeigename des Kids-Kanals (nur für Texte) |
+| `KIDS_LONGSHORT_BUILD_DAYS` | Wochentage (0 = Mo … 6 = So), an denen der lange Short gebaut wird; Standard `0,2,4` |
+| `KIDS_LONGSHORT_COUNT` | Stories je langem Short (Standard 4, max. ≈ 10 wegen 3-Minuten-Grenze) |
 | `DRIVE_REFRESH_TOKEN` | vorhandene Drive-Freigabe; Ablage je Short unter `Giggle Meadow Shorts/<Datum – Titel>` (`KIDS_DRIVE_ROOT` ändert den Ordnernamen) |

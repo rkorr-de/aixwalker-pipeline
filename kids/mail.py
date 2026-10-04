@@ -66,6 +66,18 @@ def report_text(result: dict) -> str:
             lines += [f"FEHLER: {c.get('error', 'unbekannt')}"]
         for w in c.get("warnings", []):
             lines.append(f"- {w}")
+    ls = result.get("longshort")
+    if ls and ls.get("status") != "skipped":
+        lines += ["", "— Langer Short (9:16) —"]
+        if ls.get("status") == "ok" and ls.get("url"):
+            lines += [f"Geplant: {ls['url']} – online {ls.get('published_at_local', '')}",
+                      f"Titel: {ls.get('title', '')}",
+                      f"{ls.get('count', '?')} Stories · {round((ls.get('duration_sec') or 0))} s",
+                      f"Google Drive: {ls.get('drive') or '(nicht abgelegt)'}"]
+        else:
+            lines += [f"FEHLER: {ls.get('error', 'unbekannt')}"]
+        for w in ls.get("warnings", []):
+            lines.append(f"- {w}")
     if result.get("warnings"):
         lines += ["", "Hinweise:"] + [f"- {w}" for w in result["warnings"]]
     return "\n".join(lines)

@@ -11,6 +11,8 @@ Vereinbart mit Rolf am 03.10.2026:
 - täglich **16:00 Uhr Berlin öffentlich**, danach **E-Mail an rolf.korr@gmail.com**
 - jeder Short landet komplett in **Google Drive → „Giggle Meadow Shorts/<Datum – Titel>“** (Rolf spiegelt Drive lokal auf G:)
 - täglich zusätzlich ein **16:9-Zusammenschnitt** (Intro von Rolf `intro.mp4` im Drive-Wurzelordner → neuer Short → ältere Shorts → Abspann), sofort öffentlich; sonntags „Best of the Week“, am 1. „Monthly Marathon“ (Entscheidung 04.10.2026)
+- Mo/Mi/Fr zusätzlich ein **langer Short (9:16, ≈ 70 s, 4 Stories + 9:16-Intro als Abspann)**, geplant für Di/Do/Sa 09:00 Uhr; 0 $ Kosten (feste Metadaten-Vorlage)
+- Thumbnails der Zusammenschnitte im Stil von Rolfs Vorlage: Figur mittig, „Giggle Meadow“ oben orange, „CUTE STORIES for toddlers“ unten weiß, weißer Rahmen, Zahl-Badge (tatsächliche Anzahl Stories)
 - erst alles testen (inkl. Test-Upload), Tests wieder löschen, dann die tägliche Aufgabe anlegen
 
 ## Schritt 0 – Umgebung prüfen (ohne Rolf)
@@ -100,6 +102,10 @@ Dann prüfen:
 (`Read` auf 2–3 Frames per `ffmpeg -ss`), Kapitel in der Beschreibung prüfen, Rolf den Link schicken, nach „passt“
 das Testvideo löschen (`python -c "from kids import youtube as y; y.delete('<id>')"`). Liegt `intro.mp4` nicht im
 Drive-Wurzelordner, baut das Skript automatisch eine Intro-Karte – dann Rolf darauf hinweisen.
+
+Langer Short: `python run_kids_compilation.py --vertical --dry-run` muss durchlaufen. Mit ≥ 2 echten Shorts:
+`python run_kids_compilation.py --vertical --upload --private` → im Studio prüfen (9:16, Abspann = Rolfs
+`intro_vertical.mp4`, sobald es im Drive-Wurzelordner liegt), Rolf den Link schicken, nach „passt“ löschen.
 
 ## Schritt 4 – E-Mail-Weg testen (ohne Rolf)
 

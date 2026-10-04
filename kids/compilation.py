@@ -16,7 +16,7 @@ import subprocess
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 
 from pipeline import drive as base
 
@@ -200,41 +200,77 @@ def segment_intro(src: Path, out: Path) -> Path:
     return out
 
 
-def _card_image(title: str, subtitle: str, bg: tuple[int, int, int], out: Path, logo: bool = False) -> Path:
-    img = Image.new("RGB", (W, H), bg)
+def segment_vertical(src: Path, out: Path) -> Path:
+    """Beliebiges Video → 1080×1920 (füllt mit weich verschwommenem Rand, falls das Format abweicht)."""
+    VW, VH = 1080, 1920
+    out.parent.mkdir(parents=True, exist_ok=True)
+    fc = (f"[0:v]split=2[bg][fg];[bg]scale={VW}:{VH}:force_original_aspect_ratio=increase,crop={VW}:{VH},gblur=sigma=30[bgb];"
+          f"[fg]scale={VW}:{VH}:force_original_aspect_ratio=decrease,setsar=1[fgs];"
+          f"[bgb][fgs]overlay=(W-w)/2:(H-h)/2,fps={FPS},format=yuv420p,setsar=1[v]")
+    if render.has_audio(src):
+        cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(src), "-filter_complex", fc,
+               "-map", "[v]", "-map", "0:a", *_norm_video_args(), str(out)]
+    else:
+        cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(src), "-f", "lavfi",
+               "-i", "anullsrc=r=48000:cl=stereo", "-filter_complex", fc, "-map", "[v]", "-map", "1:a",
+               "-shortest", *_norm_video_args(), str(out)]
+    _run(cmd)
+    return out
+
+
+def _card_image(title: str, subtitle: str, bg: tuple[int, int, int], out: Path, logo: bool = False,
+                size: tuple[int, int] = (W, H)) -> Path:
+    W_, H_ = size
+    img = Image.new("RGB", (W_, H_), bg)
     d = ImageDraw.Draw(img, "RGBA")
     rnd = random.Random(sum(bg))
     for _ in range(60):   # weiche Lichtpunkte
-        x, y, rad = rnd.randint(0, W), rnd.randint(0, H), rnd.randint(10, 46)
+        x, y, rad = rnd.randint(0, W_), rnd.randint(0, H_), rnd.randint(10, 46)
         d.ellipse((x - rad, y - rad, x + rad, y + rad), fill=(255, 255, 255, rnd.randint(40, 110)))
     img = img.filter(ImageFilter.GaussianBlur(2))
     d = ImageDraw.Draw(img)
-    big = _font(118)
-    small = _font(54, "SemiBold")
-    y = H // 2 - 60
+    portrait = H_ > W_
+    big = _font(96 if portrait else 118)
+    small = _font(48 if portrait else 54, "SemiBold")
+    y = H_ // 2 - 60
     if logo and LOGO.exists():
         lg = Image.open(LOGO).convert("RGBA").resize((300, 300), Image.LANCZOS)
         mask = Image.new("L", lg.size, 0)
         ImageDraw.Draw(mask).ellipse((0, 0, 299, 299), fill=255)
-        img.paste(lg, (W // 2 - 150, 150), mask)
-        y = 520
+        img.paste(lg, (W_ // 2 - 150, H_ // 2 - 420 if portrait else 150), mask)
+        y = H_ // 2 - 60 if portrait else 520
+    max_w = W_ - 120
     for line, f in ((title, big), (subtitle, small)):
         if not line:
             continue
-        tw = d.textlength(line, font=f)
-        d.text((W / 2 - tw / 2 + 5, y + 7), line, font=f, fill=(90, 60, 30))
-        d.text((W / 2 - tw / 2, y), line, font=f, fill=(255, 255, 255), stroke_width=6, stroke_fill=(255, 138, 70))
-        y += int(f.size * 1.35)
+        words, lines_, cur = line.split(), [], ""
+        for wd in words:
+            t = (cur + " " + wd).strip()
+            if d.textlength(t, font=f) <= max_w:
+                cur = t
+            else:
+                lines_.append(cur)
+                cur = wd
+        if cur:
+            lines_.append(cur)
+        for ln in lines_[:3]:
+            tw = d.textlength(ln, font=f)
+            d.text((W_ / 2 - tw / 2 + 5, y + 7), ln, font=f, fill=(90, 60, 30))
+            d.text((W_ / 2 - tw / 2, y), ln, font=f, fill=(255, 255, 255), stroke_width=6, stroke_fill=(255, 138, 70))
+            y += int(f.size * 1.25)
+        y += int(f.size * 0.2)
     out.parent.mkdir(parents=True, exist_ok=True)
     img.save(out, "PNG")
     return out
 
 
-def segment_card(png: Path, out: Path, seconds: float, chime: Path | None = None) -> Path:
+def segment_card(png: Path, out: Path, seconds: float, chime: Path | None = None,
+                 size: tuple[int, int] = (W, H)) -> Path:
     """Standbild mit sanftem Zoom; Ton: Glöckchen aus der SFX-Bibliothek oder Stille."""
+    W_, H_ = size
     frames = int(seconds * FPS)
-    vf = (f"scale={W + 96}:{H + 54},zoompan=z='min(1.0+0.0015*on,1.08)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
-          f":d={frames}:s={W}x{H}:fps={FPS},fade=t=in:d=0.25,fade=t=out:st={seconds - 0.25:.2f}:d=0.25,format=yuv420p,setsar=1")
+    vf = (f"scale={W_ + 96}:{H_ + 54},zoompan=z='min(1.0+0.0015*on,1.08)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
+          f":d={frames}:s={W_}x{H_}:fps={FPS},fade=t=in:d=0.25,fade=t=out:st={seconds - 0.25:.2f}:d=0.25,format=yuv420p,setsar=1")
     if chime and chime.exists():
         audio_in = ["-i", str(chime)]
         af = ["-af", f"volume=-6dB,apad,atrim=0:{seconds}"]
@@ -264,34 +300,78 @@ def concat(segments: list[Path], out: Path) -> Path:
 
 
 # ---------------------------------------------------------------- Thumbnail + Kapitel --------------------------------
-def make_thumbnail(today_thumb: Path | None, count: int, mode: str, out: Path) -> Path:
-    """1280×720: heutige Figur rechts (aus dem 9:16-Thumbnail), links großer Text „10 Cute Stories“."""
+def make_thumbnail(today_art: Path | None, count: int, mode: str, out: Path) -> Path:
+    """1280×720 im Kanal-Stil: Figur groß und mittig (aus dem 9:16-Figurenbild des Tages), „Giggle Meadow“ oben in
+    Orange, unten „CUTE STORIES for toddlers“ in Weiß, weißer Rahmen, Zahl-Badge links oben. Keine API-Kosten."""
     tw, th = 1280, 720
     bg_col = PASTELS[count % len(PASTELS)]
     img = Image.new("RGB", (tw, th), bg_col)
-    if today_thumb and today_thumb.exists():
-        art = Image.open(today_thumb).convert("RGB")
-        bg = art.resize((tw, int(art.height * tw / art.width)), Image.LANCZOS)
-        bg = bg.crop((0, (bg.height - th) // 2, tw, (bg.height - th) // 2 + th)).filter(ImageFilter.GaussianBlur(28))
-        img = Image.blend(bg, Image.new("RGB", (tw, th), bg_col), 0.35)
-        fig = art.resize((int(art.width * th / art.height), th), Image.LANCZOS)
-        fig = fig.crop((0, 0, min(fig.width, 560), th))
-        img.paste(fig, (tw - fig.width, 0))
+    if today_art and today_art.exists():
+        art = Image.open(today_art).convert("RGB")
+        aw, ah = art.size
+        # Hintergrund: Bild bildfüllend, weich verschwommen und leicht aufgehellt
+        bg = art.resize((tw, int(ah * tw / aw)), Image.LANCZOS)
+        bg = bg.crop((0, (bg.height - th) // 2, tw, (bg.height - th) // 2 + th)).filter(ImageFilter.GaussianBlur(26))
+        img = Image.blend(bg, Image.new("RGB", (tw, th), (255, 250, 235)), 0.18)
+        # Figur: komplett sichtbar, 78 % der Höhe, unten bündig, mittig – oben bleibt Platz für den Titel
+        fh = int(th * 0.80)
+        fig = art.resize((int(aw * fh / ah), fh), Image.LANCZOS)
+        mask = Image.new("L", fig.size, 0)
+        ImageDraw.Draw(mask).rounded_rectangle((0, 0, fig.width - 1, fig.height - 1), radius=60, fill=255)
+        mask = mask.filter(ImageFilter.GaussianBlur(18))
+        img.paste(fig, ((tw - fig.width) // 2, th - fh + 12), mask)
+        img = ImageEnhance.Color(img).enhance(1.1)
     d = ImageDraw.Draw(img)
-    label = {"daily": "CUTE STORIES", "weekly": "BEST OF THE WEEK", "monthly": "MONTHLY MARATHON"}[mode]
-    lines = [f"{count}", label, "for toddlers"]
-    fonts = [_font(300), _font(96), _font(64, "SemiBold")]
-    y = 40
-    for line, f in zip(lines, fonts):
-        d.text((70 + 6, y + 8), line, font=f, fill=(90, 60, 30))
-        d.text((70, y), line, font=f, fill=(255, 255, 255), stroke_width=8 if f.size > 100 else 5, stroke_fill=(255, 138, 70))
-        y += int(f.size * 1.1)
-    if LOGO.exists():
-        lg = Image.open(LOGO).convert("RGBA").resize((130, 130), Image.LANCZOS)
-        mask = Image.new("L", lg.size, 0)
-        ImageDraw.Draw(mask).ellipse((0, 0, 129, 129), fill=255)
-        img.paste(lg, (70, th - 160), mask)
-        d.text((220, th - 125), "Giggle Meadow", font=_font(56), fill=(255, 255, 255), stroke_width=4, stroke_fill=(110, 70, 140))
+    # weißer Rahmen
+    d.rectangle((14, 14, tw - 15, th - 15), outline=(255, 255, 255), width=10)
+    # Kanalname oben – mit dunklem Schlagschatten, niemals über dem Gesicht (nur obere 150 px)
+    f_top = _font(118)
+    t = "Giggle Meadow"
+    x = (tw - d.textlength(t, font=f_top)) / 2
+    d.text((x + 5, 38 + 6), t, font=f_top, fill=(120, 70, 20))
+    d.text((x, 38), t, font=f_top, fill=(255, 150, 40), stroke_width=4, stroke_fill=(255, 245, 225))
+    # Nutzen unten
+    f_b1, f_b2 = _font(86), _font(66, "SemiBold")
+    label = {"daily": "CUTE STORIES", "weekly": "BEST OF THE WEEK", "monthly": "STORY MARATHON", "shorts": "STORIES IN A ROW"}[mode]
+    w1, w2 = d.textlength(label, font=f_b1), d.textlength(" for toddlers", font=f_b2)
+    x = (tw - w1 - w2) / 2
+    y = th - 150
+    d.text((x, y), label, font=f_b1, fill=(255, 255, 255), stroke_width=7, stroke_fill=(70, 45, 110))
+    d.text((x + w1, y + 16), " for toddlers", font=f_b2, fill=(255, 255, 255), stroke_width=6, stroke_fill=(70, 45, 110))
+    # Zahl-Badge links oben
+    f_n, f_s = _font(120), _font(40, "SemiBold")
+    num = str(count)
+    bw = int(max(d.textlength(num, font=f_n), d.textlength("STORIES", font=f_s)) + 60)
+    bx, by, bh = 44, 170, 215
+    d.rounded_rectangle((bx, by, bx + bw, by + bh), radius=36, fill=(255, 92, 120), outline=(255, 255, 255), width=8)
+    d.text((bx + (bw - d.textlength(num, font=f_n)) / 2, by + 6), num, font=f_n, fill=(255, 255, 255))
+    d.text((bx + (bw - d.textlength("STORIES", font=f_s)) / 2, by + 150), "STORIES", font=f_s, fill=(255, 255, 255))
+    out.parent.mkdir(parents=True, exist_ok=True)
+    for q in (92, 85, 78):
+        img.save(out, "JPEG", quality=q)
+        if out.stat().st_size < 2_000_000:
+            break
+    return out
+
+
+def make_thumbnail_vertical(today_art: Path | None, count: int, out: Path) -> Path:
+    """1080×1920 für den langen Short: Figurenbild des Tages + Zahl-Badge + „stories in a row“."""
+    vw, vh = 1080, 1920
+    if today_art and today_art.exists():
+        img = Image.open(today_art).convert("RGB").resize((vw, vh), Image.LANCZOS)
+    else:
+        img = Image.new("RGB", (vw, vh), PASTELS[count % len(PASTELS)])
+    d = ImageDraw.Draw(img)
+    f_n, f_s = _font(150), _font(54, "SemiBold")
+    num = str(count)
+    bw = int(max(d.textlength(num, font=f_n), d.textlength("STORIES", font=f_s)) + 80)
+    bx, by, bh = 60, 260, 270
+    d.rounded_rectangle((bx, by, bx + bw, by + bh), radius=44, fill=(255, 92, 120), outline=(255, 255, 255), width=10)
+    d.text((bx + (bw - d.textlength(num, font=f_n)) / 2, by + 4), num, font=f_n, fill=(255, 255, 255))
+    d.text((bx + (bw - d.textlength("STORIES", font=f_s)) / 2, by + 190), "STORIES", font=f_s, fill=(255, 255, 255))
+    f_b = _font(92)
+    t = "in a row!"
+    d.text(((vw - d.textlength(t, font=f_b)) / 2, vh - 330), t, font=f_b, fill=(255, 255, 255), stroke_width=8, stroke_fill=(70, 45, 110))
     out.parent.mkdir(parents=True, exist_ok=True)
     for q in (92, 85, 78):
         img.save(out, "JPEG", quality=q)
@@ -356,10 +436,13 @@ def build(mode: str, today: str, out: Path, today_out: Path | None = None, dry_s
     chapters.append((t, "See you tomorrow"))
     final = concat(segments, out / "compilation.mp4")
     dur = render.duration(final)
-    today_thumb = (today_out / "thumbnail.jpg") if today_out and (today_out / "thumbnail.jpg").exists() else None
-    if today_thumb is None and chosen and dry_shorts is None:
-        today_thumb = None
-    make_thumbnail(today_thumb, len(chosen), mode, out / "thumbnail.jpg")
+    today_art = None
+    if today_out:
+        for n in ("thumbnail_art.png", "thumbnail.jpg"):
+            if (today_out / n).exists():
+                today_art = today_out / n
+                break
+    make_thumbnail(today_art, len(chosen), mode, out / "thumbnail.jpg")
     chap_txt = "\n".join(f"{fmt_ts(ts)} {name}" for ts, name in chapters)
     (out / "chapters.txt").write_text(chap_txt)
     info = {"mode": mode, "count": len(chosen), "duration_sec": dur, "chapters": chap_txt,
@@ -368,6 +451,112 @@ def build(mode: str, today: str, out: Path, today_out: Path | None = None, dry_s
             "intro": str(intro) if intro else "(Karte)", "video": str(final), "thumbnail": str(out / "thumbnail.jpg")}
     (out / "compilation_info.json").write_text(json.dumps(info, indent=2, ensure_ascii=False))
     return info
+
+
+# ---------------------------------------------------------------- Langer Short (9:16, bis 3 Minuten) ----------------
+LONGSHORT_COUNT = int(__import__("os").environ.get("KIDS_LONGSHORT_COUNT", "4"))     # Stories je langem Short
+LONGSHORT_MAX_SEC = 170                                                              # Shorts-Grenze 180 s, mit Reserve
+
+
+def select_vertical(shorts: list[dict], today: str) -> list[dict]:
+    """Heutiger Short + (COUNT-1) weitere: der neueste + zufällige ältere, andere Mischung als der 16:9-Schnitt."""
+    rnd = random.Random(int(today.replace("-", "")) * 7 + 1)
+    todays = [s for s in shorts if s["date"] == today]
+    others = sorted([s for s in shorts if s["date"] != today], key=lambda s: s["date"], reverse=True)
+    newest = others[:1]
+    rest = others[1:]
+    rnd.shuffle(rest)
+    return (todays + newest + rest)[:LONGSHORT_COUNT]
+
+
+def build_vertical(today: str, out: Path, today_out: Path | None = None, dry_shorts: list[dict] | None = None,
+                   intro: Path | None = None) -> dict:
+    """<out>/longshort.mp4 (1080×1920): Titelkarte → Stories am Stück → 9:16-Intro als Abspann. Kostenlos."""
+    out.mkdir(parents=True, exist_ok=True)
+    VS = (1080, 1920)
+    shorts = dry_shorts if dry_shorts is not None else fetch_shorts(today_out, today)
+    chosen = select_vertical(shorts, today)
+    if len(chosen) < 2:
+        raise RuntimeError(f"zu wenige Shorts für einen langen Short ({len(chosen)})")
+    if intro is None and dry_shorts is None:
+        intro = fetch_intro(vertical=True)
+    seg_dir = out / "segments"
+    chime = config.ROOT / "assets" / "kids_sfx" / "sparkle.mp3"
+    segments: list[Path] = []
+    chapters: list[tuple[float, str]] = []
+    t = 0.0
+    for i, sh in enumerate(chosen, 1):
+        col = PASTELS[(i + 2) % len(PASTELS)]
+        name = sh.get("name") or ""
+        species = sh.get("species") or ""
+        sub = f"{name} the {species}".strip() if name else species
+        card = _card_image(clean_title(sh.get("title", "")) or f"Story {i}", sub, col, seg_dir / f"v{i:02d}_card.png", size=VS)
+        segments.append(segment_card(card, seg_dir / f"v{i:02d}_card.mp4", 1.0, chime, size=VS))
+        chapters.append((t, clean_title(sh.get("title", "")) or f"Story {i}"))
+        t += 1.0
+        v = segment_vertical(sh["path"], seg_dir / f"v{i:02d}_short.mp4")
+        segments.append(v)
+        t += render.duration(v)
+        if t > LONGSHORT_MAX_SEC - 20:
+            chosen = chosen[:i]
+            break
+    if intro and intro.exists():
+        s_ = segment_vertical(intro, seg_dir / "v99_intro.mp4")
+        segments.append(s_)
+        chapters.append((t, "Giggle Meadow"))
+        t += render.duration(s_)
+    else:
+        outro = _card_image("Giggle Meadow", "a new story every day at 4 pm", PASTELS[3], seg_dir / "v99_outro.png",
+                            logo=True, size=VS)
+        segments.append(segment_card(outro, seg_dir / "v99_outro.mp4", 3.0, chime, size=VS))
+        chapters.append((t, "Giggle Meadow"))
+        t += 3.0
+    final = concat(segments, out / "longshort.mp4")
+    dur = render.duration(final)
+    today_art = None
+    if today_out:
+        for n in ("thumbnail_art.png", "thumbnail.jpg"):
+            if (today_out / n).exists():
+                today_art = today_out / n
+                break
+    make_thumbnail_vertical(today_art, len(chosen), out / "thumbnail_vertical.jpg")
+    chap_txt = "\n".join(f"{fmt_ts(ts)} {name}" for ts, name in chapters)
+    (out / "chapters_vertical.txt").write_text(chap_txt)
+    info = {"mode": "shorts", "count": len(chosen), "duration_sec": dur, "chapters": chap_txt,
+            "stories": [{"date": s["date"], "title": s.get("title", ""), "name": s.get("name", ""),
+                         "species": s.get("species", ""), "video_id": s.get("video_id")} for s in chosen],
+            "intro": str(intro) if intro else "(Karte)", "video": str(final), "thumbnail": str(out / "thumbnail_vertical.jpg")}
+    (out / "longshort_info.json").write_text(json.dumps(info, indent=2, ensure_ascii=False))
+    return info
+
+
+def metadata_vertical(info: dict) -> dict:
+    """Feste Vorlage (kein API-Aufruf, 0 $): Titel < 100 Zeichen mit #shorts, Beschreibung mit Story-Liste."""
+    n = info["count"]
+    first = clean_title(info["stories"][0]["title"]) if info["stories"] else "Cute Stories"
+    species = [s.get("species", "") for s in info["stories"] if s.get("species")]
+    animals = ", ".join(dict.fromkeys(sp.replace("baby ", "") for sp in species[:3]))
+    title = f"{n} Cute Baby Animal Stories in a Row 🐥 {first} #shorts"
+    if len(title) > 100:
+        title = f"{n} Cute Baby Animal Stories in a Row 🐥 for Toddlers #shorts"
+    lines = "\n".join(f"• {clean_title(s['title'])}" for s in info["stories"])
+    desc = (f"{n} tiny cute cartoons in one go – {animals or 'baby animals'} and their little adventures. 🌼\n"
+            f"For toddlers and preschoolers (ages 1–5): no talking, no scary moments, just sweet sounds and happy endings.\n\n"
+            f"📖 Stories\n{lines}\n\n"
+            f"🐥 New story every day at 4 pm (CET) on Giggle Meadow – subscribe for a smile a day!\n"
+            f"All characters and stories are original creations.\n\n"
+            f"cute cartoon for toddlers · baby animals · calm video for kids · no talking · bedtime cartoon · preschool cartoon\n\n"
+            f"#shorts #kids #toddlers #cutecartoon #babyanimals #kidsvideos #3danimation #gigglemeadow")
+    tags = ["shorts", "cute cartoon", "toddler cartoon", "baby animals", "kids shorts", "calm video for kids",
+            "no talking cartoon", "bedtime cartoon", "preschool cartoon", "3d animation kids", "giggle meadow",
+            "cute animal stories", "cartoon for babies", "stories for toddlers"]
+    return {"title": title[:100], "description": desc[:4900], "tags": tags}
+
+
+def longshort_due(today: str) -> bool:
+    """Ob heute ein langer Short für morgen früh gebaut wird (Standard: Mo, Mi, Fr bauen → Di, Do, Sa 09:00 online)."""
+    build_days = [int(x) for x in __import__("os").environ.get("KIDS_LONGSHORT_BUILD_DAYS", "0,2,4").split(",") if x != ""]
+    return date.fromisoformat(today).weekday() in build_days
 
 
 # ---------------------------------------------------------------- Metadaten --------------------------------------------

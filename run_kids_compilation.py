@@ -6,6 +6,8 @@
   python run_kids_compilation.py --mode weekly --upload
   python run_kids_compilation.py --dry-run             # Platzhalter-Shorts, kein Drive, kein Upload (Funktionstest)
   python run_kids_compilation.py --today-out build/kids/2026-10-05   # Ordner des heutigen Shorts (Standard: build/kids/<heute>)
+  python run_kids_compilation.py --vertical --upload --publish-tomorrow 09:00   # langer Short (9:16), geplant für morgen 09:00
+  python run_kids_compilation.py --vertical --if-due --upload --publish-tomorrow 09:00  # nur an Bau-Tagen (Mo/Mi/Fr)
 
 Ergebnis: build/kids/<heute>/compilation/{compilation.mp4, thumbnail.jpg, chapters.txt, compilation_info.json,
 result_compilation.json}. Exit-Code 0 = fertig, 1 = Fehler.
@@ -39,6 +41,113 @@ def _dry_short(out: Path, color: str, freq: int) -> Path:
     return out
 
 
+def _drive_upload(today_out: Path, today: str, out: Path, names: list[str], subfolder: str, link: str | None,
+                  title: str) -> dict:
+    from pipeline import drive as base
+    svc = base.service()
+    root = base.ensure_folder(svc, drive.ROOT_FOLDER)
+    res_today = json.loads((today_out / "result.json").read_text()) if (today_out / "result.json").exists() else {}
+    title_today = res_today.get("story", {}).get("title", "Zusammenschnitt")
+    folder = base.ensure_folder(svc, drive.folder_name(today, title_today), root)
+    sub = base.ensure_folder(svc, subfolder, folder)
+    links = {"_folder": f"https://drive.google.com/drive/folders/{sub}"}
+    for name in names:
+        f = out / name
+        if f.exists():
+            links[name] = base._upload(svc, f, sub)
+    if link:
+        lnk = out / "youtube_link.txt"
+        lnk.write_text(f"{link}\n{title}\n")
+        links[lnk.name] = base._upload(svc, lnk, sub)
+    return links
+
+
+def main_vertical(args, today: str) -> int:
+    """Langer Short (9:16): bauen → Upload (geplant für morgen früh) → Drive → result.json."""
+    import datetime as dt
+    today_out = Path(args.today_out or (config.BUILD / today))
+    out = Path(args.out or (today_out / "longshort"))
+    out.mkdir(parents=True, exist_ok=True)
+    t0 = time.time()
+    result: dict = {"date": today, "mode": "shorts", "out": str(out), "warnings": [], "dry_run": args.dry_run}
+    if args.if_due and not args.dry_run and not compilation.longshort_due(today):
+        log("Heute kein Bau-Tag für den langen Short – nichts zu tun.")
+        result["status"] = "skipped"
+        (out / "result_longshort.json").write_text(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0
+    log(f"Langer Short (9:16) für {today}")
+    try:
+        dry = None
+        if args.dry_run:
+            dry = []
+            cols = ["skyblue", "pink", "lightgreen", "khaki", "plum", "peachpuff"]
+            for i in range(6):
+                d = (dt.datetime.fromisoformat(today) - dt.timedelta(days=i)).strftime("%Y-%m-%d")
+                p = _dry_short(out / "dry" / f"{d}.mp4", cols[i], 330 + 60 * i)
+                dry.append({"date": d, "title": f"Dry Story {i + 1} #shorts", "name": ["Pip", "Lulu", "Momo", "Nino", "Bo", "Kiki"][i],
+                            "species": "baby hamster", "video_id": f"dry{i}", "views": 100 * i, "path": p})
+        info = compilation.build_vertical(today, out, today_out if not args.dry_run else None, dry_shorts=dry)
+        result["info"] = {k: v for k, v in info.items() if k != "stories"}
+        result["stories"] = info["stories"]
+        log(f"Langer Short fertig: {info['video']} ({info['duration_sec']:.1f} s, {info['count']} Stories, Abspann: {info['intro']})")
+        meta = compilation.metadata_vertical(info)
+        result["meta"] = meta
+        (out / "metadata_vertical.json").write_text(json.dumps(meta, indent=2, ensure_ascii=False))
+        log(f"Titel: {meta['title']}")
+        publish_at = None
+        if args.publish_tomorrow:
+            hh, mm = (int(x) for x in args.publish_tomorrow.split(":"))
+            local = (datetime.now(BERLIN) + dt.timedelta(days=1)).replace(hour=hh, minute=mm, second=0, microsecond=0)
+            publish_at = local.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            result["published_at_local"] = local.strftime("%d.%m.%Y %H:%M") + " (geplant)"
+        if args.upload and not args.dry_run:
+            vid = yt.upload(Path(info["video"]), meta["title"], meta["description"], meta["tags"],
+                            privacy="private" if args.private else "public", publish_at=publish_at)
+            try:
+                yt.set_thumbnail(vid, Path(info["thumbnail"]))
+            except Exception as e:  # noqa: BLE001
+                result["warnings"].append(f"Thumbnail nicht gesetzt: {str(e)[:120]}")
+            try:
+                yt.add_to_playlist(vid)
+            except Exception as e:  # noqa: BLE001
+                result["warnings"].append(f"Playlist nicht gesetzt: {str(e)[:120]}")
+            st = yt.status(vid).get("status", {})
+            result.update({"video_id": vid, "url": f"https://www.youtube.com/shorts/{vid}",
+                           "privacy": st.get("privacyStatus", ""), "publish_at": st.get("publishAt", publish_at)})
+            log(f"Hochgeladen: {result['url']} ({result['privacy']}, geplant: {result.get('publish_at')})")
+        if not args.no_drive and not args.dry_run and drive.available():
+            try:
+                result["drive"] = _drive_upload(today_out, today, out,
+                                                ["longshort.mp4", "thumbnail_vertical.jpg", "chapters_vertical.txt",
+                                                 "metadata_vertical.json", "longshort_info.json"],
+                                                "langer-short", result.get("url"), meta["title"])
+                log(f"Drive: {result['drive']['_folder']}")
+            except Exception as e:  # noqa: BLE001
+                result["warnings"].append(f"Drive-Ablage fehlgeschlagen: {str(e)[:160]}")
+        result["status"] = "ok"
+        rc = 0
+    except Exception as e:  # noqa: BLE001
+        result.update({"status": "error", "error": str(e), "trace": traceback.format_exc()[-2000:]})
+        log(f"FEHLER: {e}")
+        rc = 1
+    result.update({"elapsed_min": (time.time() - t0) / 60, "finished_utc": datetime.now(timezone.utc).isoformat()})
+    (out / "result_longshort.json").write_text(json.dumps(result, indent=2, ensure_ascii=False))
+    rj = today_out / "result.json"
+    if rj.exists() and not args.dry_run:
+        try:
+            r = json.loads(rj.read_text())
+            r["longshort"] = {"status": result["status"], "url": result.get("url"), "privacy": result.get("privacy"),
+                              "published_at_local": result.get("published_at_local"),
+                              "title": result.get("meta", {}).get("title"), "count": result.get("info", {}).get("count"),
+                              "duration_sec": result.get("info", {}).get("duration_sec"),
+                              "drive": result.get("drive", {}).get("_folder"), "error": result.get("error"),
+                              "warnings": result.get("warnings", [])}
+            rj.write_text(json.dumps(r, indent=2, ensure_ascii=False))
+        except Exception as e:  # noqa: BLE001
+            log(f"result.json nicht aktualisiert: {e}")
+    return rc
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["daily", "weekly", "monthly"], default=None)
@@ -49,9 +158,14 @@ def main() -> int:
     ap.add_argument("--private", action="store_true", help="privat statt öffentlich hochladen (Test)")
     ap.add_argument("--no-drive", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--vertical", action="store_true", help="langen Short (9:16, bis 3 min) statt 16:9-Video bauen")
+    ap.add_argument("--if-due", action="store_true", help="mit --vertical: nur an den Bau-Tagen (KIDS_LONGSHORT_BUILD_DAYS)")
+    ap.add_argument("--publish-tomorrow", default=None, help="Uhrzeit Europe/Berlin MORGEN, z. B. 09:00 (geplante Veröffentlichung)")
     args = ap.parse_args()
 
     today = args.today or datetime.now(BERLIN).strftime("%Y-%m-%d")
+    if args.vertical:
+        return main_vertical(args, today)
     mode = args.mode or compilation.mode_for(today)
     today_out = Path(args.today_out or (config.BUILD / today))
     out = Path(args.out or (today_out / "compilation"))
@@ -100,25 +214,10 @@ def main() -> int:
 
         if not args.no_drive and not args.dry_run and drive.available():
             try:
-                from pipeline import drive as base
-                svc = base.service()
-                root = base.ensure_folder(svc, drive.ROOT_FOLDER)
-                # in den heutigen Short-Ordner (gleicher Name wie bei run_kids_short) in Unterordner „zusammenschnitt“
-                res_today = json.loads((today_out / "result.json").read_text()) if (today_out / "result.json").exists() else {}
-                title_today = res_today.get("story", {}).get("title", "Zusammenschnitt")
-                folder = base.ensure_folder(svc, drive.folder_name(today, title_today), root)
-                sub = base.ensure_folder(svc, "zusammenschnitt", folder)
-                links = {"_folder": f"https://drive.google.com/drive/folders/{sub}"}
-                for name in ("compilation.mp4", "thumbnail.jpg", "chapters.txt", "metadata.json", "compilation_info.json"):
-                    f = out / name
-                    if f.exists():
-                        links[name] = base._upload(svc, f, sub)
-                if result.get("video_id"):
-                    lnk = out / "youtube_link.txt"
-                    lnk.write_text(f"{result['url']}\n{meta['title']}\n")
-                    links[lnk.name] = base._upload(svc, lnk, sub)
-                result["drive"] = links
-                log(f"Drive: {links['_folder']}")
+                result["drive"] = _drive_upload(today_out, today, out,
+                                                ["compilation.mp4", "thumbnail.jpg", "chapters.txt", "metadata.json", "compilation_info.json"],
+                                                "zusammenschnitt", result.get("url"), meta["title"])
+                log(f"Drive: {result['drive']['_folder']}")
             except Exception as e:  # noqa: BLE001
                 result["warnings"].append(f"Drive-Ablage fehlgeschlagen: {str(e)[:160]}")
         result["status"] = "ok"
