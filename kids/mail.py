@@ -53,6 +53,19 @@ def report_text(result: dict) -> str:
         f"Kosten: {result.get('cost_usd', 0):.2f} $ ≈ {result.get('cost_eur', 0):.2f} € (Budget {config.BUDGET_USD:.0f} $) – Videomodell: {result.get('veo_model', '')}",
         f"Laufzeit: {result.get('elapsed_min', 0):.1f} min",
     ]
+    c = result.get("compilation")
+    if c:
+        lines += ["", "— Zusammenschnitt (16:9) —"]
+        if c.get("status") == "ok" and c.get("url"):
+            mins = round((c.get("duration_sec") or 0) / 60, 1)
+            lines += [f"Online: {c['url']} ({c.get('privacy', '')})",
+                      f"Titel: {c.get('title', '')}",
+                      f"Modus: {c.get('mode', '')} · {c.get('count', '?')} Stories · {mins} min",
+                      f"Google Drive: {c.get('drive') or '(nicht abgelegt)'}"]
+        else:
+            lines += [f"FEHLER: {c.get('error', 'unbekannt')}"]
+        for w in c.get("warnings", []):
+            lines.append(f"- {w}")
     if result.get("warnings"):
         lines += ["", "Hinweise:"] + [f"- {w}" for w in result["warnings"]]
     return "\n".join(lines)

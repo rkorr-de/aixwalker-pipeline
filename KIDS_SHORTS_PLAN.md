@@ -10,6 +10,7 @@ Vereinbart mit Rolf am 03.10.2026:
 - Metadaten **nur Englisch**, Look wie das Referenz-Short „Dancing baby duck“ (Pixar-3D, Pastell, Bokeh)
 - täglich **16:00 Uhr Berlin öffentlich**, danach **E-Mail an rolf.korr@gmail.com**
 - jeder Short landet komplett in **Google Drive → „Giggle Meadow Shorts/<Datum – Titel>“** (Rolf spiegelt Drive lokal auf G:)
+- täglich zusätzlich ein **16:9-Zusammenschnitt** (Intro von Rolf `intro.mp4` im Drive-Wurzelordner → neuer Short → ältere Shorts → Abspann), sofort öffentlich; sonntags „Best of the Week“, am 1. „Monthly Marathon“ (Entscheidung 04.10.2026)
 - erst alles testen (inkl. Test-Upload), Tests wieder löschen, dann die tägliche Aufgabe anlegen
 
 ## Schritt 0 – Umgebung prüfen (ohne Rolf)
@@ -91,6 +92,14 @@ Dann prüfen:
    Änderungswünsche → `STYLE_BIBLE`/Prompts anpassen, Schritt 3 wiederholen (max. 2×, Budget beachten).
 5. Nach „passt“: Testvideo(s) löschen: `python -c "from kids import youtube as y; y.delete('<id>')"`, bestätigen
    mit `y.status('<id>')` → leer.
+
+## Schritt 3b – Zusammenschnitt testen (ohne Rolf, keine KI-Kosten)
+
+`python run_kids_compilation.py --dry-run` muss ohne Fehler durchlaufen (Platzhalter-Shorts). Dann, sobald mindestens
+2 echte Shorts veröffentlicht sind: `python run_kids_compilation.py --upload --private` → Video im Studio ansehen
+(`Read` auf 2–3 Frames per `ffmpeg -ss`), Kapitel in der Beschreibung prüfen, Rolf den Link schicken, nach „passt“
+das Testvideo löschen (`python -c "from kids import youtube as y; y.delete('<id>')"`). Liegt `intro.mp4` nicht im
+Drive-Wurzelordner, baut das Skript automatisch eine Intro-Karte – dann Rolf darauf hinweisen.
 
 ## Schritt 4 – E-Mail-Weg testen (ohne Rolf)
 

@@ -113,6 +113,8 @@ Upload „für Kinder“ → E-Mail). Einrichtung: `KIDS_SHORTS_PLAN.md`; tägli
 python run_kids_short.py --dry-run                  # Funktionstest ohne Kosten
 python run_kids_short.py --upload --private         # Testlauf, privat
 python run_kids_short.py --publish-local 16:00      # Produktion: heute 16:00 Uhr Berlin öffentlich
+python run_kids_compilation.py --upload             # danach: 16:9-Zusammenschnitt (Intro + Shorts), sofort öffentlich
+python run_kids_compilation.py --dry-run            # Zusammenschnitt-Funktionstest ohne Drive/Upload
 ```
 
 | Variable | Zweck |
