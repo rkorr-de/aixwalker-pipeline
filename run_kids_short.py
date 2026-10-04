@@ -25,7 +25,7 @@ from zoneinfo import ZoneInfo
 
 from PIL import Image
 
-from kids import config, costs, drive, fal, gemini, history, mail, render, review, sfx_library, story as story_mod, veo
+from kids import config, costs, drive, fal, gemini, history, mail, render, review, sfx_library, social, story as story_mod, veo
 from kids import youtube as yt
 
 BERLIN = ZoneInfo("Europe/Berlin")
@@ -61,6 +61,7 @@ def main() -> int:
     ap.add_argument("--skip-review", action="store_true", help="Videoprüfung vor dem Upload überspringen (nur Tests)")
     ap.add_argument("--story-only", action="store_true", help="nur Story schreiben + prüfen (fast kostenlos)")
     ap.add_argument("--no-drive", action="store_true", help="nicht in Google Drive ablegen (Standard: ablegen)")
+    ap.add_argument("--no-social", action="store_true", help="keine Instagram/TikTok-Posts über Metricool")
     args = ap.parse_args()
 
     today = datetime.now(BERLIN).strftime("%Y-%m-%d")
@@ -279,6 +280,17 @@ def main() -> int:
                     log(f"Drive-Ablage fehlgeschlagen: {e}")
             else:
                 result["warnings"].append("Drive-Ablage übersprungen: DRIVE_REFRESH_TOKEN fehlt")
+        # 9) Social: Instagram Reel + TikTok über Metricool (nur wenn METRICOOL_TOKEN gesetzt und Upload erfolgt)
+        if not args.no_social and not args.dry_run and result.get("video_id") and result.get("drive"):
+            if social.available():
+                try:
+                    result["social"] = social.post_short(st, result["drive"], today)
+                    log("Social-Posts angemeldet: " + ", ".join(f"{n} {v.get('when')}" for n, v in result["social"].items()
+                                                                if isinstance(v, dict) and "when" in v))
+                except Exception as e:  # noqa: BLE001
+                    result["warnings"].append(f"Social-Posts fehlgeschlagen: {str(e)[:160]}")
+            else:
+                result["warnings"].append("Social-Posts übersprungen: METRICOOL_TOKEN fehlt")
         result["status"] = "ok"
         rc = 0
     except costs.BudgetExceeded as e:

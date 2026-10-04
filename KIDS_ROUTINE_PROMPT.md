@@ -114,6 +114,13 @@ Metadaten aus fester Vorlage – **keine API-Kosten**. An anderen Tagen meldet d
 Prüfe `build/kids/<Datum>/longshort/result_longshort.json` (`status` = `ok` oder `skipped`). Bei Fehler einmal
 wiederholen; scheitert es erneut, in der Mail melden – Short und 16:9-Video bleiben davon unberührt.
 
+## Schritt 4d – Instagram & TikTok (läuft im Short-Skript mit)
+
+`run_kids_short.py` meldet nach Drive-Ablage automatisch zwei Posts bei Metricool an (Instagram Reel 17:00, TikTok
+18:00; `kids/social.py`), sofern `METRICOOL_TOKEN` gesetzt ist. Ergebnis steht in `result.json` unter `social`.
+Fehlt der Token, steht dort nur ein Hinweis – kein Fehler. Schlägt ein Netzwerk fehl, in der Mail melden; nichts
+manuell nachholen.
+
 ## Schritt 5 – E-Mail an Rolf (immer, auch bei Fehlern)
 
 Sende an **rolf.korr@gmail.com** – ausschließlich an diese Adresse – eine Klartext-Mail:
@@ -127,7 +134,8 @@ Sende an **rolf.korr@gmail.com** – ausschließlich an diese Adresse – eine K
 Betreff bei Erfolg: `[Kids-Short] JJJJ-MM-TT – online: <Titel>` (+ „ · Zusammenschnitt online“, wenn Schritt 4b geklappt hat)
 Inhalt (Deutsch): Link, Titel, Figur, Story in einem Satz, Veröffentlichungszeit, Link zum Drive-Ordner,
 Link/Titel/Länge des Zusammenschnitts (steht in `result.json` unter `compilation`), an Bau-Tagen Link und
-geplante Uhrzeit des langen Shorts (`result.json` unter `longshort`),
+geplante Uhrzeit des langen Shorts (`result.json` unter `longshort`), Status der Instagram/TikTok-Posts
+(`result.json` unter `social`),
 Beschreibung und Tags wie hochgeladen, Kosten in $ und €, Videomodell, Hinweise/Warnungen aus `result.json`. Der Text aus
 `kids.mail.report_text(result)` ist genau dieses Format – nutze ihn.
 

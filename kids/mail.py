@@ -66,6 +66,18 @@ def report_text(result: dict) -> str:
             lines += [f"FEHLER: {c.get('error', 'unbekannt')}"]
         for w in c.get("warnings", []):
             lines.append(f"- {w}")
+    so = result.get("social")
+    if so:
+        lines += ["", "— Instagram / TikTok (Metricool) —"]
+        for net in ("instagram", "tiktok", "facebook"):
+            v = so.get(net)
+            if not v:
+                continue
+            if "error" in v:
+                lines.append(f"{net}: FEHLER – {v['error']}")
+            else:
+                url = (v.get("result") or {}).get("plannerUrl") or ""
+                lines.append(f"{net}: geplant {v.get('when')}{' (Entwurf)' if so.get('draft') else ''} {url}".rstrip())
     ls = result.get("longshort")
     if ls and ls.get("status") != "skipped":
         lines += ["", "— Langer Short (9:16) —"]
