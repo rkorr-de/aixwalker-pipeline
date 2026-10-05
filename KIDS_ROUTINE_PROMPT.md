@@ -16,6 +16,20 @@ Danach bekommt Rolf eine E-Mail mit Link und allen Infos.
 
 ## Schritt 1 – Vorbereitung (max. 3 Minuten)
 
+0. **Metricool-Tool laden (wichtig, sonst gehen Social-Posts verloren):** Die `mcp__Metricool_Social_Media_Management__*`-
+   Werkzeuge sind in einer frischen Sitzung oft nur als Name sichtbar, aber noch nicht aufrufbar ("deferred") – ein
+   direkter Aufruf schlägt dann fehl, auch wenn der Metricool-Connector verbunden ist. Rufe deshalb **zuerst**
+   `ToolSearch` mit `select:mcp__Metricool_Social_Media_Management__createScheduledPost,mcp__Metricool_Social_Media_Management__getBrandSettings`
+   auf. Erst wenn das fehlschlägt (Tool taucht auch nach `ToolSearch` nicht auf), gilt der Connector als in dieser
+   Sitzung nicht verfügbar – dann wie bisher in Schritt 4c/4d vermerken.
+0b. **Nachholen verpasster Social-Posts (letzte 3 Tage):** Mit dem geladenen Tool prüfe `build/kids/<Datum>/result.json`
+   der letzten 3 Kalendertage (und ebenso `longshort/result_longshort.json`, falls vorhanden): Steht dort
+   `social.status == "pending_mcp"` (bzw. bei `longshort` entsprechend) und **nicht** `"ok"`, wurde der Post nie
+   angelegt. Lies die zugehörige `social_plan.json`/`longshort_social_plan.json`, setze in jedem `posts[].info`
+   bzw. `date` eine neue Uhrzeit, falls die alte schon vergangen ist (`datetime.now(Europe/Berlin) + 15 Minuten`,
+   ISO-Format, `autoPublish` bleibt `true`), rufe damit `createScheduledPost` auf wie in Schritt 4d beschrieben,
+   und aktualisiere `social.status` auf `"ok"` in der jeweiligen `result.json` samt Ergebnis je Netzwerk. Das läuft
+   **vor** dem heutigen Short, damit nichts dauerhaft verloren geht.
 1. Arbeitsverzeichnis ist das Repo `aixwalker-pipeline` (prüfe mit `ls`: run_kids_short.py, kids/).
 2. `which ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)` und
    `pip install -q -r requirements.txt --break-system-packages` (enthält `rembg` fürs Freistellen der Figur in den
@@ -126,8 +140,9 @@ unter `social` im Tages-`result.json` → `longshort` (dieselbe Struktur, dort l
 
 `run_kids_short.py` bereitet nach der Drive-Ablage automatisch zwei Posts vor (Instagram Reel 17:00, TikTok 18:00;
 `kids/social.py`). Metricools REST-API ist nur im bezahlten Tarif (Advanced/Custom) freigeschaltet; wir nutzen den
-kostenlosen Weg über den Metricool-MCP-Connector, der in dieser Sitzung als `mcp__Metricool_Social_Media_Management__*`
-verbunden ist (Marke/Blog-ID 7233482). Danach zwei Fälle, siehe `result.json` unter `social`:
+kostenlosen Weg über den Metricool-MCP-Connector, verfügbar als `mcp__Metricool_Social_Media_Management__*`
+(Marke/Blog-ID 7233482) – **falls in Schritt 1.0 noch nicht geladen, jetzt per `ToolSearch` nachladen, bevor du ihn
+als nicht verfügbar einstufst.** Danach zwei Fälle, siehe `result.json` unter `social`:
 
 - `social.status == "pending_mcp"` (Normalfall, kein `METRICOOL_TOKEN` gesetzt): Lies die Datei unter
   `social.plan_file` (`<out>/social_plan.json`) – sie enthält `posts`: eine Liste mit `network`, `date`, `blogId`,
@@ -139,7 +154,10 @@ verbunden ist (Marke/Blog-ID 7233482). Danach zwei Fälle, siehe `result.json` u
 - Jeder andere Wert (z. B. mit `instagram`/`tiktok`-Schlüsseln direkt): `METRICOOL_TOKEN` war gesetzt, das Skript
   hat selbst schon direkt über die REST-API gepostet – hier nichts weiter zu tun.
 
-Nichts manuell in Metricool nachholen; das MCP-Tool veröffentlicht zur angegebenen Uhrzeit automatisch.
+Nichts manuell in Metricool nachholen; das MCP-Tool veröffentlicht zur angegebenen Uhrzeit automatisch. Schlägt der
+Aufruf fehl, weil das Tool trotz `ToolSearch` nicht auftaucht: in der Mail klar vermerken ("Metricool-Connector in
+dieser Sitzung nicht verfügbar – wird morgen automatisch nachgeholt, siehe Schritt 1.0b") – `social.status` bleibt
+dann `"pending_mcp"`, das holt die nächste Tages-Routine automatisch nach.
 
 ## Schritt 5 – E-Mail an Rolf (immer, auch bei Fehlern)
 
