@@ -4,7 +4,8 @@ Rolf startet in Claude Code (Repo `rkorr-de/aixwalker-pipeline`, Umgebung **AixW
 **„Los geht's mit dem Social-Plan“**. Antworten auf Deutsch, Anweisungen an Rolf in Anfänger-Sprache.
 
 Vereinbart am 04.10.2026: Instagram Reel täglich 17:00 und TikTok täglich 18:00 mit dem Short des Tages, über
-Metricool (Marke 7233482, Konto 5602673). Facebook bewusst weggelassen. Konten heißen `gigglemeadowshorts`.
+Metricool (Marke 7233482, Konto 5602673). Facebook bewusst weggelassen. Konten: Instagram `gigglemeadowshorts`,
+TikTok vorerst `giggle.meadow` (Namensänderung erst ab 04.11.2026 wieder möglich).
 Rolfs Anleitung zum Anlegen der Konten steht im Claude-Doc „Giggle Meadow – Instagram & TikTok einrichten“.
 
 ## Schritt 1 – Voraussetzungen prüfen (ohne Rolf)
