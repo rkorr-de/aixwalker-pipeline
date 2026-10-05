@@ -83,7 +83,8 @@ NEGATIVE_PROMPT = (
 )
 # Figuren sind immer Eigenkreationen – keine Namen oder Designs bekannter Marken.
 FORBIDDEN_WORDS = ["disney", "pixar character", "mickey", "minnie", "donald duck", "elsa", "bluey", "peppa",
-                   "paw patrol", "cocomelon", "baby shark", "pikachu", "pokemon", "sonic", "mario", "minion"]
+                   "paw patrol", "cocomelon", "baby shark", "pikachu", "pokemon", "sonic", "mario", "minion",
+                   "bibi blocksberg", "bibi und tina", "bibi & tina"]
 
 # ---- Abwechslung: Tiere × Lehrinhalte ------------------------------------------------------------------------
 # Jeden Tag wird ein Tier gewählt, das in den letzten AVOID_SPECIES_DAYS Shorts nicht vorkam, und ein Lehrinhalt,
@@ -119,7 +120,7 @@ AVOID_LESSON_DAYS = int(os.environ.get("KIDS_AVOID_LESSON_DAYS", "25"))
 # neuen Tieren. Erscheint alle KIDS_FLAGSHIP_EVERY_N_DAYS Tage mit neuer Geschichte/Lektion, aber gleichem Namen,
 # Tier und Aussehen (für visuelle Konsistenz). Leere Liste = Funktion aus.
 FLAGSHIP_CHARACTERS = [
-    {"name": "Bibi", "species": "baby bunny",
+    {"name": "Lumi", "species": "baby bunny",
      "look": "a small snow-white bunny with pale pink inner ears, round sparkling dark-brown eyes, a fluffy cotton "
              "tail, and one tiny daisy-flower clip behind her left ear"},
 ]
