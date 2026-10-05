@@ -139,9 +139,14 @@ PARENT_KEYWORDS = [
     "3d animation kids", "short cartoon for children", "baby sensory video", "silly animal cartoon", "wholesome kids video",
 ]
 # Affiliate-Zeile für die Videobeschreibung (z. B. Amazon-Partnerprogramm-Link zu passendem Spielzeug/Büchern) –
-# komplett fertiger Text inkl. Link, den Rolf nach Anmeldung beim Partnerprogramm einträgt. Leer = kein Zusatztext.
+# komplett fertiger Text inkl. Link, den Rolf nach Anmeldung beim Partnerprogramm einträgt.
+# Nicht gesetzt = eingebauter Standard (Ziggy-Link); `KIDS_AFFILIATE_LINE` leer gesetzt = kein Zusatztext.
 # COPPA-konform, da nur ein Link in der Beschreibung steht (keine Datenerfassung bei Kindern).
-AFFILIATE_LINE = os.environ.get("KIDS_AFFILIATE_LINE", "").strip()
+DEFAULT_AFFILIATE_LINE = (
+    "🧸 Ziggy's favorite cuddly bunny: https://www.amazon.de/dp/B072JH191N?tag=gigglemeadow2-21&linkCode=ll2 "
+    "(Amazon affiliate link – as an Amazon Associate we earn from qualifying purchases)"
+)
+AFFILIATE_LINE = os.environ.get("KIDS_AFFILIATE_LINE", DEFAULT_AFFILIATE_LINE).strip()
 
 PLAYLIST_TITLE = '🧸 Cute Baby Animal Cartoons for Toddlers – Giggle Meadow 🌼'
 PLAYLIST_DESCRIPTION = (
