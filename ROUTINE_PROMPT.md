@@ -63,8 +63,8 @@ API – alle Formularangaben stehen im Bericht).
 
 Die Sonntags-Routine startet statt `python run_auto.py` den Befehl **`python run_auto.py --long`**. Alles andere
 (Gedächtnis, Kostenlimit, Upload öffentlich, 2 Shorts, Drive, Bericht per E-Mail) ist identisch. Unterschiede:
-- Genre nur Chillout Sleep oder Dark Ambient Spa; Mindestlänge `LONG_MIN_MINUTES` (Standard 120 Min, später 180).
-- Mehr Tracks (ca. 45–65), ein Cover-Bild je 4 Tracks, Zusammenschnitt in Batches, Video mit 10 fps.
+- Genre nur Chillout Sleep oder Dark Ambient Spa; Mindestlänge `LONG_MIN_MINUTES` (Standard 180 Min).
+- Mehr Tracks (ca. 60–70), ein Cover-Bild je 4 Tracks, Zusammenschnitt in Batches, Video mit 10 fps.
 - Der Lauf dauert deutlich länger (Lyria-Erzeugung der Tracks ca. 1–2 Stunden); bei Abbruch denselben Befehl erneut
   starten – fertige Tracks (build/<slug>/raw) und das Konzept des Tages werden wiederverwendet.
 - Kein DistroKid-Release für Lang-Mixe (steht so im Bericht).
