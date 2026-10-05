@@ -89,7 +89,12 @@ def fetch_shorts(today_out: Path | None = None, today: str | None = None) -> lis
     for e in entries:
         by_date[e["date"]] = e            # bei mehreren Einträgen je Tag gilt der letzte (veröffentlichte)
     svc = base.service() if kdrive.available() else None
-    folders: dict[str, str] = {}
+    # Ordner nach ihrem VOLLEN Namen ("<Datum> – <Titel>"), nicht nur nach Datum: an manchen Tagen gibt es mehrere
+    # Ordner mit demselben Datumspräfix (z. B. ein verworfener Testlauf + der tatsächlich veröffentlichte Short –
+    # Fall vom 03.10.2026, "Goldfish"-Testordner neben dem echten "Puppy"-Ordner). Ein reiner Datumsabgleich hätte
+    # da je nach Listen-Reihenfolge zufällig den falschen (verworfenen) Ordner gezogen.
+    folders_by_name: dict[str, str] = {}
+    folders_by_date: dict[str, list[str]] = {}
     if svc:
         root = base.ensure_folder(svc, kdrive.ROOT_FOLDER)
         token = None
@@ -97,9 +102,10 @@ def fetch_shorts(today_out: Path | None = None, today: str | None = None) -> lis
             r = svc.files().list(q=f"'{root}' in parents and mimeType = '{base.FOLDER_MIME}' and trashed = false",
                                  fields="nextPageToken,files(id,name)", pageSize=200, pageToken=token).execute()
             for f in r.get("files", []):
+                folders_by_name[f["name"]] = f["id"]
                 m = re.match(r"(\d{4}-\d{2}-\d{2})", f["name"])
                 if m:
-                    folders[m.group(1)] = f["id"]
+                    folders_by_date.setdefault(m.group(1), []).append(f["id"])
             token = r.get("nextPageToken")
             if not token:
                 break
@@ -108,15 +114,26 @@ def fetch_shorts(today_out: Path | None = None, today: str | None = None) -> lis
         path: Path | None = None
         if today and d == today and today_out and (today_out / "short.mp4").exists():
             path = today_out / "short.mp4"
-        elif svc and d in folders:
-            local = CACHE / "shorts" / f"{d}.mp4"
-            if not local.exists():
-                q = f"name = 'short.mp4' and '{folders[d]}' in parents and trashed = false"
-                files = svc.files().list(q=q, fields="files(id)", pageSize=1).execute().get("files", [])
-                if files:
-                    _download(svc, files[0]["id"], local)
-            if local.exists():
-                path = local
+        elif svc:
+            expected_name = kdrive.folder_name(d, e.get("title", ""))
+            fid = folders_by_name.get(expected_name)
+            if not fid:
+                # Fallback nur, wenn eindeutig genau ein Ordner für dieses Datum existiert – bei mehreren
+                # (verworfener Testlauf etc.) lieber gar nichts laden als den falschen zu erwischen.
+                cands = folders_by_date.get(d, [])
+                fid = cands[0] if len(cands) == 1 else None
+                if not fid and cands:
+                    print(f"[compilation] {d}: mehrere Drive-Ordner, kein eindeutiger Titeltreffer "
+                          f"(erwartet '{expected_name}') – übersprungen, um Verwechslung zu vermeiden")
+            if fid:
+                local = CACHE / "shorts" / f"{d}.mp4"
+                if not local.exists():
+                    q = f"name = 'short.mp4' and '{fid}' in parents and trashed = false"
+                    files = svc.files().list(q=q, fields="files(id)", pageSize=1).execute().get("files", [])
+                    if files:
+                        _download(svc, files[0]["id"], local)
+                if local.exists():
+                    path = local
         if path:
             out.append({**e, "path": path})
     return out

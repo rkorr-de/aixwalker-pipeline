@@ -15,7 +15,10 @@ from . import config
 FILE_NAME = "_verlauf.json"
 LOCAL = config.BUILD / FILE_NAME
 
-# Bereits vor Einführung des Verlaufs gedrehte Geschichten (03.10.2026: Test + erster Lauf, beide Goldfisch)
+# Bereits vor Einführung des Verlaufs gedrehte Geschichten (03.10.2026: Test + erster Lauf, beide Goldfisch).
+# Die zweite wurde tatsächlich auf YouTube hochgeladen (Ki36QeiO4XU), von Rolf inhaltlich für falsch befunden
+# und sowohl von YouTube als auch aus dem Drive-Ordner gelöscht (05.10.2026) – video_id/Status hier bewusst so
+# gesetzt, dass sie nie wieder als "published" gilt und nie wieder in einen Zusammenschnitt gezogen wird.
 SEED = [
     {"date": "2026-10-03", "species": "baby goldfish", "name": "Finny", "lesson": "",
      "theme": "goldfish jumping between two bowls", "summary": "A goldfish jumps from one fish bowl to another.",
@@ -23,7 +26,8 @@ SEED = [
     {"date": "2026-10-03", "species": "baby goldfish", "name": "Pip", "lesson": "",
      "theme": "goldfish jumping between two bowls",
      "summary": "A goldfish uses a spring leaf to launch itself into another bowl to catch a food pellet.",
-     "title": "Brave Goldfish Bounces for a Snack!", "status": "rejected by Rolf"},
+     "title": "Brave Goldfish Bounces for a Snack!", "video_id": "Ki36QeiO4XU",
+     "status": "deleted by Rolf – content wrong, never reuse"},
 ]
 
 
