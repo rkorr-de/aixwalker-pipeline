@@ -101,3 +101,33 @@ def write_text(svc, name: str, text: str, parent: str, mime: str = "application/
 def memory_folder(svc) -> str:
     from . import config
     return ensure_folder(svc, config.MEMORY_FOLDER, ensure_folder(svc, ROOT_FOLDER))
+
+
+# --- Lesen für den Monats-Mix: Unterordner/Dateien auflisten und herunterladen ---
+
+def list_children(svc, parent: str, folders: bool | None = None) -> list[dict]:
+    """Kinder eines Ordners (id, name, mimeType). folders=True nur Ordner, False nur Dateien."""
+    q = f"'{parent}' in parents and trashed = false"
+    if folders is True:
+        q += f" and mimeType = '{FOLDER_MIME}'"
+    elif folders is False:
+        q += f" and mimeType != '{FOLDER_MIME}'"
+    out, token = [], None
+    while True:
+        r = svc.files().list(q=q, fields="nextPageToken,files(id,name,mimeType)", pageSize=200,
+                             pageToken=token).execute()
+        out += r.get("files", [])
+        token = r.get("nextPageToken")
+        if not token:
+            return sorted(out, key=lambda f: f["name"])
+
+
+def download(svc, file_id: str, dst: Path) -> Path:
+    from googleapiclient.http import MediaIoBaseDownload
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    with open(dst, "wb") as fh:
+        dl = MediaIoBaseDownload(fh, svc.files().get_media(fileId=file_id), chunksize=16 * 1024 * 1024)
+        done = False
+        while not done:
+            _, done = dl.next_chunk()
+    return dst
