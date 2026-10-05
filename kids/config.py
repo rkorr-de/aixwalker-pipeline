@@ -120,7 +120,7 @@ AVOID_LESSON_DAYS = int(os.environ.get("KIDS_AVOID_LESSON_DAYS", "25"))
 # neuen Tieren. Erscheint alle KIDS_FLAGSHIP_EVERY_N_DAYS Tage mit neuer Geschichte/Lektion, aber gleichem Namen,
 # Tier und Aussehen (für visuelle Konsistenz). Leere Liste = Funktion aus.
 FLAGSHIP_CHARACTERS = [
-    {"name": "Lumi", "species": "baby bunny",
+    {"name": "Snow", "species": "baby bunny",
      "look": "a small snow-white bunny with pale pink inner ears, round sparkling dark-brown eyes, a fluffy cotton "
              "tail, and one tiny daisy-flower clip behind her left ear"},
 ]
