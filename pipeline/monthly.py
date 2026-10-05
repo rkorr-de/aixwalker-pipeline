@@ -102,51 +102,54 @@ def build_still_video(frame: Path, audio_file: Path, out: Path, fps: int = 2) ->
 
 # ---------- Thumbnail ----------
 
-def make_monthly_thumbnail(covers: list[Image.Image], hours_text: str, genre_line: str, month_label: str,
+HERO_PROMPTS = {   # Genre-Stichwort → Motiv (immer eine Frau, werbefreundlich, Kanal-Look: dunkel, Teal-Licht)
+    "gym": "athletic woman in black sportswear gripping a barbell in a dark industrial gym, chalk dust, teal rim light",
+    "spa": "calm woman in a spa robe by candles and hot stones, steam, dark moody spa, teal accent light",
+    "sleep": "serene woman asleep in a soft bed by a starry window, moonlight, floor mist, teal accent glow",
+    "drive": "woman at the wheel of a car at night, city lights bokeh, dark moody, teal accent light",
+}
+
+
+def hero_prompt(genre: str) -> str:
+    g = genre.lower()
+    base = next((v for k, v in HERO_PROMPTS.items() if k in g), "calm woman in a dark moody room, teal accent light")
+    return (f"Cinematic photo, {base}. Woman on the RIGHT third of the frame, face clearly visible, left side dark and "
+            "empty for text. Photorealistic, high contrast, no text, no logos, 16:9.")
+
+
+def make_monthly_thumbnail(art: Image.Image, hours_text: str, genre_line: str, month_label: str,
                            out: Path, w: int = 1280, h: int = 720) -> Path:
-    """Monats-Look (anders als die Wochen-Thumbnails): Mosaik aus den Covern des Monats in senkrechten Streifen,
-    dicker Teal-Rahmen, Teal-Band „MONTHLY MIX · MONAT“, riesige Stundenzahl in der Mitte."""
+    """Monats-Look: Frau rechts (wie bei den Wochen-Thumbnails), links riesige Stundenzahl, Teal-Band
+    „MONTHLY MIX · MONAT“ oben und dicker Teal-Rahmen als Erkennungsmerkmal."""
     s = h / 720
-    n = max(1, len(covers))
-    img = Image.new("RGB", (w, h), config.BG)
-    sw = w / n
-    for i, c in enumerate(covers):
-        c = c.convert("RGB")
-        scale = max(sw / c.width, h / c.height)
-        c = c.resize((int(c.width * scale) + 1, int(c.height * scale) + 1), Image.LANCZOS)
-        x0, y0 = (c.width - int(sw)) // 2, (c.height - h) // 2
-        strip = c.crop((x0, y0, x0 + int(sw) + 1, y0 + h))
-        img.paste(strip, (int(i * sw), 0))
-    # abdunkeln, in der Mitte stärker (Lesbarkeit)
-    shade = Image.new("L", (w, h), 0)
-    sd = ImageDraw.Draw(shade)
-    for y in range(h):
-        a = int(60 + 70 * (1 - abs(y - h * 0.5) / (h * 0.5)))
-        sd.line([(0, y), (w, y)], fill=min(a, 140))
-    img = Image.composite(Image.new("RGB", (w, h), (4, 9, 10)), img, shade)
+    img = art.convert("RGB")
+    scale = max(w / img.width, h / img.height)
+    img = img.resize((int(img.width * scale) + 1, int(img.height * scale) + 1), Image.LANCZOS)
+    x0, y0 = (img.width - w) // 2, (img.height - h) // 2
+    img = img.crop((x0, y0, x0 + w, y0 + h))
+    ov = Image.new("L", (w, h), 0)
+    od = ImageDraw.Draw(ov)
+    for x in range(int(w * 0.68)):
+        od.line([(x, 0), (x, h)], fill=int(215 * (1 - x / (w * 0.68)) ** 1.1))
+    img = Image.composite(Image.new("RGB", (w, h), (5, 10, 12)), img, ov)
     d = ImageDraw.Draw(img)
-    for i in range(1, n):   # dünne Trennlinien zwischen den Streifen
-        d.line([(int(i * sw), 0), (int(i * sw), h)], fill=config.TEAL_DIM, width=max(2, int(3 * s)))
-    # Teal-Band oben
     bar_h = int(96 * s)
     d.rectangle([0, 0, w, bar_h], fill=config.TEAL)
-    bf = images._fit_text(d, f"MONTHLY MIX  ·  {month_label.upper()}", config.FONT_DISPLAY, int(w * 0.9), int(80 * s), 30)
-    bw = d.textlength(f"MONTHLY MIX  ·  {month_label.upper()}", font=bf)
-    d.text(((w - bw) / 2, (bar_h - bf.size) / 2 - 6 * s), f"MONTHLY MIX  ·  {month_label.upper()}", font=bf, fill=config.BG)
-    # Stundenzahl
-    hf = images._fit_text(d, hours_text.upper(), config.FONT_DISPLAY, int(w * 0.86), int(330 * s), 100)
-    tw = d.textlength(hours_text.upper(), font=hf)
-    ty = bar_h + (h - bar_h - hf.size) / 2 - 40 * s
-    d.text(((w - tw) / 2 + 7 * s, ty + 7 * s), hours_text.upper(), font=hf, fill=(0, 0, 0))
-    d.text(((w - tw) / 2, ty), hours_text.upper(), font=hf, fill=config.WHITE)
-    gf = images._fit_text(d, genre_line.upper(), config.FONT_BODY, int(w * 0.84), int(54 * s), 24)
-    gw = d.textlength(genre_line.upper(), font=gf)
-    gy = h - int(112 * s)
-    d.rectangle([(w - gw) / 2 - 24 * s, gy - 12 * s, (w + gw) / 2 + 24 * s, gy + gf.size + 12 * s], fill=(4, 9, 10))
-    d.text(((w - gw) / 2, gy), genre_line.upper(), font=gf, fill=config.TEAL)
-    # Rahmen
-    bw_ = max(8, int(14 * s))
-    d.rectangle([0, 0, w - 1, h - 1], outline=config.TEAL, width=bw_)
+    label = f"MONTHLY MIX  ·  {month_label.upper()}"
+    bf = images._fit_text(d, label, config.FONT_DISPLAY, int(w * 0.9), int(80 * s), 30)
+    bw = d.textlength(label, font=bf)
+    d.text(((w - bw) / 2, (bar_h - bf.size) / 2 - 6 * s), label, font=bf, fill=config.BG)
+    m = int(56 * s)
+    ht = hours_text.upper()
+    hf = images._fit_text(d, ht, config.FONT_DISPLAY, int(w * 0.58), int(300 * s), 100)
+    ty = bar_h + (h - bar_h - hf.size) / 2 - 50 * s
+    d.text((m + 7 * s, ty + 7 * s), ht, font=hf, fill=(0, 0, 0))
+    d.text((m, ty), ht, font=hf, fill=config.WHITE)
+    gy = ty + hf.size * 1.02
+    d.rectangle([m, gy + 10 * s, m + 110 * s, gy + 18 * s], fill=config.TEAL)
+    gf = images._fit_text(d, genre_line.upper(), config.FONT_BODY, int(w * 0.56), int(44 * s), 22)
+    d.text((m + 130 * s, gy - 2 * s), genre_line.upper(), font=gf, fill=config.TEAL)
+    d.rectangle([0, 0, w - 1, h - 1], outline=config.TEAL, width=max(8, int(14 * s)))
     out.parent.mkdir(parents=True, exist_ok=True)
     img.save(out, "JPEG", quality=92)
     if out.stat().st_size > 2_000_000:

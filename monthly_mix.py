@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Monats-Mix (am 1. des Monats, vollautomatisch): je Thema/Genre, das im Vormonat ≥ 2 Wochen-Mixe hat, werden die
 Mixe aus Drive zu einem 2–4-Stunden-Mix verbunden und öffentlich auf YouTube hochgeladen (inkl. Kommentar, Drive-Ordner,
-Bericht per E-Mail, Gedächtnis). Keine Lyria-/Bildkosten – es wird nur vorhandenes Material neu gemischt.
+Bericht per E-Mail, Gedächtnis). Kosten: nur 1 Motivbild je Monats-Mix (ca. 0,13 $), keine Lyria-Kosten.
 
   python monthly_mix.py                    # Vormonat, alle Genres mit genug Material
   python monthly_mix.py --month 2026-10    # bestimmten Monat
@@ -135,11 +135,19 @@ def produce(genre: str, month: str, pairs: list[tuple[dict, dict]], out: Path, m
                                [{"album": p["album"], "video_id": next((e.get("video_id") for e in mem.get("mixes", [])
                                                                           if e.get("album", "").lower() == p["album"].lower()), None)}
                                 for p, _ in pairs], chapter_text, bpm_range)
-    covers = [Image.open(mx["cover"]) for _, mx in pairs if mx.get("cover")] or [images.procedural_art("1:1", seed=1)]
+    if args.dry_run:
+        art = images.procedural_art("16:9", seed=1)
+    else:
+        try:
+            art = images.generate_art(monthly.hero_prompt(genre), "16:9", pro=True)
+            
+        except Exception as e:  # noqa: BLE001
+            log(f"Motiv-Erzeugung fehlgeschlagen ({e}) – Cover des letzten Mixes als Ersatz")
+            art = Image.open(pairs[-1][1]["cover"]) if pairs[-1][1].get("cover") else images.procedural_art("16:9", seed=1)
     head = monthly.genre_info(genre)[0]
-    thumb = monthly.make_monthly_thumbnail(covers, monthly.hours_label(total_min), head, f"{month_label} {y}",
+    thumb = monthly.make_monthly_thumbnail(art, monthly.hours_label(total_min), head, f"{month_label} {y}",
                                            out / "thumbnail_monthly.jpg")
-    frame = monthly.make_monthly_thumbnail(covers, monthly.hours_label(total_min), head, f"{month_label} {y}",
+    frame = monthly.make_monthly_thumbnail(art, monthly.hours_label(total_min), head, f"{month_label} {y}",
                                            out / "frame.png", 1920, 1080)
     log("Video rendern …")
     mp4 = monthly.build_still_video(frame, flac, out / "monthly.mp4")
@@ -147,7 +155,7 @@ def produce(genre: str, month: str, pairs: list[tuple[dict, dict]], out: Path, m
     result = {"genre": genre, "month": month, "title": texts["title"], "duration_min": total_min,
               "albums": [p["album"] for p, _ in pairs], "tracks": len(tracks), "thumbnail": str(thumb),
               "mp4": str(mp4), "chapters": chapter_text, "video_id": None, "video_url": None, "comment_id": None,
-              "cost_usd": 0.0}
+              "cost_usd": 0.0 if args.dry_run else config.PRICES_USD["image_pro"]}
     meta = f"""=== YOUTUBE TITEL ===
 {texts['title']}
 

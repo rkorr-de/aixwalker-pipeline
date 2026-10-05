@@ -20,5 +20,5 @@ Antworte auf Deutsch (YouTube-Metadaten sind Englisch). Du arbeitest komplett oh
 7. Abschluss: 2–3 Sätze auf Deutsch (Genres, Links, Dauer, Probleme).
 
 ## Regeln
-- Keine neuen Lyria-/Bildkosten: es wird nur bestehendes Material neu gemischt.
+- Kosten: 1 Motivbild je Monats-Mix (ca. 0,13 $), keine Lyria-Kosten.
 - Nichts löschen, keine Quell-Mixe verändern.
