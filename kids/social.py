@@ -1,14 +1,26 @@
 """Social-Posts zu jedem Short: Instagram Reel (17:00) und TikTok (18:00) über Metricool.
 
-Ablauf (nach dem YouTube-Upload):
+Zwei Wege, je nachdem was in der Umgebung vorhanden ist:
+
+A) METRICOOL_TOKEN gesetzt (Metricool-Tarif Advanced/Custom, zahlungspflichtig):
+   Dieses Skript postet direkt per REST-API (`post_short`/`schedule`).
+
+B) Kein METRICOOL_TOKEN (Standard-/kostenloser Tarif – unser Fall): Die REST-API ist bei Metricool nur in
+   bezahlten Tarifen freigeschaltet; der kostenlose Metricool-MCP-Connector (in der täglichen Claude-Code-Sitzung
+   verbunden) kann aber genauso Posts anlegen. Dieses Skript bereitet dann nur die Daten vor (`plan`) und schreibt
+   sie nach `social_plan.json`; die Tages-Routine (KIDS_ROUTINE_PROMPT.md, Schritt 4d) liest diese Datei und ruft
+   dafür selbst das MCP-Tool `createScheduledPost` auf – ohne zusätzliche Kosten.
+
+Ablauf in beiden Fällen (nach dem YouTube-Upload):
 1. short.mp4 und thumbnail.jpg aus dem Drive-Tagesordner per Link freigeben (jeder mit Link darf lesen – das Video
    ist ohnehin öffentlich). Metricool holt die Datei über diesen Link.
 2. Texte je Plattform (Gemini, mit fester Vorlage als Fallback) – englisch, Eltern-Ansprache, Hashtags.
-3. Posts bei Metricool anmelden (API, Token METRICOOL_TOKEN). Metricool veröffentlicht sie zur Uhrzeit selbst.
+3a. (Weg A) Posts bei Metricool per REST anmelden (Token METRICOOL_TOKEN).
+3b. (Weg B) Post-Daten nach social_plan.json schreiben, für das MCP-Tool in der Tages-Sitzung.
 
-Umgebungsvariablen: METRICOOL_TOKEN (Pflicht), METRICOOL_USER_ID (Standard 5602673), METRICOOL_BLOG_ID
+Umgebungsvariablen: METRICOOL_TOKEN (nur Weg A), METRICOOL_USER_ID (Standard 5602673), METRICOOL_BLOG_ID
 (Standard 7233482), KIDS_SOCIAL_NETWORKS (Standard "instagram,tiktok"), KIDS_SOCIAL_TIMES
-(Standard "instagram=17:00,tiktok=18:00"), KIDS_SOCIAL_DRAFT=1 → nur als Entwurf anlegen (Test).
+(Standard "instagram=17:00,tiktok=18:00"), KIDS_SOCIAL_DRAFT=1 → nur als Entwurf anlegen (nur Weg A, Test).
 """
 import json
 import os
@@ -118,27 +130,34 @@ def _when(network: str, today: datetime) -> datetime:
     return t
 
 
-def schedule(network: str, when: datetime, text: str, video_url: str, thumb_url: str | None, title: str) -> dict:
-    """Legt einen Post in Metricool an (autoPublish, außer KIDS_SOCIAL_DRAFT=1). Liefert die Antwort (id, plannerUrl)."""
-    body = {
-        "autoPublish": not DRAFT, "draft": DRAFT, "descendants": [], "firstCommentText": "", "hasNotReadNotes": False,
+def _build_info(network: str, text: str, video_url: str, thumb_url: str | None, title: str, draft: bool = False) -> dict:
+    """Post-Inhalt für ein Netzwerk – gemeinsam für den REST-Weg (Token) und den MCP-Plan genutzt."""
+    info = {
+        "autoPublish": not draft, "draft": draft, "descendants": [], "firstCommentText": "", "hasNotReadNotes": False,
         "media": [video_url], "mediaAltText": [], "providers": [{"network": network}],
-        "publicationDate": {"dateTime": when.strftime("%Y-%m-%dT%H:%M:%S"), "timezone": "Europe/Berlin"},
         "shortener": False, "smartLinkData": {"ids": []}, "text": text,
     }
     if network == "instagram":
-        body["instagramData"] = {"type": "REEL", "showReelOnFeed": True, "isAiGenerated": True, "collaborators": []}
+        info["instagramData"] = {"type": "REEL", "showReelOnFeed": True, "isAiGenerated": True, "collaborators": []}
         if thumb_url:
-            body["videoThumbnailUrl"] = thumb_url
+            info["videoThumbnailUrl"] = thumb_url
     elif network == "tiktok":
-        body["tiktokData"] = {"disableComment": True, "disableDuet": True, "disableStitch": True,
+        info["tiktokData"] = {"disableComment": True, "disableDuet": True, "disableStitch": True,
                               "privacyOption": "PUBLIC_TO_EVERYONE", "commercialContentThirdParty": False,
                               "commercialContentOwnBrand": False, "title": title, "autoAddMusic": False,
                               "photoCoverIndex": 0, "isAigc": True}
         if thumb_url:
-            body["videoThumbnailUrl"] = thumb_url
+            info["videoThumbnailUrl"] = thumb_url
     elif network == "facebook":
-        body["facebookData"] = {"type": "REEL", "title": title}
+        info["facebookData"] = {"type": "REEL", "title": title}
+    return info
+
+
+def schedule(network: str, when: datetime, text: str, video_url: str, thumb_url: str | None, title: str) -> dict:
+    """Legt einen Post in Metricool an (autoPublish, außer KIDS_SOCIAL_DRAFT=1). Liefert die Antwort (id, plannerUrl).
+    Nur Weg A (METRICOOL_TOKEN, bezahlter Tarif) – siehe Moduldoku."""
+    body = _build_info(network, text, video_url, thumb_url, title, draft=DRAFT)
+    body["publicationDate"] = {"dateTime": when.strftime("%Y-%m-%dT%H:%M:%S"), "timezone": "Europe/Berlin"}
     r = requests.post(f"{API}/v2/scheduler/posts", params={"userId": USER_ID, "blogId": BLOG_ID},
                       headers=_headers(), json=body, timeout=120)
     if r.status_code >= 300:
@@ -174,6 +193,25 @@ def post_short(story: dict, drive_links: dict, today: str) -> dict:
             out[net] = {"when": when.strftime("%d.%m.%Y %H:%M"), "error": str(e)[:300]}
             print(f"[social] {net} fehlgeschlagen: {e}")
     return out
+
+
+def plan(story: dict, drive_links: dict, today: str) -> dict:
+    """Weg B (kein METRICOOL_TOKEN, kostenloser Tarif): bereitet die Post-Daten vor, postet aber nichts selbst.
+    Die Tages-Routine ruft damit direkt das Metricool-MCP-Tool `createScheduledPost` auf (kostenlos, kein
+    Tarif-Upgrade nötig). Liefert {"posts": [{"network", "date", "blogId", "info"}, ...], "texts": ..., "media": ...}."""
+    urls = share_links(drive_links)
+    if "short.mp4" not in urls:
+        raise RuntimeError("short.mp4 nicht im Drive-Ordner gefunden – kein Social-Plan")
+    tx = texts(story)
+    base_day = datetime.now(BERLIN).replace(year=int(today[:4]), month=int(today[5:7]), day=int(today[8:10]))
+    posts = []
+    for net in NETWORKS:
+        when = _when(net, base_day)
+        info = _build_info(net, tx.get(net, tx["instagram"]), urls["short.mp4"], urls.get("thumbnail.jpg"),
+                           tx.get("tiktok_title", story.get("title", ""))[:80])
+        info["publicationDate"] = {"dateTime": when.strftime("%Y-%m-%dT%H:%M:%S"), "timezone": "Europe/Berlin"}
+        posts.append({"network": net, "date": when.isoformat(timespec="seconds"), "blogId": BLOG_ID, "info": info})
+    return {"texts": tx, "media": urls, "posts": posts}
 
 
 if __name__ == "__main__":

@@ -114,12 +114,24 @@ Metadaten aus fester Vorlage – **keine API-Kosten**. An anderen Tagen meldet d
 Prüfe `build/kids/<Datum>/longshort/result_longshort.json` (`status` = `ok` oder `skipped`). Bei Fehler einmal
 wiederholen; scheitert es erneut, in der Mail melden – Short und 16:9-Video bleiben davon unberührt.
 
-## Schritt 4d – Instagram & TikTok (läuft im Short-Skript mit)
+## Schritt 4d – Instagram & TikTok
 
-`run_kids_short.py` meldet nach Drive-Ablage automatisch zwei Posts bei Metricool an (Instagram Reel 17:00, TikTok
-18:00; `kids/social.py`), sofern `METRICOOL_TOKEN` gesetzt ist. Ergebnis steht in `result.json` unter `social`.
-Fehlt der Token, steht dort nur ein Hinweis – kein Fehler. Schlägt ein Netzwerk fehl, in der Mail melden; nichts
-manuell nachholen.
+`run_kids_short.py` bereitet nach der Drive-Ablage automatisch zwei Posts vor (Instagram Reel 17:00, TikTok 18:00;
+`kids/social.py`). Metricools REST-API ist nur im bezahlten Tarif (Advanced/Custom) freigeschaltet; wir nutzen den
+kostenlosen Weg über den Metricool-MCP-Connector, der in dieser Sitzung als `mcp__Metricool_Social_Media_Management__*`
+verbunden ist (Marke/Blog-ID 7233482). Danach zwei Fälle, siehe `result.json` unter `social`:
+
+- `social.status == "pending_mcp"` (Normalfall, kein `METRICOOL_TOKEN` gesetzt): Lies die Datei unter
+  `social.plan_file` (`<out>/social_plan.json`) – sie enthält `posts`: eine Liste mit `network`, `date`, `blogId`,
+  `info` je Netzwerk. Rufe für **jeden** Eintrag `mcp__Metricool_Social_Media_Management__createScheduledPost` auf
+  mit genau diesen Feldern (`date`, `blogId`, `info` als JSON-String von `info`). Trage das Ergebnis
+  (insbesondere `plannerUrl`, bzw. den Fehler) in `result.json` unter `social.<network>` ein – `social.status`
+  dabei auf `"ok"` setzen, sodass `kids/mail.py` es beim nächsten Mail-Versand normal anzeigen kann. Schlägt ein
+  Netzwerk fehl: trotzdem weitermachen, Fehlertext dort vermerken, in der Mail landet er automatisch.
+- Jeder andere Wert (z. B. mit `instagram`/`tiktok`-Schlüsseln direkt): `METRICOOL_TOKEN` war gesetzt, das Skript
+  hat selbst schon direkt über die REST-API gepostet – hier nichts weiter zu tun.
+
+Nichts manuell in Metricool nachholen; das MCP-Tool veröffentlicht zur angegebenen Uhrzeit automatisch.
 
 ## Schritt 5 – E-Mail an Rolf (immer, auch bei Fehlern)
 

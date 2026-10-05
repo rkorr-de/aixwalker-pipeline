@@ -127,5 +127,5 @@ python run_kids_compilation.py --vertical --if-due --upload --publish-tomorrow 0
 | `KIDS_CHANNEL_NAME` | Anzeigename des Kids-Kanals (nur für Texte) |
 | `KIDS_LONGSHORT_BUILD_DAYS` | Wochentage (0 = Mo … 6 = So), an denen der lange Short gebaut wird; Standard `0,2,4` |
 | `KIDS_LONGSHORT_COUNT` | Stories je langem Short (Standard 4, max. ≈ 10 wegen 3-Minuten-Grenze) |
-| `METRICOOL_TOKEN` | Instagram Reel (17:00) + TikTok (18:00) je Short über Metricool (`kids/social.py`, Plan: `KIDS_SOCIAL_PLAN.md`); `KIDS_SOCIAL_NETWORKS`, `KIDS_SOCIAL_TIMES`, `KIDS_SOCIAL_DRAFT=1` für Tests |
+| `METRICOOL_TOKEN` | optional – Instagram Reel (17:00) + TikTok (18:00) je Short über Metricool (`kids/social.py`, Plan: `KIDS_SOCIAL_PLAN.md`); nur nötig im bezahlten Metricool-Tarif (Advanced/Custom). Ohne Token schreibt das Skript stattdessen `social_plan.json`, und die Tages-Sitzung postet kostenlos über den verbundenen Metricool-MCP-Connector (Routine-Schritt 4d). `KIDS_SOCIAL_NETWORKS`, `KIDS_SOCIAL_TIMES`, `KIDS_SOCIAL_DRAFT=1` (nur mit Token) für Tests |
 | `DRIVE_REFRESH_TOKEN` | vorhandene Drive-Freigabe; Ablage je Short unter `Giggle Meadow Shorts/<Datum – Titel>` (`KIDS_DRIVE_ROOT` ändert den Ordnernamen) |

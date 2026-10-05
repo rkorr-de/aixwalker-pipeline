@@ -69,15 +69,18 @@ def report_text(result: dict) -> str:
     so = result.get("social")
     if so:
         lines += ["", "— Instagram / TikTok (Metricool) —"]
-        for net in ("instagram", "tiktok", "facebook"):
-            v = so.get(net)
-            if not v:
-                continue
-            if "error" in v:
-                lines.append(f"{net}: FEHLER – {v['error']}")
-            else:
-                url = (v.get("result") or {}).get("plannerUrl") or ""
-                lines.append(f"{net}: geplant {v.get('when')}{' (Entwurf)' if so.get('draft') else ''} {url}".rstrip())
+        if so.get("status") == "pending_mcp":
+            lines.append("vorbereitet – wird in dieser Sitzung über den kostenlosen Metricool-Connector angemeldet")
+        else:
+            for net in ("instagram", "tiktok", "facebook"):
+                v = so.get(net)
+                if not v:
+                    continue
+                if "error" in v:
+                    lines.append(f"{net}: FEHLER – {v['error']}")
+                else:
+                    url = (v.get("result") or {}).get("plannerUrl") or ""
+                    lines.append(f"{net}: geplant {v.get('when')}{' (Entwurf)' if so.get('draft') else ''} {url}".rstrip())
     ls = result.get("longshort")
     if ls and ls.get("status") != "skipped":
         lines += ["", "— Langer Short (9:16) —"]

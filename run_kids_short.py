@@ -280,9 +280,10 @@ def main() -> int:
                     log(f"Drive-Ablage fehlgeschlagen: {e}")
             else:
                 result["warnings"].append("Drive-Ablage übersprungen: DRIVE_REFRESH_TOKEN fehlt")
-        # 9) Social: Instagram Reel + TikTok über Metricool (nur wenn METRICOOL_TOKEN gesetzt und Upload erfolgt)
+        # 9) Social: Instagram Reel + TikTok über Metricool (nur wenn Upload erfolgt)
         if not args.no_social and not args.dry_run and result.get("video_id") and result.get("drive"):
             if social.available():
+                # Weg A: METRICOOL_TOKEN gesetzt (bezahlter Metricool-Tarif) – Skript postet direkt per REST-API.
                 try:
                     result["social"] = social.post_short(st, result["drive"], today)
                     log("Social-Posts angemeldet: " + ", ".join(f"{n} {v.get('when')}" for n, v in result["social"].items()
@@ -290,7 +291,19 @@ def main() -> int:
                 except Exception as e:  # noqa: BLE001
                     result["warnings"].append(f"Social-Posts fehlgeschlagen: {str(e)[:160]}")
             else:
-                result["warnings"].append("Social-Posts übersprungen: METRICOOL_TOKEN fehlt")
+                # Weg B: kein Token (kostenloser Tarif) – nur vorbereiten, die Tages-Sitzung postet per
+                # Metricool-MCP-Connector (kostenlos). Siehe KIDS_ROUTINE_PROMPT.md, Schritt 4d.
+                try:
+                    sp = social.plan(st, result["drive"], today)
+                    plan_path = out / "social_plan.json"
+                    plan_path.write_text(json.dumps(sp, indent=2, ensure_ascii=False))
+                    result["social"] = {"status": "pending_mcp", "plan_file": str(plan_path)}
+                    result["warnings"].append("Social-Posts vorbereitet (social_plan.json) – kein METRICOOL_TOKEN; "
+                                              "werden über den kostenlosen Metricool-Connector in dieser Sitzung "
+                                              "veröffentlicht (Schritt 4d)")
+                    log(f"Social-Plan geschrieben: {plan_path}")
+                except Exception as e:  # noqa: BLE001
+                    result["warnings"].append(f"Social-Plan fehlgeschlagen: {str(e)[:160]}")
         result["status"] = "ok"
         rc = 0
     except costs.BudgetExceeded as e:
