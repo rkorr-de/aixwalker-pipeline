@@ -189,7 +189,7 @@ def make_texts(genre: str, month_label: str, year: int, total_min: int, albums: 
 """
     tags = tags + ["monthly mix", "long mix", f"{hrs.lower()} mix", "aix walker", "no vocals", "ai music"]
     comment = f"🎧 Monthly Mix {month_label}: which track was your favourite? Drop the chapter timestamp below 👇"
-    community = (f"Monatsmix ist online: {head} – {hrs} am Stück 🎧\nAlle Highlights aus {len(albums)} Wochen-Mixen, "
-                 f"nahtlos gemischt.")
+    community = (f"Monthly Mix is live: {head} – {hrs} non-stop 🎧\nThe best of {month_label} from {len(albums)} weekly mixes, "
+                 f"blended seamlessly. Listen here and tell us your favourite track!")
     return {"title": title, "description": desc[:5000], "tags": tags, "comment": comment, "community_de": community,
             "playlist": playlist}
