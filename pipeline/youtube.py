@@ -118,6 +118,25 @@ def channel_watch_hours(days: int = 365) -> float:
     return rows[0][0] / 60.0
 
 
+def search_terms(days: int = 90, limit: int = 25) -> list[dict]:
+    """Suchbegriffe, über die Zuschauer die Videos finden (YouTube-Suche), nach Aufrufen sortiert."""
+    end = date.today()
+    r = analytics().reports().query(
+        ids="channel==MINE", startDate=(end - timedelta(days=days)).isoformat(), endDate=end.isoformat(),
+        metrics="views,estimatedMinutesWatched", dimensions="insightTrafficSourceDetail",
+        filters="insightTrafficSourceType==YT_SEARCH", sort="-views", maxResults=limit).execute()
+    return [{"term": row[0], "views": row[1], "minutes": row[2]} for row in r.get("rows", [])]
+
+
+def traffic_sources(days: int = 90) -> list[dict]:
+    """Woher kommen Aufrufe/Wiedergabeminuten (Suche, Vorschläge, Shorts-Feed, Browse …)."""
+    end = date.today()
+    r = analytics().reports().query(
+        ids="channel==MINE", startDate=(end - timedelta(days=days)).isoformat(), endDate=end.isoformat(),
+        metrics="views,estimatedMinutesWatched", dimensions="insightTrafficSourceType", sort="-estimatedMinutesWatched").execute()
+    return [{"source": row[0], "views": row[1], "minutes": row[2]} for row in r.get("rows", [])]
+
+
 if __name__ == "__main__":
     c = my_channel()
     print("Kanal:", c["snippet"]["title"], "| Abos:", c["statistics"].get("subscriberCount"))

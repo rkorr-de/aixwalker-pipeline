@@ -61,6 +61,12 @@ BUDGET_MAX_USD = 9.0         # harte Obergrenze je automatischem Lauf: darüber 
 MEMORY_FOLDER = "_memory"    # Unterordner in „AIX WALKER Mixe“ mit memory.json (Gedächtnis des Planers)
 PLANNED_TRACKS = 20          # Lyria liefert ca. 3 Min je Track → 20 Tracks + Reserve für ≥ 60 Min ohne Wiederholung
 EXTRA_TRACKS = 8
+# Lang-Format (Sonntag, Sleep/Spa): Stufe 1 = 2 Stunden; später LONG_MIN_MINUTES=180 (Umgebungsvariable oder hier) usw.
+LONG_MIN_MINUTES = int(os.environ.get("LONG_MIN_MINUTES", "120"))
+LONG_PLANNED_TRACKS = 28
+LONG_EXTRA_TRACKS = 30
+LONG_MAX_TRACKS = 90
+LONG_ART_GROUP = 4           # ein Cover-Bild je 4 Tracks (Kosten), Titel/Nummer wechseln trotzdem
 BILLING_URL = "https://console.cloud.google.com/billing?project=bodydashboard-fde82"
 MP3_BITRATE = "192k"
 

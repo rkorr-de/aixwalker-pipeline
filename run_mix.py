@@ -105,6 +105,8 @@ def main() -> int:
     album = concept["album"]
     genre = concept["genre"]
     bpm = int(concept["bpm"])
+    is_long = concept.get("format") == "long"
+    max_tracks = config.LONG_MAX_TRACKS if is_long else 40
     min_sec = float(concept.get("min_minutes", config.MIN_MIX_MINUTES)) * 60
     log(f"Mix „{album}“: {len(tracks)} Tracks geplant, {genre}, {bpm} BPM, Ziel ≥ {min_sec / 60:.0f} Min, dry_run={args.dry_run}")
     costs.start(out / "costs.json")
@@ -142,17 +144,21 @@ def main() -> int:
             total_now = sum(audio.probe_duration(w) for w in wavs) - 1.5 * (len(wavs) - 1)
             if total_now >= min_sec:
                 break
-            if i >= 40:
-                log("Abbruch der Verlängerung: 40 Tracks erreicht")
+            if i >= max_tracks:
+                log(f"Abbruch der Verlängerung: {max_tracks} Tracks erreicht")
                 break
     total = len(tracks)
 
     # 1b) Cover, MP3s, Video-Frames (nach der Zählung, damit TRCK n/total stimmt)
     covers, frames = [], []
+    art_cache: dict[int, object] = {}
     for i, t in enumerate(tracks, 1):
         art_prompt = (concept.get("track_art_prompts") or [None] * total)[i - 1] or \
             f"{concept['art_prompt']} Variation: {t['variation']}."
-        art = images.generate_art(art_prompt, "1:1")
+        gi = (i - 1) // config.LONG_ART_GROUP if is_long else i - 1   # Lang-Format: ein Bild je Track-Gruppe
+        if gi not in art_cache:
+            art_cache[gi] = images.generate_art(art_prompt, "1:1")
+        art = art_cache[gi]
         cover = images.make_track_cover(art, t["title"], i, album, out / "covers" / f"{i:02d}.png")
         covers.append(cover)
         frames.append(images.make_video_frame(cover, out / "frames" / f"{i:02d}.png"))
@@ -161,7 +167,11 @@ def main() -> int:
     log(f"{total} Tracks fertig (MP3 + Cover)")
 
     # 2) Zusammenschnitt + Kapitel
-    mix_wav, starts = audio.concat_wavs(wavs, out / "wav" / "mix.wav")
+    if is_long:   # in Batches verbinden (FLAC), sonst hält ffmpeg 60+ Eingänge und mehrere GB WAV gleichzeitig
+        from pipeline import monthly
+        mix_wav, starts = monthly.join_tracks(wavs, out / "wav" / "mix.flac", xf=1.5)
+    else:
+        mix_wav, starts = audio.concat_wavs(wavs, out / "wav" / "mix.wav")
     total_sec = audio.probe_duration(mix_wav)
     total_min = int(round(total_sec / 60))
     concept["total_min"] = total_min
@@ -177,7 +187,8 @@ def main() -> int:
     for k, headline in enumerate([concept["thumbnail_headline"], *concept.get("ab_thumbs", [])[:2]]):
         thumbs.append(images.make_thumbnail(thumb_art, headline, concept.get("thumbnail_sub", f"{bpm} BPM · {total_min} MIN"),
                                             out / "thumbnail" / f"thumb_{'ABC'[k]}.jpg"))
-    mp4 = video.build_video(frames, starts, mix_wav, total_sec, out / "video" / f"{concept['slug']}.mp4")
+    mp4 = video.build_video(frames, starts, mix_wav, total_sec, out / "video" / f"{concept['slug']}.mp4",
+                            fps=10 if is_long else 30)
     info = video.probe(mp4)
     log(f"Video: {mp4.name} {json.dumps(info['format'])}")
 

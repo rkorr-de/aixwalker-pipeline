@@ -45,8 +45,8 @@ and new – never a rehash of an earlier release.
   "playlist": "{{PLAYLIST}}",
   "minutes_per_track": 5,
   "min_minutes": 60,
-  "tracks": [ {"title": "...", "variation": "one clear musical idea that makes this track different from all others: melody/harmony, instrumentation, rhythm or texture"} ],   // exactly 20, alphabetical
-  "extra_tracks": [ {"title": "...", "variation": "..."} ],   // exactly 8, each a fully new composition, alphabetically AFTER the last regular track (e.g. starting with letters near the end of the alphabet)
+  "tracks": [ {"title": "...", "variation": "one clear musical idea that makes this track different from all others: melody/harmony, instrumentation, rhythm or texture"} ],   // exactly {{N_TRACKS}}, alphabetical
+  "extra_tracks": [ {"title": "...", "variation": "..."} ],   // exactly {{N_EXTRA}}, each a fully new composition (for normal mixes alphabetically AFTER the last regular track; in LONG format any order)
   "visual": {"motif_family": "{{MOTIF_FAMILY}}", "motif": "one concrete scene", "light": "{{LIGHT}}"},
   "art_prompt": "album cover scene (square), concrete and photorealistic, matching motif and light, no people unless the motif family says so, no text",
   "thumbnail_prompt": "16:9 scene for the YouTube thumbnail with the subject on the RIGHT third (text goes left), no text",

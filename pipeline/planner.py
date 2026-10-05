@@ -56,6 +56,9 @@ GENRES = {
         "moods": ["warm, soft, weightless", "hazy, slow, tender", "cool, misty, quiet", "deep, dreamy, slow"],
     },
 }
+# Strategie 05.10.2026: Sleep/Spa haben den höchsten RPM (ca. 4–8 $) und die längsten Sitzungen → häufiger;
+# Gym/Night Drive bleiben als Abwechslung, kommen aber seltener dran.
+GENRE_WEIGHT = {"Chillout Sleep": 1.35, "Dark Ambient Spa": 1.25, "Slow Gym Beats": 0.8, "Night Drive Deep Bass": 0.75}
 LIGHTS = {
     "Slow Gym Beats": ["cold moonlight through high windows", "teal neon haze", "harsh single spotlight", "rain and streetlight",
                        "fog with a single warm lamp", "blue hour", "distant city glow"],
@@ -100,12 +103,15 @@ def genre_scores(mem: dict, analytics_rows: list[dict] | None) -> dict[str, dict
         recency = min(gap, 4) / 4
         performance = 0.5 if avg[g] is None or not top else avg[g] / top
         out[g] = {"recency": round(recency, 2), "performance": round(performance, 2), "gap": gap,
-                  "score": round(0.6 * recency + 0.4 * performance, 3)}
+                  "score": round((0.6 * recency + 0.4 * performance) * GENRE_WEIGHT.get(g, 1.0), 3)}
     return out
 
 
+LONG_GENRES = ("Chillout Sleep", "Dark Ambient Spa")   # Lang-Format nur dort, wo lange Sitzungen üblich sind
+
+
 def choose_brief(mem: dict, analytics_rows: list[dict] | None = None, seed: int | None = None,
-                 force_genre: str | None = None) -> dict:
+                 force_genre: str | None = None, long: bool = False) -> dict:
     rnd = random.Random(seed if seed is not None else int(date.today().strftime("%Y%m%d")))
     scores = genre_scores(mem, analytics_rows)
     last_genre = (mem.get("mixes") or [{}])[-1].get("genre")
@@ -113,6 +119,8 @@ def choose_brief(mem: dict, analytics_rows: list[dict] | None = None, seed: int 
         genre = force_genre
     else:
         ranked = sorted(scores.items(), key=lambda kv: kv[1]["score"] + rnd.uniform(0, 0.15), reverse=True)
+        if long:
+            ranked = [kv for kv in ranked if kv[0] in LONG_GENRES] or ranked
         ranked = [kv for kv in ranked if kv[0] != last_genre] or ranked   # nie zweimal hintereinander dasselbe Genre
         genre = ranked[0][0]
     g = GENRES[genre]
@@ -129,15 +137,25 @@ def choose_brief(mem: dict, analytics_rows: list[dict] | None = None, seed: int 
         "purpose": _pick(g["purposes"], avoid_purpose, rnd), "mood_hint": _pick(g["moods"], avoid_mood, rnd),
         "motif_family": _pick(g["motifs"], avoid_motif, rnd), "light": _pick(LIGHTS[genre], avoid_light, rnd),
         "scores": scores, "last_genre": last_genre,
+        "long": long,
+        "search_terms": [t["term"] for t in (mem.get("search_terms") or [])[:8]],
     }
     return brief
 
 
 def brief_text(b: dict) -> str:
-    return (f"Date: {b['date']}\nGenre: {b['genre']} (playlist: {b['playlist']})\nBPM: {b['bpm']}\n"
+    fmt = (f"Format: LONG sleep/relax session of {config.LONG_MIN_MINUTES // 60} hours or more "
+           f"({config.LONG_PLANNED_TRACKS}+{config.LONG_EXTRA_TRACKS} track titles). Use {{HOURS}} in the title, never {{MIN}}. "
+           f"Even more continuous, seamless and calm than a normal mix; tracks flow into each other.\n" if b.get("long") else "")
+    return (fmt + f"Date: {b['date']}\nGenre: {b['genre']} (playlist: {b['playlist']})\nBPM: {b['bpm']}\n"
             f"Purpose / listening situation: {b['purpose']}\nMood direction: {b['mood_hint']}\n"
             f"Visual motif family: {b['motif_family']}\nLight: {b['light']}\n"
-            f"Why this genre now: last mix was {b['last_genre'] or '-'}; genre scores {json.dumps(b['scores'])}")
+            f"Why this genre now: last mix was {b['last_genre'] or '-'}; genre scores {json.dumps(b['scores'])}"
+            + (f"\nReal viewer search terms (work 1–2 of them naturally into title, hook and tags; each mix should "
+               f"target a DIFFERENT keyword angle than the last ones): {', '.join(b['search_terms'])}"
+               if b.get("search_terms") else
+               "\nKeyword angle: pick ONE specific search phrase for this mix (e.g. use case + duration) that differs "
+               "from the titles in the history, and use it in title, hook and tags."))
 
 
 # ---------------------------------------------------------------- Textmodell
@@ -176,11 +194,16 @@ def validate(c: dict, mem: dict, brief: dict) -> list[str]:
     if errs:
         return errs
     c["genre"], c["playlist"], c["bpm"] = brief["genre"], brief["playlist"], int(brief["bpm"])
-    c["minutes_per_track"], c["min_minutes"] = 5, config.MIN_MIX_MINUTES
+    is_long = bool(brief.get("long"))
+    c["minutes_per_track"] = 5
+    c["min_minutes"] = config.LONG_MIN_MINUTES if is_long else config.MIN_MIX_MINUTES
+    c["format"] = "long" if is_long else "standard"
     if c["album"].strip().lower() in memory.used_albums(mem):
         errs.append(f"Album-Name schon verwendet: {c['album']}")
     used = memory.used_track_titles(mem)
-    for key, want in (("tracks", config.PLANNED_TRACKS), ("extra_tracks", config.EXTRA_TRACKS)):
+    n_main = config.LONG_PLANNED_TRACKS if is_long else config.PLANNED_TRACKS
+    n_extra = config.LONG_EXTRA_TRACKS if is_long else config.EXTRA_TRACKS
+    for key, want in (("tracks", n_main), ("extra_tracks", n_extra)):
         lst = [t for t in c[key] if isinstance(t, dict) and t.get("title") and t.get("variation")]
         if len(lst) < want - 2:
             errs.append(f"{key}: {len(lst)} statt {want}")
@@ -195,9 +218,10 @@ def validate(c: dict, mem: dict, brief: dict) -> list[str]:
         errs.append(f"Track-Titel schon verwendet: {reused}")
     if any(re.search(r"reprise|track \d|study \d", t, re.I) for t in titles):
         errs.append("generische Titel (Reprise/Track n/Study n)")
-    if c["tracks"] and c["extra_tracks"] and c["extra_tracks"][0]["title"].lower() < c["tracks"][-1]["title"].lower():
+    if (not is_long and c["tracks"] and c["extra_tracks"]
+            and c["extra_tracks"][0]["title"].lower() < c["tracks"][-1]["title"].lower()):
         errs.append("extra_tracks müssen alphabetisch nach dem letzten regulären Track liegen")
-    t_len = len(c["yt_title"].replace("{MIN}", "60").replace("{HOURS}", "1 Hour"))
+    t_len = len(c["yt_title"].replace("{MIN}", "60").replace("{HOURS}", "2.5 Hours"))
     if t_len > 75:
         errs.append(f"yt_title zu lang ({t_len})")
     if "{MIN}" not in c["yt_title"] and "{HOURS}" not in c["yt_title"]:
@@ -240,6 +264,8 @@ def generate_concept(mem: dict, brief: dict, attempts: int = 3, log=print) -> di
               .replace("{{USED_TITLES}}", ", ".join(used) or "(none)")
               .replace("{{LEARNINGS}}", "\n".join("- " + s for s in mem.get("learnings", [])) or "-")
               .replace("{{GENRE}}", brief["genre"]).replace("{{BPM}}", str(brief["bpm"]))
+              .replace("{{N_TRACKS}}", str(config.LONG_PLANNED_TRACKS if brief.get("long") else config.PLANNED_TRACKS))
+              .replace("{{N_EXTRA}}", str(config.LONG_EXTRA_TRACKS if brief.get("long") else config.EXTRA_TRACKS))
               .replace("{{PLAYLIST}}", brief["playlist"]).replace("{{MOTIF_FAMILY}}", brief["motif_family"])
               .replace("{{LIGHT}}", brief["light"]))
     feedback = ""

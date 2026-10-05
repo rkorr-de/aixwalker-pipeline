@@ -47,6 +47,7 @@ def main() -> int:
     ap.add_argument("--genre", default=None, choices=list(planner.GENRES))
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--private", action="store_true", help="Uploads privat statt öffentlich")
+    ap.add_argument("--long", action="store_true", help="Lang-Format (Sleep/Spa, ≥ LONG_MIN_MINUTES) statt Standard-Mix")
     ap.add_argument("--no-email", action="store_true")
     ap.add_argument("--no-upload", action="store_true")
     ap.add_argument("--seed", type=int, default=None, help="Zufall für die Planung festlegen (Tests)")
@@ -64,6 +65,11 @@ def main() -> int:
             hours = youtube.channel_watch_hours()
             rows = youtube.recent_performance(days=90)
             memory.record_analytics(mem, hours, rows)
+            try:
+                memory.record_discovery(mem, youtube.search_terms(), youtube.traffic_sources())
+                log(f"Suchbegriffe: {[t['term'] for t in mem.get('search_terms', [])[:5]]}")
+            except Exception as e:  # noqa: BLE001
+                log(f"Suchbegriffe/Traffic-Quellen nicht verfügbar: {str(e)[:120]}")
             log(f"Analytics: {hours:.1f} Wiedergabestunden (365 Tage), {len(rows)} Videos mit Kennzahlen")
         except Exception as e:  # noqa: BLE001
             log(f"Analytics nicht verfügbar: {str(e)[:160]}")
@@ -76,7 +82,7 @@ def main() -> int:
         concept = json.loads(concept_path.read_text(encoding="utf-8"))
         brief = concept.get("_brief")
     else:
-        brief = planner.choose_brief(mem, rows, seed=args.seed, force_genre=args.genre)
+        brief = planner.choose_brief(mem, rows, seed=args.seed, force_genre=args.genre, long=args.long)
         log("Briefing:\n" + planner.brief_text(brief))
         concept = planner.generate_concept(mem, brief, log=log)
         concept["_brief"] = {k: v for k, v in brief.items() if k != "scores"}

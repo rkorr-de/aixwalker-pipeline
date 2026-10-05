@@ -58,15 +58,17 @@ def estimate(concept: dict) -> dict:
     minutes = float(concept.get("minutes_per_track", config.DEFAULT_MINUTES_PER_TRACK))
     min_minutes = float(concept.get("min_minutes", config.MIN_MIX_MINUTES))
     planned = len(concept["tracks"])
-    needed = max(planned, int(-(-min_minutes // max(minutes * 0.65, 1))))  # Lyria liefert ca. 3 Min statt 5
+    needed = max(planned if concept.get('format') != 'long' else 0, int(-(-min_minutes // max(minutes * 0.56, 1))))  # Lyria liefert ca. 2,8–3 Min statt 5
     retries = max(1, round(needed * 0.15))
     tracks_usd = (needed + retries) * p["lyria_track"]
-    images_usd = needed * p["image_flash"] + 2 * p["image_pro"]  # Cover je Track (Flash) + Album + Thumbnail (Pro)
+    group = config.LONG_ART_GROUP if concept.get("format") == "long" else 1
+    needed_art = -(-needed // group)
+    images_usd = needed_art * p["image_flash"] + 2 * p["image_pro"]  # Cover je Track(-Gruppe) (Flash) + Album + Thumbnail (Pro)
     usd = round(tracks_usd + images_usd, 2)
     return {"tracks_planned": planned, "tracks_expected": needed, "retries_reserved": retries,
             "usd": usd, "eur": usd_to_eur(usd),
             "lines": [f"{needed + retries} Lyria-Tracks (inkl. {retries} Reserve/Neuversuche) à {p['lyria_track']:.3f} $ = {tracks_usd:.2f} $",
-                      f"{needed} Track-Cover à {p['image_flash']:.3f} $ + Album-Cover + Thumbnail (Pro) à {p['image_pro']:.3f} $ = {images_usd:.2f} $"]}
+                      f"{needed_art} Track-Cover à {p['image_flash']:.3f} $ + Album-Cover + Thumbnail (Pro) à {p['image_pro']:.3f} $ = {images_usd:.2f} $"]}
 
 
 def report() -> str:

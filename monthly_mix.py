@@ -149,6 +149,9 @@ def produce(genre: str, month: str, pairs: list[tuple[dict, dict]], out: Path, m
                                            out / "thumbnail_monthly.jpg")
     frame = monthly.make_monthly_thumbnail(art, monthly.hours_label(total_min), head, f"{month_label} {y}",
                                            out / "frame.png", 1920, 1080)
+    fr = Image.open(frame).convert("RGB")
+    images.add_subscribe_badge(fr)
+    fr.save(frame)
     log("Video rendern …")
     mp4 = monthly.build_still_video(frame, flac, out / "monthly.mp4")
     flac.unlink(missing_ok=True)

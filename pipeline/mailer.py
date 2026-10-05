@@ -85,12 +85,13 @@ def build_report(concept: dict, result: dict, estimate_usd: float | None = None)
         concept.get("pinned_comment", ""),
         "", "## Community-Beitrag (Studio → Community, Text kopieren)",
         metadata.community_post(concept, result.get("video_url", "")),
-        "", "## " + distrokid_block(concept, result),
+        "", "## " + ("DISTROKID: Lang-Format (Sleep-Session) – kein DistroKid-Release nötig, die Tracks laufen als Mix auf YouTube."
+                      if concept.get("format") == "long" else distrokid_block(concept, result)),
         "", "## Noch zu tun (nur das, was die API nicht kann)",
         "- Kommentar anpinnen (Studio → Kommentare)",
         "- Community-Beitrag posten",
         "- Endscreen setzen: letzte 20 s → Playlist + Abonnieren",
-        "- DistroKid-Release anlegen (Angaben oben)",
+        *([] if concept.get("format") == "long" else ["- DistroKid-Release anlegen (Angaben oben)"]),
     ]
     return "\n".join(parts)
 

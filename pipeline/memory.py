@@ -121,6 +121,20 @@ def record_analytics(mem: dict, watch_hours: float | None, rows: list[dict]) -> 
     mem["analytics"] = mem["analytics"][-30:]
 
 
+def record_discovery(mem: dict, terms: list[dict], sources: list[dict]) -> None:
+    """Suchbegriffe (Planer nutzt die besten) und Traffic-Quellen; Lernsatz, wenn eine Quelle klar dominiert."""
+    if terms:
+        mem["search_terms"] = terms[:25]
+    if sources:
+        mem["traffic_sources"] = {"date": date.today().isoformat(), "rows": sources}
+        total = sum(r["minutes"] for r in sources) or 1
+        top = sources[0]
+        share = top["minutes"] / total
+        if share >= 0.5:
+            add_learning(mem, f"Traffic-Quelle {top['source']} liefert {share:.0%} der Wiedergabeminuten "
+                              f"(Stand {date.today().isoformat()}) – dafür optimieren.")
+
+
 def add_learning(mem: dict, text: str) -> None:
     if text and text not in mem.setdefault("learnings", []):
         mem["learnings"].append(text)

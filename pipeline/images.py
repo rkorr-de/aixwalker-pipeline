@@ -210,6 +210,26 @@ def make_thumbnail(art: Image.Image, headline: str, sub: str, out: Path, w: int 
     return out
 
 
+def add_subscribe_badge(img: Image.Image) -> Image.Image:
+    """Dezenter Abo-Hinweis unten rechts (Musik-Zuschauer abonnieren selten von selbst)."""
+    w, h = img.size
+    s = h / 1080
+    d = ImageDraw.Draw(img, "RGBA")
+    f = _font(config.FONT_BODY, int(30 * s))
+    text = f"SUBSCRIBE  ·  {config.CHANNEL_HANDLE.upper()}"
+    tw = d.textlength(text, font=f)
+    pad, tri = int(22 * s), int(34 * s)
+    bw, bh = int(tw + 2 * pad + tri + 14 * s), int(f.size + 2 * pad * 0.7)
+    x1, y1 = w - int(48 * s), h - int(44 * s)
+    x0, y0 = x1 - bw, y1 - bh
+    d.rounded_rectangle([x0, y0, x1, y1], radius=int(bh / 2), fill=(5, 10, 12, 205), outline=config.TEAL, width=max(2, int(3 * s)))
+    cy = (y0 + y1) / 2
+    tx = x0 + pad
+    d.polygon([(tx, cy - tri * 0.4), (tx, cy + tri * 0.4), (tx + tri * 0.7, cy)], fill=config.TEAL)
+    d.text((tx + tri + 14 * s, cy - f.size * 0.6), text, font=f, fill=config.WHITE)
+    return img
+
+
 def make_video_frame(cover_png: Path, out: Path, w: int = 1920, h: int = 1080) -> Path:
     """Videobild pro Track: unscharfer Hintergrund aus dem Cover, Cover mittig."""
     cover = Image.open(cover_png).convert("RGB")
@@ -225,6 +245,7 @@ def make_video_frame(cover_png: Path, out: Path, w: int = 1920, h: int = 1080) -
     x, y = (w - side) // 2, (h - side) // 2
     bg.paste(shadow, (x - 40, y - 30), shadow)
     bg.paste(c, (x, y))
+    add_subscribe_badge(bg)
     out.parent.mkdir(parents=True, exist_ok=True)
     bg.save(out, "PNG")
     return out
