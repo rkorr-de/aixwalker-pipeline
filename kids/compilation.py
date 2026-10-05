@@ -635,7 +635,7 @@ def metadata_vertical(info: dict) -> dict:
     tags = ["shorts", "cute cartoon", "toddler cartoon", "baby animals", "kids shorts", "calm video for kids",
             "no talking cartoon", "bedtime cartoon", "preschool cartoon", "3d animation kids", "giggle meadow",
             "cute animal stories", "cartoon for babies", "stories for toddlers"]
-    return {"title": title[:100], "description": desc[:4900], "tags": tags}
+    return {"title": title[:100], "description": add_affiliate_line(desc[:4800]), "tags": tags}
 
 
 def longshort_due(today: str) -> bool:
@@ -645,6 +645,19 @@ def longshort_due(today: str) -> bool:
 
 
 # ---------------------------------------------------------------- Metadaten --------------------------------------------
+def add_affiliate_line(desc: str) -> str:
+    """Setzt die Affiliate-Zeile (config.AFFILIATE_LINE) vor den Hashtag-Block; leer/schon vorhanden = unverändert."""
+    line = config.AFFILIATE_LINE
+    if not line or line in desc:
+        return desc
+    parts = desc.rstrip().split("\n\n")
+    if len(parts) > 1 and parts[-1].lstrip().startswith("#"):
+        parts.insert(len(parts) - 1, line)
+    else:
+        parts.append(line)
+    return "\n\n".join(parts)
+
+
 def metadata(info: dict, today: str) -> dict:
     """Titel/Beschreibung/Tags (EN) – per Gemini, mit sicherem Fallback ohne API."""
     mode, n = info["mode"], info["count"]
@@ -690,10 +703,10 @@ def metadata(info: dict, today: str) -> dict:
         if info["chapters"].split("\n")[1].split(" ", 1)[0] not in desc:
             desc += "\n\n⏱️ Chapters\n" + info["chapters"]
         tg = [str(x) for x in data.get("tags", [])][:20] or tags
-        return {"title": title[:100], "description": desc[:4900], "tags": tg}
+        return {"title": title[:100], "description": add_affiliate_line(desc[:4800]), "tags": tg}
     except Exception as e:  # noqa: BLE001
         print(f"[compilation] Metadaten per Gemini fehlgeschlagen, Fallback: {e}")
-        return {"title": fallback_title[:100], "description": fallback_desc[:4900], "tags": tags}
+        return {"title": fallback_title[:100], "description": add_affiliate_line(fallback_desc[:4800]), "tags": tags}
 
 
 def mode_for(today: str) -> str:
