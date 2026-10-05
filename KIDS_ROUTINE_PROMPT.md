@@ -114,7 +114,15 @@ Metadaten aus fester Vorlage – **keine API-Kosten**. An anderen Tagen meldet d
 Prüfe `build/kids/<Datum>/longshort/result_longshort.json` (`status` = `ok` oder `skipped`). Bei Fehler einmal
 wiederholen; scheitert es erneut, in der Mail melden – Short und 16:9-Video bleiben davon unberührt.
 
-## Schritt 4d – Instagram & TikTok
+Bei Erfolg (`status == "ok"` und `video_id` vorhanden) bereitet das Skript zusätzlich einen **TikTok-Post** vor
+(TikToks Creator Rewards Program zahlt nur für Videos über 1 Minute – die täglichen 15-s-Shorts qualifizieren
+dort nicht, dieser lange Short schon). Steht `result_longshort.json["social"]["status"] == "pending_mcp"`: Lies
+`social.plan_file` (`<out>/longshort_social_plan.json`, ein Eintrag in `posts`) und rufe damit genauso wie in
+Schritt 4d `mcp__Metricool_Social_Media_Management__createScheduledPost` auf. Trage das Ergebnis in
+`result_longshort.json["social"]["tiktok"]` ein (`status` auf `"ok"`), **und** aktualisiere denselben Eintrag
+unter `social` im Tages-`result.json` → `longshort` (dieselbe Struktur, dort liest `kids/mail.py` es für die Mail).
+
+## Schritt 4d – Instagram & TikTok (täglicher Short)
 
 `run_kids_short.py` bereitet nach der Drive-Ablage automatisch zwei Posts vor (Instagram Reel 17:00, TikTok 18:00;
 `kids/social.py`). Metricools REST-API ist nur im bezahlten Tarif (Advanced/Custom) freigeschaltet; wir nutzen den

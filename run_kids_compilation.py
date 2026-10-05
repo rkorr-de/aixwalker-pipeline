@@ -8,6 +8,7 @@
   python run_kids_compilation.py --today-out build/kids/2026-10-05   # Ordner des heutigen Shorts (Standard: build/kids/<heute>)
   python run_kids_compilation.py --vertical --upload --publish-tomorrow 09:00   # langer Short (9:16), geplant für morgen 09:00
   python run_kids_compilation.py --vertical --if-due --upload --publish-tomorrow 09:00  # nur an Bau-Tagen (Mo/Mi/Fr)
+  python run_kids_compilation.py --vertical --upload --publish-tomorrow 09:00 --no-social  # ohne TikTok-Post
 
 Ergebnis: build/kids/<heute>/compilation/{compilation.mp4, thumbnail.jpg, chapters.txt, compilation_info.json,
 result_compilation.json}. Exit-Code 0 = fertig, 1 = Fehler.
@@ -22,7 +23,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from kids import compilation, config, drive
+from kids import compilation, config, drive, social
 from kids import youtube as yt
 
 BERLIN = ZoneInfo("Europe/Berlin")
@@ -124,6 +125,21 @@ def main_vertical(args, today: str) -> int:
                 log(f"Drive: {result['drive']['_folder']}")
             except Exception as e:  # noqa: BLE001
                 result["warnings"].append(f"Drive-Ablage fehlgeschlagen: {str(e)[:160]}")
+        # TikTok (Creator Rewards zahlt nur für Videos > 1 Minute – dafür ist genau dieser lange Short gedacht,
+        # die täglichen 15-s-Shorts qualifizieren dort nicht). Gleicher kostenloser MCP-Weg wie der Tages-Short.
+        if not args.no_social and not args.dry_run and result.get("video_id") and result.get("drive"):
+            try:
+                tiktok_when = (datetime.fromisoformat(publish_at.replace("Z", "+00:00")).astimezone(BERLIN)
+                              + dt.timedelta(minutes=15)) if publish_at else (datetime.now(BERLIN) + dt.timedelta(minutes=20))
+                sp = social.plan_longshort(meta, result["drive"], tiktok_when)
+                plan_path = out / "longshort_social_plan.json"
+                plan_path.write_text(json.dumps(sp, indent=2, ensure_ascii=False))
+                result["social"] = {"status": "pending_mcp", "plan_file": str(plan_path)}
+                result["warnings"].append("TikTok-Post vorbereitet (longshort_social_plan.json) – wird über den "
+                                          "kostenlosen Metricool-Connector in dieser Sitzung veröffentlicht")
+                log(f"TikTok-Plan (langer Short) geschrieben: {plan_path}")
+            except Exception as e:  # noqa: BLE001
+                result["warnings"].append(f"TikTok-Plan (langer Short) fehlgeschlagen: {str(e)[:160]}")
         result["status"] = "ok"
         rc = 0
     except Exception as e:  # noqa: BLE001
@@ -141,7 +157,7 @@ def main_vertical(args, today: str) -> int:
                               "title": result.get("meta", {}).get("title"), "count": result.get("info", {}).get("count"),
                               "duration_sec": result.get("info", {}).get("duration_sec"),
                               "drive": result.get("drive", {}).get("_folder"), "error": result.get("error"),
-                              "warnings": result.get("warnings", [])}
+                              "social": result.get("social"), "warnings": result.get("warnings", [])}
             rj.write_text(json.dumps(r, indent=2, ensure_ascii=False))
         except Exception as e:  # noqa: BLE001
             log(f"result.json nicht aktualisiert: {e}")
@@ -160,6 +176,7 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--vertical", action="store_true", help="langen Short (9:16, bis 3 min) statt 16:9-Video bauen")
     ap.add_argument("--if-due", action="store_true", help="mit --vertical: nur an den Bau-Tagen (KIDS_LONGSHORT_BUILD_DAYS)")
+    ap.add_argument("--no-social", action="store_true", help="mit --vertical: kein TikTok-Post über Metricool")
     ap.add_argument("--publish-tomorrow", default=None, help="Uhrzeit Europe/Berlin MORGEN, z. B. 09:00 (geplante Veröffentlichung)")
     args = ap.parse_args()
 

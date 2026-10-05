@@ -114,6 +114,22 @@ def pick(history: list[dict], used_titles: list[str], rnd: random.Random | None 
             rnd.choices(lessons, _weights(lessons, history, "lesson"))[0])
 
 
+def _flagship_due(history: list[dict], rnd: random.Random | None = None) -> dict | None:
+    """Liefert eine Flaggschiff-Figur, wenn sie seit KIDS_FLAGSHIP_EVERY_N_DAYS nicht mehr dran war, sonst None."""
+    if not config.FLAGSHIP_CHARACTERS:
+        return None
+    rnd = rnd or random.SystemRandom()
+    names = {c["name"].lower(): c for c in config.FLAGSHIP_CHARACTERS}
+    since = None
+    for i, e in enumerate(reversed(history)):
+        if str(e.get("name", "")).lower() in names:
+            since = i
+            break
+    if since is not None and since < config.FLAGSHIP_EVERY_N_DAYS:
+        return None
+    return rnd.choice(config.FLAGSHIP_CHARACTERS)
+
+
 def _sanitize(story: dict) -> dict:
     blob = json.dumps(story).lower()
     for w in config.FORBIDDEN_WORDS:
@@ -129,6 +145,8 @@ def _sanitize(story: dict) -> dict:
         if kw not in story["tags"]:
             story["tags"].append(kw)
     desc = story.get("description", "").strip()
+    if config.AFFILIATE_LINE:
+        desc += "\n\n" + config.AFFILIATE_LINE
     if "#shorts" not in desc.lower():
         desc += "\n\n" + " ".join(config.HASHTAGS)
     story["description"] = desc[:4800]
@@ -152,12 +170,20 @@ def _history_text(history: list[dict]) -> str:
     return "\n".join(rows) or "- (none yet)"
 
 
-def review(story: dict, history: list[dict]) -> dict:
-    """Strenge Prüfung vor dem Dreh. Liefert {scores{...}, passed, min_score, problems[], fix}."""
+def review(story: dict, history: list[dict], allow_repeat_species: bool = False) -> dict:
+    """Strenge Prüfung vor dem Dreh. Liefert {scores{...}, passed, min_score, problems[], fix}.
+    `allow_repeat_species`: für die wiederkehrende Flaggschiff-Figur – gleiches Tier ist hier gewollt,
+    nur Handlung/Idee müssen neu sein."""
     draft = {k: v for k, v in story.items() if k not in ("review", "tags", "description")}
+    repeat_note = (
+        "This is a recurring flagship character on purpose – the SAME animal/character appearing again is fine "
+        "and expected; judge originality only by whether the PLOT/IDEA is new, not the animal."
+        if allow_repeat_species else
+        "Stories already published on the channel (must not repeat – same animal, same plot or same idea):"
+    )
     prompt = (
         f"Story to review:\n{json.dumps(draft, indent=1, ensure_ascii=False)}\n\n"
-        f"Stories already published on the channel (must not repeat – same animal, same plot or same idea):\n"
+        f"{repeat_note}\n"
         f"{_history_text(history)}\n\n"
         "Score each criterion from 1 (terrible) to 10 (excellent):\n"
         "- logic: every step follows from the previous one; the solution makes sense in the real world; animals "
@@ -168,8 +194,10 @@ def review(story: dict, history: list[dict]) -> dict:
         "- filmable: an AI video model can animate it without typical errors (no water physics, no jumping/flying/"
         "launching, no transformations, no tiny objects, max 2 characters, max 3 large props, slow simple motions); "
         "the two 8-second shots connect seamlessly\n"
-        "- originality: clearly different from every story listed above (different animal AND different idea)\n"
-        "- charm: cute, warm, a small funny moment, parents would happily show it\n\n"
+        + ("- originality: clearly different PLOT/IDEA from every story listed above (same recurring character/"
+           "animal is fine here, judge only the idea)\n" if allow_repeat_species else
+           "- originality: clearly different from every story listed above (different animal AND different idea)\n")
+        + "- charm: cute, warm, a small funny moment, parents would happily show it\n\n"
         'Answer as JSON: {"scores": {"logic": n, "clarity": n, "lesson": n, "filmable": n, "originality": n, '
         '"charm": n}, "problems": ["concrete problem 1", ...], "fix": "concrete instructions how to rewrite it"}'
     )
@@ -184,19 +212,27 @@ def review(story: dict, history: list[dict]) -> dict:
 def create(history: list[dict], used_titles: list[str], theme: str | None = None, combos: int = 3,
            rounds: int = 3, log=print) -> dict:
     """Bis zu `combos` Tier×Lektion-Kombinationen mit je `rounds` Überarbeitungen; die erste bestandene Story gewinnt,
-    sonst die beste mit Mindestnote ≥ Grenze−1."""
+    sonst die beste mit Mindestnote ≥ Grenze−1. Alle KIDS_FLAGSHIP_EVERY_N_DAYS Tage: wiederkehrende Flaggschiff-
+    Figur (gleicher Name/Tier/Look) mit neuer Geschichte, für Wiedererkennung."""
+    flagship = _flagship_due(history)
     best, best_score, last_err = None, -1, None
     tried: set[str] = set()
-    for _ in range(combos):
-        for _ in range(10):
-            species, lesson = pick(history, used_titles)
-            if species not in tried:
-                break
-        tried.add(species)
-        if theme:
-            lesson = theme
-        log(f"Heute: {species} × „{lesson}“")
-        st, score, err = _write(species, lesson, history, rounds, log)
+    for attempt in range(combos):
+        forced = flagship if attempt == 0 else None
+        if forced:
+            species = forced["species"]
+            lesson = theme or pick(history, used_titles)[1]
+            log(f"Heute: Flaggschiff-Figur {forced['name']} ({species}) × „{lesson}“")
+        else:
+            for _ in range(10):
+                species, lesson = pick(history, used_titles)
+                if species not in tried:
+                    break
+            tried.add(species)
+            if theme:
+                lesson = theme
+            log(f"Heute: {species} × „{lesson}“")
+        st, score, err = _write(species, lesson, history, rounds, log, forced_character=forced)
         if st is not None and st.get("review", {}).get("passed"):
             return st
         last_err = err or last_err
@@ -208,11 +244,20 @@ def create(history: list[dict], used_titles: list[str], theme: str | None = None
     raise RuntimeError(f"Keine Story hat die Prüfung bestanden (beste Mindestnote {best_score}). {last_err or ''}")
 
 
-def _write(species: str, lesson: str, history: list[dict], rounds: int, log) -> tuple[dict | None, int, Exception | None]:
+def _write(species: str, lesson: str, history: list[dict], rounds: int, log,
+          forced_character: dict | None = None) -> tuple[dict | None, int, Exception | None]:
+    character_rule = (
+        f"Main character MUST be exactly this recurring character – do not invent a new one, keep name, species "
+        f"and look EXACTLY as given: name={forced_character['name']}, species={forced_character['species']}, "
+        f"look={forced_character['look']}.\n"
+        if forced_character else f"Main character: a {species}.\n"
+    )
     base = (
-        f"Main character: a {species}.\n"
+        f"{character_rule}"
         f"Lesson / learning goal: {lesson}.\n\n"
-        f"Stories already published (do NOT reuse their animal, plot or idea):\n{_history_text(history)}\n\n"
+        f"Stories already published (do NOT reuse their plot or idea"
+        + ("" if forced_character else " or animal")
+        + f"):\n{_history_text(history)}\n\n"
         f"Write a completely NEW story as JSON with exactly this schema (same keys, English values):\n"
         f"{json.dumps(SCHEMA, indent=1)}\n\n"
         f"SOUND LIBRARY (only these keys are allowed in sfx_cues; choose 4–7 cues that match the action exactly, "
@@ -236,7 +281,9 @@ def _write(species: str, lesson: str, history: list[dict], rounds: int, log) -> 
         try:
             st = _sanitize(gemini.text_json(prompt, SYSTEM, temperature=0.9))
             st["lesson"] = st.get("lesson") or lesson
-            rv = review(st, history)
+            if forced_character:   # Name/Tier/Look exakt fix halten, egal was Gemini geschrieben hat
+                st["character"] = dict(forced_character)
+            rv = review(st, history, allow_repeat_species=bool(forced_character))
         except Exception as e:  # noqa: BLE001
             last_err = e
             feedback = f"Technical problem: {e}. Answer with valid JSON matching the schema."

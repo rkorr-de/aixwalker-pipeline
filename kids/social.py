@@ -60,12 +60,13 @@ def _headers() -> dict:
 
 
 # ---------------------------------------------------------------- Drive-Freigabe -----------------------------------
-def share_links(drive_links: dict) -> dict:
-    """Macht short.mp4 und thumbnail.jpg aus dem Drive-Tagesordner per Link lesbar; liefert direkte Download-URLs."""
+def share_links(drive_links: dict, names: tuple[str, ...] = ("short.mp4", "thumbnail.jpg")) -> dict:
+    """Macht die genannten Dateien aus einem Drive-Ordner per Link lesbar; liefert direkte Download-URLs.
+    `names` sind die Schlüssel in `drive_links` (wie von pipeline.drive/_upload zurückgegeben)."""
     from pipeline import drive as base
     svc = base.service()
     out = {}
-    for name in ("short.mp4", "thumbnail.jpg"):
+    for name in names:
         link = drive_links.get(name, "")
         m = re.search(r"/d/([A-Za-z0-9_-]+)", link) or re.search(r"id=([A-Za-z0-9_-]+)", link)
         if not m:
@@ -212,6 +213,23 @@ def plan(story: dict, drive_links: dict, today: str) -> dict:
         info["publicationDate"] = {"dateTime": when.strftime("%Y-%m-%dT%H:%M:%S"), "timezone": "Europe/Berlin"}
         posts.append({"network": net, "date": when.isoformat(timespec="seconds"), "blogId": BLOG_ID, "info": info})
     return {"texts": tx, "media": urls, "posts": posts}
+
+
+def plan_longshort(meta: dict, drive_links: dict, when: datetime) -> dict:
+    """Langer Short (9:16, Mo/Mi/Fr) zusätzlich auf TikTok: TikTok zahlt im Creator Rewards Program nur für Videos
+    über 1 Minute – die täglichen 15-s-Shorts zählen dort nicht, der lange Short schon. Gleicher kostenloser
+    MCP-Weg wie `plan()`, aber nur TikTok und ohne feste Tageszeit (`when` von außen vorgegeben). Dateien liegen
+    im Drive-Unterordner `langer-short/` unter den Namen `longshort.mp4`/`thumbnail_vertical.jpg`."""
+    urls = share_links(drive_links, names=("longshort.mp4", "thumbnail_vertical.jpg"))
+    if "longshort.mp4" not in urls:
+        raise RuntimeError("longshort.mp4 nicht im Drive-Ordner gefunden – kein TikTok-Plan für den langen Short")
+    title = str(meta.get("title", "Giggle Meadow"))
+    caption = (f"{title}\nA cozy string of cute cartoons for toddlers – no talking, just giggles. 💛\n"
+              f"New story every day at 4 pm CET on YouTube: Giggle Meadow\n{HASHTAGS['tiktok']}")[:2200]
+    info = _build_info("tiktok", caption, urls["longshort.mp4"], urls.get("thumbnail_vertical.jpg"), title[:80])
+    info["publicationDate"] = {"dateTime": when.strftime("%Y-%m-%dT%H:%M:%S"), "timezone": "Europe/Berlin"}
+    post = {"network": "tiktok", "date": when.isoformat(timespec="seconds"), "blogId": BLOG_ID, "info": info}
+    return {"texts": {"tiktok": caption}, "media": urls, "posts": [post]}
 
 
 if __name__ == "__main__":

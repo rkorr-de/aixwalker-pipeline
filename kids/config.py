@@ -114,6 +114,16 @@ LESSON_POOL = [   # nur Lektionen, die man mit großen, langsamen Bewegungen zei
 ]
 AVOID_SPECIES_DAYS = int(os.environ.get("KIDS_AVOID_SPECIES_DAYS", "45"))
 AVOID_LESSON_DAYS = int(os.environ.get("KIDS_AVOID_LESSON_DAYS", "25"))
+
+# Wiederkehrende „Flaggschiff“-Figur(en) – für Wiedererkennung (Merch/Lizenz-Chancen), zusätzlich zu den täglich
+# neuen Tieren. Erscheint alle KIDS_FLAGSHIP_EVERY_N_DAYS Tage mit neuer Geschichte/Lektion, aber gleichem Namen,
+# Tier und Aussehen (für visuelle Konsistenz). Leere Liste = Funktion aus.
+FLAGSHIP_CHARACTERS = [
+    {"name": "Bibi", "species": "baby bunny",
+     "look": "a small snow-white bunny with pale pink inner ears, round sparkling dark-brown eyes, a fluffy cotton "
+             "tail, and one tiny daisy-flower clip behind her left ear"},
+]
+FLAGSHIP_EVERY_N_DAYS = int(os.environ.get("KIDS_FLAGSHIP_EVERY_N_DAYS", "4"))
 STORY_MIN_SCORE = int(os.environ.get("KIDS_STORY_MIN_SCORE", "8"))      # Mindestnote (1–10) je Prüfkriterium
 # Videoprüfung (kids/review.py) – kalibriert am 03.10.2026: Goldfisch-Video 7 schwere Fehler → abgelehnt,
 # Kling-Video, das Rolf „sehr gut“ fand: 1 schwerer + 3 deutliche → bestanden
@@ -127,6 +137,11 @@ PARENT_KEYWORDS = [
     "calm video for kids", "cute animation for babies", "bedtime cartoon", "preschool cartoon", "cute animals for kids",
     "3d animation kids", "short cartoon for children", "baby sensory video", "silly animal cartoon", "wholesome kids video",
 ]
+# Affiliate-Zeile für die Videobeschreibung (z. B. Amazon-Partnerprogramm-Link zu passendem Spielzeug/Büchern) –
+# komplett fertiger Text inkl. Link, den Rolf nach Anmeldung beim Partnerprogramm einträgt. Leer = kein Zusatztext.
+# COPPA-konform, da nur ein Link in der Beschreibung steht (keine Datenerfassung bei Kindern).
+AFFILIATE_LINE = os.environ.get("KIDS_AFFILIATE_LINE", "").strip()
+
 PLAYLIST_TITLE = '🧸 Cute Baby Animal Cartoons for Toddlers – Giggle Meadow 🌼'
 PLAYLIST_DESCRIPTION = (
     '🌼 Cute baby animal cartoons for toddlers – with a little lesson in every story! 🐣 Each 15-second Giggle Meadow short shows a super cute baby animal facing a small everyday problem, like sharing a toy, waiting for a turn, trying again or helping a friend, and solving it in a kind way that little ones can copy. 🐾'

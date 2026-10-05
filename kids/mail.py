@@ -89,6 +89,15 @@ def report_text(result: dict) -> str:
                       f"Titel: {ls.get('title', '')}",
                       f"{ls.get('count', '?')} Stories · {round((ls.get('duration_sec') or 0))} s",
                       f"Google Drive: {ls.get('drive') or '(nicht abgelegt)'}"]
+            lsso = ls.get("social")
+            if lsso:
+                if lsso.get("status") == "pending_mcp":
+                    lines.append("TikTok: vorbereitet – wird über den kostenlosen Metricool-Connector angemeldet")
+                elif "error" in lsso.get("tiktok", {}):
+                    lines.append(f"TikTok: FEHLER – {lsso['tiktok']['error']}")
+                elif lsso.get("tiktok"):
+                    url = (lsso["tiktok"].get("result") or {}).get("plannerUrl") or ""
+                    lines.append(f"TikTok: geplant {lsso['tiktok'].get('when')} {url}".rstrip())
         else:
             lines += [f"FEHLER: {ls.get('error', 'unbekannt')}"]
         for w in ls.get("warnings", []):
