@@ -12,7 +12,9 @@ TRACK_RE = re.compile(r"^\d+ - .*?Aix Walker - (.+)\.mp3$", re.I)
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
           "November", "December"]
 
-GENRE_TEXT = {   # Stichwort im Genre-Namen → (Titelteil, Zweck, Tags, Playlist)
+GENRE_TEXT = {   # Stichwort im Genre-Namen → (Titelteil, Zweck, Tags, Playlist); „mediterranean“ vor „spa“ (Reihenfolge zählt)
+    "mediterranean": ("Mediterranean Spa Lounge", "Balearic Chillout for Relaxing Sunsets", ["balearic chillout",
+                      "spa lounge", "ibiza chillout", "luxury spa music", "beach lounge", "chillout lounge", "sunset music"], "chillout"),
     "gym": ("Slow Gym Beats", "Dark Workout Music for Heavy Lifting", ["gym music", "workout music", "slow gym beats",
             "heavy lifting music", "dark workout"], "gym"),
     "spa": ("Dark Ambient Spa Music", "Deep Relaxing Music for Massage & Wellness", ["spa music", "dark ambient",
@@ -103,6 +105,7 @@ def build_still_video(frame: Path, audio_file: Path, out: Path, fps: int = 2) ->
 # ---------- Thumbnail ----------
 
 HERO_PROMPTS = {   # Genre-Stichwort → Motiv (immer eine Frau, werbefreundlich, Kanal-Look: dunkel, Teal-Licht)
+    "mediterranean": "elegant woman in a white dress on a luxury resort terrace at golden sunset over the Mediterranean, warm amber light with teal accents",
     "gym": "athletic woman in black sportswear gripping a barbell in a dark industrial gym, chalk dust, teal rim light",
     "spa": "calm woman in a spa robe by candles and hot stones, steam, dark moody spa, teal accent light",
     "sleep": "serene woman asleep in a soft bed by a starry window, moonlight, floor mist, teal accent glow",

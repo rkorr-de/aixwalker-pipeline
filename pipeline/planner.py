@@ -21,6 +21,22 @@ from . import config, memory
 PROMPT_FILE = config.ROOT / "prompts" / "concept_prompt.md"
 
 GENRES = {
+    "Mediterranean Spa Lounge": {
+        "playlist": "chillout", "bpm": (92, 92),
+        "style": ("Luxury Mediterranean Spa Lounge. Modern Balearic chillout with organic house elements, soft downtempo "
+                  "beats, relaxing spa atmosphere, warm analog synths, gentle guitar melodies, smooth bassline, ocean "
+                  "ambience, chill beach lounge vibes, luxury wellness resort feeling, sunset over Ibiza, deep relaxation, "
+                  "positive emotions, highly professional production, cinematic depth, clean mix, no vocals, 92 BPM."),
+        "purposes": ["sunset lounge at the sea", "luxury spa & wellness", "beach club chill", "villa dinner background",
+                     "yoga & stretching by the ocean", "rooftop evening", "massage & relaxation", "relaxed focus & reading"],
+        "motifs": ["elegant woman on a luxury resort terrace at sunset (advertiser-friendly)",
+                   "woman relaxing at an infinity pool above the sea (advertiser-friendly)",
+                   "woman in a white spa robe with sea view (advertiser-friendly)",
+                   "woman walking along a Mediterranean beach at golden hour (advertiser-friendly)",
+                   "sunset over the Ibiza coast, empty lounge terrace", "beach lounge with lanterns and ocean"],
+        "moods": ["warm, sunlit, luxurious, relaxed", "positive, smooth, sunset-golden", "airy, organic, deeply relaxing",
+                  "cinematic, balmy, elegant"],
+    },
     "Slow Gym Beats": {
         "playlist": "gym", "bpm": (70, 90),
         "purposes": ["heavy lifting", "leg day", "push/pull sessions", "late-night gym", "cardio & stairmaster",
@@ -58,8 +74,11 @@ GENRES = {
 }
 # Strategie 05.10.2026: Sleep/Spa haben den höchsten RPM (ca. 4–8 $) und die längsten Sitzungen → häufiger;
 # Gym/Night Drive bleiben als Abwechslung, kommen aber seltener dran.
-GENRE_WEIGHT = {"Chillout Sleep": 1.35, "Dark Ambient Spa": 1.25, "Slow Gym Beats": 0.8, "Night Drive Deep Bass": 0.75}
+GENRE_WEIGHT = {"Mediterranean Spa Lounge": 1.6, "Chillout Sleep": 1.35, "Dark Ambient Spa": 1.25, "Slow Gym Beats": 0.8, "Night Drive Deep Bass": 0.75}
 LIGHTS = {
+    "Mediterranean Spa Lounge": ["golden hour sunset over the sea", "warm amber dusk", "pink-orange Ibiza sunset sky",
+                                 "soft teal-and-gold twilight", "lanterns and candles on a terrace at dusk",
+                                 "low sun glittering on the water"],
     "Slow Gym Beats": ["cold moonlight through high windows", "teal neon haze", "harsh single spotlight", "rain and streetlight",
                        "fog with a single warm lamp", "blue hour", "distant city glow"],
     "Dark Ambient Spa": ["candlelight in darkness", "warm ember glow", "steam with teal backlight", "moonlight on water",
@@ -107,7 +126,7 @@ def genre_scores(mem: dict, analytics_rows: list[dict] | None) -> dict[str, dict
     return out
 
 
-LONG_GENRES = ("Chillout Sleep", "Dark Ambient Spa")   # Lang-Format nur dort, wo lange Sitzungen üblich sind
+LONG_GENRES = ("Chillout Sleep", "Dark Ambient Spa", "Mediterranean Spa Lounge")   # Lang-Format nur dort, wo lange Sitzungen üblich sind
 
 
 def choose_brief(mem: dict, analytics_rows: list[dict] | None = None, seed: int | None = None,
@@ -137,7 +156,7 @@ def choose_brief(mem: dict, analytics_rows: list[dict] | None = None, seed: int 
         "purpose": _pick(g["purposes"], avoid_purpose, rnd), "mood_hint": _pick(g["moods"], avoid_mood, rnd),
         "motif_family": _pick(g["motifs"], avoid_motif, rnd), "light": _pick(LIGHTS[genre], avoid_light, rnd),
         "scores": scores, "last_genre": last_genre,
-        "long": long,
+        "long": long, "style": g.get("style", ""),
         "search_terms": [t["term"] for t in (mem.get("search_terms") or [])[:8]],
     }
     return brief
@@ -147,6 +166,9 @@ def brief_text(b: dict) -> str:
     fmt = (f"Format: LONG sleep/relax session of {config.LONG_MIN_MINUTES // 60} hours or more "
            f"({config.LONG_PLANNED_TRACKS}+{config.LONG_EXTRA_TRACKS} track titles). Use {{HOURS}} in the title, never {{MIN}}. "
            f"Even more continuous, seamless and calm than a normal mix; tracks flow into each other.\n" if b.get("long") else "")
+    if b.get("style"):
+        fmt += (f"MANDATORY SOUND STYLE for all tracks (stay faithful to it, vary only melody, instruments and "
+                f"arrangement per track): {b['style']}\n")
     return (fmt + f"Date: {b['date']}\nGenre: {b['genre']} (playlist: {b['playlist']})\nBPM: {b['bpm']}\n"
             f"Purpose / listening situation: {b['purpose']}\nMood direction: {b['mood_hint']}\n"
             f"Visual motif family: {b['motif_family']}\nLight: {b['light']}\n"
@@ -194,6 +216,8 @@ def validate(c: dict, mem: dict, brief: dict) -> list[str]:
     if errs:
         return errs
     c["genre"], c["playlist"], c["bpm"] = brief["genre"], brief["playlist"], int(brief["bpm"])
+    if brief.get("style") and brief["style"] not in str(c.get("sound_design", "")):
+        c["sound_design"] = f"{brief['style']} {c.get('sound_design', '')}".strip()   # Stil-Vorgabe geht 1:1 in jeden Lyria-Prompt
     is_long = bool(brief.get("long"))
     c["minutes_per_track"] = 5
     c["min_minutes"] = config.LONG_MIN_MINUTES if is_long else config.MIN_MIX_MINUTES

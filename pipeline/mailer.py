@@ -37,6 +37,8 @@ def distrokid_block(concept: dict, result: dict) -> str:
     drive = result.get("drive") or {}
     genre_map = {"gym": ("Electronic", "Trap / Beats"), "chillout": ("Electronic", "Ambient")}
     primary, secondary = genre_map.get(concept.get("playlist", "chillout"), ("Electronic", "Ambient"))
+    if "mediterranean" in concept.get("genre", "").lower():
+        primary, secondary = "Electronic", "Chill Out"
     short1 = (result.get("shorts") or [{}])[0]
     lines = [
         "DISTROKID – FORMULARANGABEN",
