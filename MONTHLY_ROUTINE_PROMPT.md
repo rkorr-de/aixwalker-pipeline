@@ -6,6 +6,8 @@ Antworte auf Deutsch (YouTube-Metadaten sind Englisch). Du arbeitest komplett oh
 1. Arbeitsverzeichnis ist das Repo `aixwalker-pipeline` (prüfe `ls monthly_mix.py`).
 2. `which ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)` und
    `pip install -q -r requirements.txt --break-system-packages`.
+   **Python prüfen (wichtig):** `python -c "import googleapiclient, librosa"`. Schlägt das fehl, nutze für ALLE
+   folgenden Befehle `/usr/bin/python` statt `python` (dort liegen die Pakete; so war es am 06.10. nötig).
 3. Prüfe, dass `YT_CLIENT_ID`, `YT_CLIENT_SECRET`, `YT_REFRESH_TOKEN`, `DRIVE_REFRESH_TOKEN`, `GMAIL_REFRESH_TOKEN`
    gesetzt sind. Fehlt etwas: nichts starten, kurz melden, was fehlt.
 4. `python monthly_mix.py` ausführen (Vormonat, öffentlich, kann > 30 Minuten dauern – Timeout großzügig, im Hintergrund

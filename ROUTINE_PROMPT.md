@@ -33,6 +33,8 @@ Zweimal pro Woche (Dienstag und Freitag) erscheint ein neuer Mix, der wie ein ku
 1. Vorbereitung: `ls` (run_auto.py, run_mix.py, pipeline/, prompts/), dann
    `which ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)` und
    `pip install -q -r requirements.txt --break-system-packages`.
+   **Python prüfen (wichtig):** `python -c "import googleapiclient, librosa"`. Schlägt das fehl, nutze für ALLE
+   folgenden Befehle `/usr/bin/python` statt `python` (dort liegen die Pakete; so war es am 06.10. nötig).
 2. Umgebungsvariablen prüfen: GOOGLE_API_KEY, YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN, DRIVE_REFRESH_TOKEN,
    GMAIL_REFRESH_TOKEN, REPORT_EMAIL. Fehlt etwas: trotzdem laufen lassen (die Pipeline überspringt nur den betroffenen Teil) und
    das Fehlende am Ende klar nennen – ohne GMAIL_REFRESH_TOKEN den Bericht `build/<slug>/report.md` komplett im
