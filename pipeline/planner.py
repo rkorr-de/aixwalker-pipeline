@@ -143,6 +143,19 @@ def relevant_terms(mem: dict, genre: str, n: int = 8) -> list[str]:
     return terms[:n]
 
 
+# Fokus-Genre (Rolf, 06.10.2026: „davon im Verhältnis noch mehr“): etwa jeder zweite Mix, nie mehr als zwei in Folge.
+FOCUS_GENRE = "Mediterranean Spa Lounge"
+FOCUS_SHARE = 0.55
+FOCUS_WINDOW = 6
+
+
+def focus_due(mem: dict) -> bool:
+    recent = [m.get("genre") for m in (mem.get("mixes") or [])][-FOCUS_WINDOW:]
+    if len(recent) >= 2 and recent[-1] == recent[-2] == FOCUS_GENRE:
+        return False
+    return sum(1 for g in recent if g == FOCUS_GENRE) / max(len(recent), 1) < FOCUS_SHARE
+
+
 LONG_GENRES = ("Chillout Sleep", "Dark Ambient Spa", "Mediterranean Spa Lounge")   # Lang-Format nur dort, wo lange Sitzungen üblich sind
 
 
@@ -157,8 +170,10 @@ def choose_brief(mem: dict, analytics_rows: list[dict] | None = None, seed: int 
         ranked = sorted(scores.items(), key=lambda kv: kv[1]["score"] + rnd.uniform(0, 0.15), reverse=True)
         if long:
             ranked = [kv for kv in ranked if kv[0] in LONG_GENRES] or ranked
-        ranked = [kv for kv in ranked if kv[0] != last_genre] or ranked   # nie zweimal hintereinander dasselbe Genre
+        ranked = [kv for kv in ranked if kv[0] != last_genre] or ranked   # sonst nie zweimal hintereinander dasselbe Genre
         genre = ranked[0][0]
+        if focus_due(mem):
+            genre = FOCUS_GENRE
     g = GENRES[genre]
     same = [m for m in mem.get("mixes", []) if m["genre"] == genre]
     avoid_purpose = {str(m.get("purpose", "")).lower() for m in same[-3:]}
