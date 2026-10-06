@@ -1,0 +1,220 @@
+{
+  "album": "Starlight Slumber",
+  "genre": "Chillout Sleep",
+  "bpm": 65,
+  "mood": "hazy, slow, tender, calming, weightless",
+  "purpose": "nap reset",
+  "sound_design": "A tender, hazy sonic landscape built on muted electric pianos and lush, slow-swelling analog synth pads. The rhythm section features soft, brushed percussion and a deep, rounded sub-bass that pulses gently at 65 BPM, anchoring the weightless melodies.",
+  "playlist": "chillout",
+  "minutes_per_track": 5,
+  "min_minutes": 60,
+  "tracks": [
+    {
+      "title": "Aqueous Aura",
+      "variation": "Muted rhodes chords with a subtle phaser effect"
+    },
+    {
+      "title": "Below The Stars",
+      "variation": "Gentle acoustic guitar harmonics over a deep drone"
+    },
+    {
+      "title": "Celestial Nap",
+      "variation": "Slow-sweeping low-pass filter on a lush analog pad"
+    },
+    {
+      "title": "Deep Blue Hush",
+      "variation": "Softly brushed snare rhythm carrying a warm sub-bass"
+    },
+    {
+      "title": "Easing Tides",
+      "variation": "Granular synthesis creating a shimmering water texture"
+    },
+    {
+      "title": "Floating Dust",
+      "variation": "Delicate glockenspiel melody echoing in a large reverb space"
+    },
+    {
+      "title": "Glacial Slow",
+      "variation": "Detuned sine waves creating a thick, hazy atmosphere"
+    },
+    {
+      "title": "Hazy Reverb",
+      "variation": "Washed-out synthetic vocal pad with extreme reverb decay"
+    },
+    {
+      "title": "Inner Lagoon",
+      "variation": "Deep rhythmic pulse using a muffled kick drum"
+    },
+    {
+      "title": "Jovian Drift",
+      "variation": "Slow, evolving minor 7th chords on a warm synthesizer"
+    },
+    {
+      "title": "Kinetic Slumber",
+      "variation": "Subtle vinyl crackle texture beneath a soft electric piano"
+    },
+    {
+      "title": "Luminous Deep",
+      "variation": "Shimmering high-end bells over a dark, brooding bassline"
+    },
+    {
+      "title": "Muted Starlight",
+      "variation": "Reversed piano chords adding a swelling, dreamlike feel"
+    },
+    {
+      "title": "Nocturnal Reset",
+      "variation": "Gently pulsating white noise acting as a soft snare hit"
+    },
+    {
+      "title": "Orbiting Slow",
+      "variation": "Tremolo effect on a vintage organ patch"
+    },
+    {
+      "title": "Pensive Waters",
+      "variation": "Melancholic synthetic cello playing long, sustained notes"
+    },
+    {
+      "title": "Quiescent Bay",
+      "variation": "Field recording of calm water integrated into a synth pad"
+    },
+    {
+      "title": "Radiant Gloom",
+      "variation": "A simple two-note marimba motif bathed in delay"
+    },
+    {
+      "title": "Somber Reflection",
+      "variation": "Tape-saturated synth lead that warbles slightly out of pitch"
+    },
+    {
+      "title": "Tranquil Sink",
+      "variation": "Subdued kick drum and bass locking into a hypnotic 65 BPM groove"
+    }
+  ],
+  "extra_tracks": [
+    {
+      "title": "Umbral Coast",
+      "variation": "Low-pitched kalimba softly plucking a descending scale"
+    },
+    {
+      "title": "Vacant Skies",
+      "variation": "Airy flute sample stretched into a continuous ambient drone"
+    },
+    {
+      "title": "Waking Whisper",
+      "variation": "Soft metallic chimes gently ringing in the stereo field"
+    },
+    {
+      "title": "Wavering Dark",
+      "variation": "Chorus-heavy electric bass playing melodic fragments"
+    },
+    {
+      "title": "Xylem Flow",
+      "variation": "Warm, woody percussion elements playing a sparse rhythm"
+    },
+    {
+      "title": "Yonder Star",
+      "variation": "High-frequency sine wave melody slowly drifting through space"
+    },
+    {
+      "title": "Zenith Slumber",
+      "variation": "Layered synth strings providing a majestic, thick texture"
+    },
+    {
+      "title": "Zonal Drift",
+      "variation": "Deep bass drops occurring every four bars to anchor the floating pads"
+    }
+  ],
+  "visual": {
+    "motif_family": "night sky over calm water",
+    "motif": "an isolated wooden dock extending into perfectly still dark water reflecting the starry night sky",
+    "light": "starlight"
+  },
+  "art_prompt": "square aspect ratio, photorealistic, cinematic, dark ambient with glowing teal accents. An isolated wooden dock extending into perfectly still dark water reflecting the starry night sky, starlight illumination, calm, hazy, no people, no text, no watermarks",
+  "thumbnail_prompt": "16:9 aspect ratio, photorealistic, cinematic, dark with teal accents. An isolated wooden dock extending into perfectly still dark water, starry night sky above, subject and visual weight strictly on the RIGHT third of the image leaving the left side empty and dark, calm, hazy, no people, no text, no letters",
+  "thumbnail_headline": "Deep Nap Reset",
+  "yt_title": "Slow Beat · {MIN} Min · Nap Reset (65 BPM) – Starlight Slumber",
+  "hook": "Take a deep breath and enjoy {HOURS} of hazy relaxation.",
+  "intro": "This slow beat chillout mix is designed to help you disconnect and reset during a daytime nap. Hazy textures and tender 65 BPM rhythms gently guide your mind into a deep, restorative state before gently waking you up.",
+  "use_line": "🌙 Perfect for: daytime naps, deep relaxation, mental reset, falling asleep, reading in bed, port andratx dreaming.",
+  "cta_question": "How long is your ideal nap to feel fully rested?",
+  "hashtags": [
+    "#SlowBeat",
+    "#NapMusic",
+    "#ChilloutSleep",
+    "#DeepRelaxation",
+    "#AixWalker"
+  ],
+  "tags": [
+    "aix walker",
+    "aixwalker",
+    "slow beat",
+    "chillout sleep",
+    "nap reset",
+    "sleep music",
+    "port andratx mallorca",
+    "relaxing sounds",
+    "65 bpm",
+    "starlight sleep",
+    "hazy ambient",
+    "night water sounds",
+    "daytime nap"
+  ],
+  "ab_titles": [
+    "Nap Reset · {MIN} Min · Slow Beat Chillout (65 BPM) – Night Waters",
+    "{HOURS} Slow Beat Sleep Music · Deep Nap Reset (65 BPM)",
+    "Slow Beat · {MIN} Min · Deep Nap Chillout (65 BPM) – Starlight Reset"
+  ],
+  "ab_thumbs": [
+    "Slow Nap Reset",
+    "Hazy Deep Sleep"
+  ],
+  "short_overlays": [
+    "Need a quick nap?",
+    "Drift into deep sleep"
+  ],
+  "short_titles": [
+    "Deep Nap Reset (65 BPM) 🌌 #slowbeat #chillout",
+    "Close your eyes and reset 🌙 #sleepmusic #aixwalker"
+  ],
+  "shorts": [
+    {
+      "start": "03:15",
+      "end": "03:45",
+      "overlay": "Need a quick nap?",
+      "why": "Stimmungsvoller Einstieg mit sanftem Bass, ideal zum Runterfahren."
+    },
+    {
+      "start": "12:30",
+      "end": "13:00",
+      "overlay": "Drift into deep sleep",
+      "why": "Tiefer, langsamer Beat, der sofortige Entspannung vermittelt."
+    }
+  ],
+  "title_de": "Starlight Slumber – Slow Beat Chillout & Mittagsschlaf (65 BPM)",
+  "teaser_de": "Tauche ein in sanfte Beats und weite Klanglandschaften, die deinen Geist beruhigen und dir neue Energie schenken.",
+  "pinned_comment": "Which track helped you drift off the fastest? Let me know! 🌌 Timestamps are in the description.",
+  "format": "standard",
+  "slug": "2026-10-06-starlight-slumber",
+  "_brief": {
+    "date": "2026-10-06",
+    "genre": "Chillout Sleep",
+    "playlist": "chillout",
+    "bpm": 65,
+    "purpose": "nap reset",
+    "mood_hint": "hazy, slow, tender",
+    "motif_family": "night sky over calm water",
+    "light": "starlight",
+    "last_genre": "Slow Gym Beats",
+    "long": false,
+    "search_terms": [
+      "port andratx mallorca",
+      "andratx mallorca",
+      "aachen",
+      "adac luftrettung",
+      "new hip hop 2026",
+      "christoph europa 1",
+      "hot massage",
+      "slow beat"
+    ]
+  }
+}
