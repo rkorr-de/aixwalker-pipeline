@@ -126,6 +126,23 @@ def genre_scores(mem: dict, analytics_rows: list[dict] | None) -> dict[str, dict
     return out
 
 
+# Suchbegriffe aus den Analytics stammen auch von alten Videos (Drohne, Walks). Nur Begriffe, die zum Genre passen, dürfen
+# in Titel/Tags einfließen – sonst entstehen Titel wie „Slow Beat“ für einen Sleep-Mix (Fehler vom 06.10.2026).
+GENRE_KEYWORDS = {
+    "Chillout Sleep": ("sleep", "nap", "insomnia", "rain", "calm", "relax", "dream", "lullaby", "bed"),
+    "Dark Ambient Spa": ("spa", "massage", "sauna", "wellness", "yoga", "stone", "ambient", "relax", "meditat"),
+    "Slow Gym Beats": ("gym", "workout", "lift", "training", "cardio", "fitness", "pump"),
+    "Night Drive Deep Bass": ("drive", "driving", "car", "road", "night ride", "highway"),
+    "Mediterranean Spa Lounge": ("lounge", "chill", "sunset", "ibiza", "beach", "balearic", "spa", "mediterr", "cafe"),
+}
+
+
+def relevant_terms(mem: dict, genre: str, n: int = 8) -> list[str]:
+    keys = GENRE_KEYWORDS.get(genre, ())
+    terms = [t["term"] for t in (mem.get("search_terms") or []) if any(k in t["term"].lower() for k in keys)]
+    return terms[:n]
+
+
 LONG_GENRES = ("Chillout Sleep", "Dark Ambient Spa", "Mediterranean Spa Lounge")   # Lang-Format nur dort, wo lange Sitzungen üblich sind
 
 
@@ -157,7 +174,7 @@ def choose_brief(mem: dict, analytics_rows: list[dict] | None = None, seed: int 
         "motif_family": _pick(g["motifs"], avoid_motif, rnd), "light": _pick(LIGHTS[genre], avoid_light, rnd),
         "scores": scores, "last_genre": last_genre,
         "long": long, "style": g.get("style", ""),
-        "search_terms": [t["term"] for t in (mem.get("search_terms") or [])[:8]],
+        "search_terms": relevant_terms(mem, genre),
     }
     return brief
 
@@ -173,11 +190,13 @@ def brief_text(b: dict) -> str:
             f"Purpose / listening situation: {b['purpose']}\nMood direction: {b['mood_hint']}\n"
             f"Visual motif family: {b['motif_family']}\nLight: {b['light']}\n"
             f"Why this genre now: last mix was {b['last_genre'] or '-'}; genre scores {json.dumps(b['scores'])}"
-            + (f"\nReal viewer search terms (work 1–2 of them naturally into title, hook and tags; each mix should "
-               f"target a DIFFERENT keyword angle than the last ones): {', '.join(b['search_terms'])}"
+            + (f"\nReal viewer search terms that fit this genre (inspiration for 1–2 keywords in hook and tags; the title must "
+               f"still begin with the genre's core keyword, e.g. 'Sleep Music', 'Spa Music', 'Slow Gym Beats', "
+               f"'Chillout Lounge'): {', '.join(b['search_terms'])}"
                if b.get("search_terms") else
                "\nKeyword angle: pick ONE specific search phrase for this mix (e.g. use case + duration) that differs "
-               "from the titles in the history, and use it in title, hook and tags."))
+               "from the titles in the history, and use it in title, hook and tags. The title must begin with the genre's core "
+               "keyword (e.g. 'Sleep Music', 'Spa Music', 'Slow Gym Beats', 'Chillout Lounge')."))
 
 
 # ---------------------------------------------------------------- Textmodell
