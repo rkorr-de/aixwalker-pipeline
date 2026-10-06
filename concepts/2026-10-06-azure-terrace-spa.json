@@ -1,0 +1,213 @@
+{
+  "album": "Azure Terrace Spa",
+  "genre": "Mediterranean Spa Lounge",
+  "bpm": 92,
+  "mood": "airy, organic, deeply relaxing, warm, cinematic",
+  "purpose": "luxury spa & wellness",
+  "sound_design": "Luxury Mediterranean Spa Lounge. Modern Balearic chillout with organic house elements, soft downtempo beats, relaxing spa atmosphere, warm analog synths, gentle guitar melodies, smooth bassline, ocean ambience, chill beach lounge vibes, luxury wellness resort feeling, sunset over Ibiza, deep relaxation, positive emotions, highly professional production, cinematic depth, clean mix, no vocals, 92 BPM. Modern Balearic chillout centered around organic house elements and a steady 92 BPM downtempo beat. The sonic palette features warm analog synths, gentle acoustic guitar melodies, and deep, smooth basslines mixed with subtle ocean ambiances. The production is characterized by cinematic depth, pristine clarity, and an expansive, deeply relaxing atmosphere.",
+  "playlist": "chillout",
+  "minutes_per_track": 5,
+  "min_minutes": 60,
+  "tracks": [
+    {
+      "title": "Aegean Breeze",
+      "variation": "Gentle nylon-string guitar arpeggios over a soft 92 BPM shaker rhythm."
+    },
+    {
+      "title": "Balearic Dusk",
+      "variation": "Warm Rhodes chords with a deep, pulsing sub-bass and distant seagull ambience."
+    },
+    {
+      "title": "Coastal Harmony",
+      "variation": "Organic kalimba melodies layered with lush analog pad sweeps."
+    },
+    {
+      "title": "Drifting Sands",
+      "variation": "Syncopated conga groove intertwined with a muted trumpet solo."
+    },
+    {
+      "title": "Endless Horizon",
+      "variation": "Propulsive but soft kick drum driving a shimmering marimba sequence."
+    },
+    {
+      "title": "Flamingo Sunset",
+      "variation": "Ethereal vocal-like synth pads and a prominent, melodic fretless bassline."
+    },
+    {
+      "title": "Glimmering Waves",
+      "variation": "Rhythmic delays on a clean electric guitar, backed by ocean wave field recordings."
+    },
+    {
+      "title": "Harbor Lights",
+      "variation": "Deep house chord stabs played on a velvety analog synth with a steady hi-hat tick."
+    },
+    {
+      "title": "Island Glow",
+      "variation": "Upbeat organic percussion loop featuring bongos and a soaring flute melody."
+    },
+    {
+      "title": "Juniper Tides",
+      "variation": "Resonant filter sweeps on a Prophet-5 synth over a laid-back, grooving bass."
+    },
+    {
+      "title": "Karst Silhouettes",
+      "variation": "Acoustic piano chords striking on the off-beats, supported by warm strings."
+    },
+    {
+      "title": "Levant Echoes",
+      "variation": "Subtle handpan rhythms merging with a deep, dubby bass groove."
+    },
+    {
+      "title": "Mykonos Lounge",
+      "variation": "Classic balearic acoustic guitar strumming over a thick, electronic kick."
+    },
+    {
+      "title": "Neroli Scent",
+      "variation": "Lush harp glissandos cutting through a bed of warm, low-passed synthesizers."
+    },
+    {
+      "title": "Olive Grove Mist",
+      "variation": "Sparse, delayed electric piano notes floating above a gentle, muffled beat."
+    },
+    {
+      "title": "Pine Shadows",
+      "variation": "A repeating marimba motif that slowly decays into vast, cavernous reverb."
+    },
+    {
+      "title": "Quartz Pebbles",
+      "variation": "Soft mallet percussion creating a hypnotic, overlapping polyrhythm."
+    },
+    {
+      "title": "Riviera Whisper",
+      "variation": "Deep, sustained cello notes providing a rich foundation for airy synth plucks."
+    },
+    {
+      "title": "Saline Breath",
+      "variation": "Slowly modulating chorus effects on a warm synth pad, fading into a gentle groove."
+    },
+    {
+      "title": "Terrace Lanterns",
+      "variation": "Final, relaxing acoustic guitar melody with minimal percussion, resolving the journey."
+    }
+  ],
+  "extra_tracks": [
+    {
+      "title": "Tropic Solitude",
+      "variation": "Echoing woodblock strikes over a continuous, drone-like bass tone."
+    },
+    {
+      "title": "Umbrian Retreat",
+      "variation": "Delicate chime textures layered with a slow, swaying synthesizer rhythm."
+    },
+    {
+      "title": "Villa Resonance",
+      "variation": "Pizzicato strings plucking a syncopated pattern against a smooth, rolling bass."
+    },
+    {
+      "title": "Warm Seas",
+      "variation": "Sustained organ chords with a heavy rotary effect, providing a nostalgic warmth."
+    },
+    {
+      "title": "Xeric Shores",
+      "variation": "Subtle shaker patterns and a slow, evolving pad that filters open and closed."
+    },
+    {
+      "title": "Yacht Haven",
+      "variation": "Crisp acoustic guitar fingerpicking layered with soft, airy flute harmonies."
+    },
+    {
+      "title": "Zaffre Depths",
+      "variation": "Deep sub-bass holding long notes under a cascading, watery synth arpeggio."
+    },
+    {
+      "title": "Zeolite Calma",
+      "variation": "Minimalist piano melody floating over a wash of teal-tinted, cinematic reverb."
+    }
+  ],
+  "visual": {
+    "motif_family": "woman in a white spa robe with sea view (advertiser-friendly)",
+    "motif": "a woman in a thick white spa robe relaxing on a cliffside terrace overlooking a calm, dark sea",
+    "light": "lanterns and candles on a terrace at dusk"
+  },
+  "art_prompt": "Square album cover, photorealistic and cinematic. A woman in a luxurious white spa robe resting on a modern cliffside terrace overlooking the calm ocean at dusk. Glowing lanterns and candles cast a warm, inviting light. The deep blue sea reflects a subtle teal accent in the shadows. High end wellness resort atmosphere, highly detailed, no text, no logos.",
+  "thumbnail_prompt": "16:9 cinematic shot. Subject on the RIGHT third: a woman in a pristine white spa robe relaxing on a luxurious balcony overlooking the ocean at dusk. Warm candlelight and glowing lanterns softly illuminate the scene against the dark, teal-accented twilight sky. Photorealistic, advertiser-friendly, high-end wellness resort vibe. Empty space on the left. No text, no watermarks.",
+  "thumbnail_headline": "Luxury Spa Chill",
+  "yt_title": "Spa Music · {MIN} Min · Luxury Wellness (92 BPM) – Azure Terrace Spa",
+  "hook": "Unwind completely with {HOURS} of luxury Mediterranean spa lounge beats.",
+  "intro": "Step onto the terrace and breathe in the calming ocean air with this modern Balearic chillout mix. Combining organic house elements with gentle guitars and warm analog synths, this soundscape is designed to melt away stress and transport you to a luxury wellness resort.",
+  "use_line": "🛁 Perfect for: luxury spa sessions, deep relaxation, sunset chilling, massage therapy, and unwinding after a long day.",
+  "cta_question": "Which track makes you feel the most relaxed?",
+  "hashtags": [
+    "#SpaMusic",
+    "#ChilloutLounge",
+    "#MediterraneanSpa",
+    "#OrganicHouse",
+    "#AixWalker"
+  ],
+  "tags": [
+    "spa music",
+    "mediterranean spa",
+    "balearic chillout",
+    "luxury wellness music",
+    "organic house chill",
+    "deep relaxation music",
+    "sunset lounge beats",
+    "spa massage music",
+    "chillout spa mix",
+    "92 bpm lounge",
+    "ambient house spa",
+    "spa lounge beats",
+    "aixwalker",
+    "aix walker"
+  ],
+  "ab_titles": [
+    "Spa Music · {MIN} Min · Balearic Wellness (92 BPM) – Azure Terrace",
+    "Chillout Lounge · {HOURS} · Luxury Spa Resort (92 BPM) – Azure Spa",
+    "Spa Lounge Beats · {MIN} Min · Deep Relax (92 BPM) – Azure Terrace"
+  ],
+  "ab_thumbs": [
+    "Balearic Spa Vibes",
+    "Sunset Chillout"
+  ],
+  "short_overlays": [
+    "Deep relaxation awaits",
+    "Luxury spa vibes"
+  ],
+  "short_titles": [
+    "Unwind with Luxury Spa Lounge Beats 🌊",
+    "The Ultimate Sunset Chillout Spa 🛁"
+  ],
+  "shorts": [
+    {
+      "start": "08:30",
+      "end": "09:30",
+      "overlay": "Deep relaxation awaits",
+      "why": "Stimmungsvoller Aufbau, der sofort beruhigt und visuell das Spa-Thema perfekt einfängt."
+    },
+    {
+      "start": "22:15",
+      "end": "23:15",
+      "overlay": "Luxury spa vibes",
+      "why": "Ein emotionaler Höhepunkt mit warmer Bassline, ideal für kurze Wellness-Teaser."
+    }
+  ],
+  "title_de": "Azure Terrace Spa – Mediterranean Spa Lounge (92 BPM)",
+  "teaser_de": "Tauche ein in tiefste Entspannung mit diesem modernen Balearic Chillout Mix, der organisches House-Feeling mit sanfter Spa-Atmosphäre vereint.",
+  "pinned_comment": "Which track is your ultimate sunset favorite? Let me know below – timestamps are in the description! 👇",
+  "format": "standard",
+  "slug": "2026-10-06-azure-terrace-spa",
+  "_brief": {
+    "date": "2026-10-06",
+    "genre": "Mediterranean Spa Lounge",
+    "playlist": "chillout",
+    "bpm": 92,
+    "purpose": "luxury spa & wellness",
+    "mood_hint": "airy, organic, deeply relaxing",
+    "motif_family": "woman in a white spa robe with sea view (advertiser-friendly)",
+    "light": "lanterns and candles on a terrace at dusk",
+    "last_genre": "Chillout Sleep",
+    "long": false,
+    "style": "Luxury Mediterranean Spa Lounge. Modern Balearic chillout with organic house elements, soft downtempo beats, relaxing spa atmosphere, warm analog synths, gentle guitar melodies, smooth bassline, ocean ambience, chill beach lounge vibes, luxury wellness resort feeling, sunset over Ibiza, deep relaxation, positive emotions, highly professional production, cinematic depth, clean mix, no vocals, 92 BPM.",
+    "search_terms": []
+  }
+}
