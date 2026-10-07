@@ -38,7 +38,7 @@ import zipfile
 from datetime import date
 from pathlib import Path
 
-from pipeline import audio, config, costs, images, lyria, metadata, shorts, video
+from pipeline import audio, config, costs, images, lyria, metadata, shorts, video, visuals
 
 
 def log(msg: str) -> None:
@@ -161,7 +161,8 @@ def main() -> int:
         art = art_cache[gi]
         cover = images.make_track_cover(art, t["title"], i, album, out / "covers" / f"{i:02d}.png")
         covers.append(cover)
-        frames.append(images.make_video_frame(cover, out / "frames" / f"{i:02d}.png"))
+        make_frame = visuals.make_animated_frame if config.ANIMATED_VISUALS else images.make_video_frame
+        frames.append(make_frame(cover, out / "frames" / f"{i:02d}.png"))
         audio.export_mp3(wavs[i - 1], out / "mp3" / f"{i:02d} - {config.ARTIST} - {t['title']}.mp3",
                          t["title"], album, i, total, cover, genre, year)
     log(f"{total} Tracks fertig (MP3 + Cover)")
@@ -187,8 +188,16 @@ def main() -> int:
     for k, headline in enumerate([concept["thumbnail_headline"], *concept.get("ab_thumbs", [])[:2]]):
         thumbs.append(images.make_thumbnail(thumb_art, headline, concept.get("thumbnail_sub", f"{bpm} BPM · {total_min} MIN"),
                                             out / "thumbnail" / f"thumb_{'ABC'[k]}.jpg"))
-    mp4 = video.build_video(frames, starts, mix_wav, total_sec, out / "video" / f"{concept['slug']}.mp4",
-                            fps=10 if is_long else 30)
+    mp4_path = out / "video" / f"{concept['slug']}.mp4"
+    if config.ANIMATED_VISUALS:
+        try:
+            mp4 = visuals.build_video_animated(frames, starts, mix_wav, total_sec, mp4_path, fps=10 if is_long else 15)
+            log("Video mit bewegter Wellenform gebaut")
+        except Exception as e:  # noqa: BLE001 – im Zweifel lieber das bewährte Standbild-Video als gar keins
+            log(f"Animiertes Video fehlgeschlagen ({e}); Fallback auf Standbild-Video")
+            mp4 = video.build_video(frames, starts, mix_wav, total_sec, mp4_path, fps=10 if is_long else 30)
+    else:
+        mp4 = video.build_video(frames, starts, mix_wav, total_sec, mp4_path, fps=10 if is_long else 30)
     info = video.probe(mp4)
     log(f"Video: {mp4.name} {json.dumps(info['format'])}")
 
@@ -229,7 +238,15 @@ def main() -> int:
             t_title = tracks[p["track_index"]]["title"]
             frame = shorts.make_short_frame(thumb_art, covers[p["track_index"]], overlays[k], t_title,
                                             out / "shorts" / f"short_{k + 1}_frame.png", total_min=total_min)
-            clip = shorts.build_short(frame, mix_wav, p["start"], p["end"], out / "shorts" / f"short_{k + 1}.mp4")
+            clip_path = out / "shorts" / f"short_{k + 1}.mp4"
+            if config.ANIMATED_VISUALS:
+                try:
+                    clip = visuals.build_short_animated(frame, mix_wav, p["start"], p["end"], clip_path)
+                except Exception as e:  # noqa: BLE001 – im Zweifel lieber der bewährte Short als keiner
+                    log(f"Animierter Short fehlgeschlagen ({e}); Fallback auf bisherigen Short")
+                    clip = shorts.build_short(frame, mix_wav, p["start"], p["end"], clip_path)
+            else:
+                clip = shorts.build_short(frame, mix_wav, p["start"], p["end"], clip_path)
             s_title, s_desc, s_tags = shorts.short_metadata(concept, k, p, t_title, overlays[k], video_url)
             entry = {**p, "overlay": overlays[k], "track_title": t_title, "file": str(clip), "title": s_title}
             if args.upload:

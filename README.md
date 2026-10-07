@@ -69,6 +69,16 @@ Optionen:
   `AIX WALKER Mixe/<Datum – Album (Genre, BPM)>` ab (je Mix ein neuer Ordner)
 - `--no-shorts` – keine Shorts
 
+## Bewegte Visuals und Nischenanalyse
+
+- **Bewegte Visuals** (`pipeline/visuals.py`): Das Mix-Video zeigt unter dem Cover eine audio-reaktive Wellenform
+  (nur ffmpeg, kostenlos, 15 Bilder/s; Lang-Format 10 Bilder/s). Fällt der Bau aus, nutzt `run_mix.py` automatisch das
+  bisherige Standbild-Video. `MIX_ANIMATED_VISUALS=0` schaltet auf das alte Standbild zurück.
+  Gemessen auf 2 CPU-Kernen: ca. 15 Min Renderzeit je 60 Min Mix, ca. 46 Min je 3 Stunden.
+- **Nischenanalyse** (`pipeline/research.py`): `python -m pipeline.research "luxury spa lounge music" --days 180 --top 15`
+  zeigt die stärksten Videos einer Nische (Aufrufe/Tag, Länge, Kanalgröße). Nutzt das vorhandene `YT_REFRESH_TOKEN`,
+  kein zusätzlicher API-Schlüssel nötig. Jede Suche kostet deutlich mehr Tageskontingent als Datenabfragen.
+
 ## Konzeptdatei
 
 Siehe `concepts/example.json`. Der Freitags-Lauf schreibt pro Mix eine neue Datei `concepts/<slug>.json`
