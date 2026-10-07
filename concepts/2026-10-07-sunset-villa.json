@@ -1,0 +1,212 @@
+{
+  "album": "Sunset Villa",
+  "genre": "Mediterranean Spa Lounge",
+  "bpm": 92,
+  "mood": "positive, smooth, sunset-golden, sophisticated, luxurious",
+  "purpose": "villa dinner background",
+  "sound_design": "Luxury Mediterranean Spa Lounge. Modern Balearic chillout with organic house elements, soft downtempo beats, relaxing spa atmosphere, warm analog synths, gentle guitar melodies, smooth bassline, ocean ambience, chill beach lounge vibes, luxury wellness resort feeling, sunset over Ibiza, deep relaxation, positive emotions, highly professional production, cinematic depth, clean mix, no vocals, 92 BPM. Modern Balearic chillout tailored for upscale background listening. Expect warm analog synths and gentle acoustic guitars floating over a soft organic house beat. The mix stays at a consistent 92 BPM, creating a sophisticated and relaxing dining atmosphere with deep cinematic resonance.",
+  "playlist": "chillout",
+  "minutes_per_track": 5,
+  "min_minutes": 60,
+  "tracks": [
+    {
+      "title": "Al Fresco Evening",
+      "variation": "Soft acoustic guitar plucks layered over a deep rolling bassline"
+    },
+    {
+      "title": "Bayside Dinner",
+      "variation": "Gentle marimba melodies interplay with warm analog pad swells"
+    },
+    {
+      "title": "Cliffside Tapas",
+      "variation": "Subtle organic percussion and muted trumpet lines"
+    },
+    {
+      "title": "Dusk Over Water",
+      "variation": "Shimmering electric piano chords with a deep sub-bass foundation"
+    },
+    {
+      "title": "Elegant Drift",
+      "variation": "Sweeping cinematic strings and soft downtempo kicks"
+    },
+    {
+      "title": "Fig Tree Shadows",
+      "variation": "Syncopated shaker rhythms supporting a rhythmic bass synth"
+    },
+    {
+      "title": "Gilded Waves",
+      "variation": "Lush chorus-effected guitars and airy vocal-like synth textures"
+    },
+    {
+      "title": "Horizon Melting",
+      "variation": "Slow-attack synthesizer chords that open up like a sunset"
+    },
+    {
+      "title": "Indigo Canvas",
+      "variation": "Deep tom grooves matched with a sparse, jazzy piano melody"
+    },
+    {
+      "title": "Journey To Shore",
+      "variation": "A recurring acoustic harmonic pluck over a steady organic groove"
+    },
+    {
+      "title": "Kiosk Lanterns",
+      "variation": "Gentle kalimba accents adding a tropical touch to the warm house beat"
+    },
+    {
+      "title": "Lemon Grove Wind",
+      "variation": "Airy flute-like synths soaring over a minimal bass progression"
+    },
+    {
+      "title": "Maroon Skies",
+      "variation": "A prominent smooth fretless bassline driving the chill arrangement"
+    },
+    {
+      "title": "Nightfall Gentle",
+      "variation": "Rich electric guitar swells wrapped in long, lush reverb tails"
+    },
+    {
+      "title": "Oceanic Plates",
+      "variation": "Softly brushed snare rhythms providing a jazzy, elegant foundation"
+    },
+    {
+      "title": "Patio Twilight",
+      "variation": "Warm Rhodes piano improvisations weaving through deep synth beds"
+    },
+    {
+      "title": "Quiet Glass",
+      "variation": "Crystal clear synth arpeggios that mimic light reflecting on water"
+    },
+    {
+      "title": "Rustic Coastal",
+      "variation": "Classical guitar fingerpicking resting on a lush bed of drone synths"
+    },
+    {
+      "title": "Sunlit Veranda",
+      "variation": "Upbeat conga patterns elevating the balearic house energy slightly"
+    },
+    {
+      "title": "Terracotta Glow",
+      "variation": "Smooth saxophone-like analog synth leads with a relaxed, swung beat"
+    }
+  ],
+  "extra_tracks": [
+    {
+      "title": "Umber Sails",
+      "variation": "A deep, resonant cello counter-melody against crisp hi-hats"
+    },
+    {
+      "title": "Unfolding Night",
+      "variation": "Hypnotic, repeating bass pulses with ethereal choral synth washes"
+    },
+    {
+      "title": "Valldemossa Breeze",
+      "variation": "Spanish guitar flourishes blending with modern electronic chill beats"
+    },
+    {
+      "title": "Vine Silhouettes",
+      "variation": "Minimalist staccato piano notes echoing over a steady 92 BPM kick"
+    },
+    {
+      "title": "Warm Winds",
+      "variation": "Lush, sweeping pad filters that open and close like ocean waves"
+    },
+    {
+      "title": "Whispering Cypress",
+      "variation": "Subtle wooden percussion loops locking into a deep house bassline"
+    },
+    {
+      "title": "Yacht Marina",
+      "variation": "Breezy synth-brass stabs highlighting the rhythmic groove"
+    },
+    {
+      "title": "Zenith Colors",
+      "variation": "A grand, cinematic outro with overlapping melodic sequences and fading beats"
+    }
+  ],
+  "visual": {
+    "motif_family": "beach lounge with lanterns and ocean",
+    "motif": "an upscale outdoor dining setup on a beach deck",
+    "light": "low sun glittering on the water"
+  },
+  "art_prompt": "Photorealistic album cover, an upscale outdoor dining setup on a beach lounge deck, glowing lanterns, dark teal ocean background, low sun glittering on the water, cinematic lighting, teal accents, serene luxury atmosphere, no text, no watermarks, no letters, no logos",
+  "thumbnail_prompt": "Photorealistic 16:9 YouTube thumbnail, the subject is on the RIGHT third: an empty luxury dinner table with glowing lanterns on a beach deck at sunset, dark teal ocean waves rolling in, low sun glittering on the water, high contrast, cinematic mood, negative space on the left, no text, no watermarks, no letters, no logos",
+  "thumbnail_headline": "VILLA DINNER LOUNGE",
+  "yt_title": "Chillout Lounge · {MIN} Min · Dinner (92 BPM) – Sunset Villa",
+  "hook": "Ultimate dinner lounge vibe.",
+  "intro": "Transform your dining space with this sophisticated Mediterranean chillout mix. Warm organic house beats and lush acoustic elements provide the ultimate golden-hour soundtrack.",
+  "use_line": "🍷 Perfect for: villa dinners, sunset cocktails, evening lounging, sophisticated gatherings, unwinding by the pool",
+  "cta_question": "Which track sets the perfect mood for your evening?",
+  "hashtags": [
+    "#ChilloutLounge",
+    "#SpaMusic",
+    "#DinnerMusic",
+    "#SunsetLounge",
+    "#AixWalker"
+  ],
+  "tags": [
+    "chillout lounge",
+    "spa music",
+    "dinner background music",
+    "mediterranean spa lounge",
+    "sunset lounge music",
+    "aixwalker",
+    "aix walker",
+    "organic house chill",
+    "villa lounge music",
+    "92 bpm chillout",
+    "luxury dining music",
+    "evening chill beats",
+    "lounge music no vocals"
+  ],
+  "ab_titles": [
+    "Chillout Lounge · {MIN} Min · Sunset Dining (92 BPM) – Sunset Villa",
+    "Spa Lounge · {HOURS} · Dinner Background (92 BPM) – Sunset Villa",
+    "Chillout Music · {MIN} Min · Villa Evening (92 BPM) – Sunset Villa"
+  ],
+  "ab_thumbs": [
+    "SUNSET DINNER VIBES",
+    "LUXURY LOUNGE BEATS"
+  ],
+  "short_overlays": [
+    "Dinner lounge beats",
+    "Sunset dining vibes"
+  ],
+  "short_titles": [
+    "The perfect dinner background ✨ (92 BPM)",
+    "Sunset lounge beats for dining 🍷"
+  ],
+  "shorts": [
+    {
+      "start": "02:15",
+      "end": "02:45",
+      "overlay": "Sunset dining vibes",
+      "why": "Starker Einstieg mit Akustikgitarre, ideal für sommerliche Dinner-Shots"
+    },
+    {
+      "start": "12:30",
+      "end": "13:00",
+      "overlay": "Dinner lounge beats",
+      "why": "Tiefer House-Beat setzt ein, toller Groove für Lifestyle-Clips"
+    }
+  ],
+  "title_de": "Sunset Villa – Mediterranean Chillout Lounge (92 BPM)",
+  "teaser_de": "Sanfte organische House-Beats und warme Synthesizer kreieren die perfekte musikalische Kulisse für ein stilvolles Abendessen bei Sonnenuntergang.",
+  "pinned_comment": "Welcome to the Villa! Which track is setting the right mood for your evening? Let me know below (timestamps in the description).",
+  "format": "standard",
+  "slug": "2026-10-07-sunset-villa",
+  "_brief": {
+    "date": "2026-10-07",
+    "genre": "Mediterranean Spa Lounge",
+    "playlist": "chillout",
+    "bpm": 92,
+    "purpose": "villa dinner background",
+    "mood_hint": "positive, smooth, sunset-golden",
+    "motif_family": "beach lounge with lanterns and ocean",
+    "light": "low sun glittering on the water",
+    "last_genre": "Mediterranean Spa Lounge",
+    "long": false,
+    "style": "Luxury Mediterranean Spa Lounge. Modern Balearic chillout with organic house elements, soft downtempo beats, relaxing spa atmosphere, warm analog synths, gentle guitar melodies, smooth bassline, ocean ambience, chill beach lounge vibes, luxury wellness resort feeling, sunset over Ibiza, deep relaxation, positive emotions, highly professional production, cinematic depth, clean mix, no vocals, 92 BPM.",
+    "search_terms": []
+  }
+}
