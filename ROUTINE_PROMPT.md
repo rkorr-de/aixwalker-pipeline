@@ -20,6 +20,10 @@ Zweimal pro Woche (Dienstag und Freitag) erscheint ein neuer Mix, der wie ein ku
   **Keine Reprisen, keine inhaltlich gleichen Tracks** – fehlt Länge, werden nur komplett neue Tracks erzeugt.
 - Track-Titel sind Eigenkreationen, alphabetisch sortiert, werden **nie wiederverwendet** (Gedächtnis prüft das).
 - Dauer im Titel/Hook erst nach dem Rendern: Platzhalter `{MIN}` / `{HOURS}` (ersetzt die Pipeline).
+- **Ein Name überall** (Rolf, 07.10.2026, zwingend): YouTube-Titel beginnt mit dem Albumnamen, Thumbnail-Überschrift,
+  Album-/Track-Cover und Short-Bild/-Titel zeigen exakt diesen Namen. Die Pipeline erzwingt das – nicht umgehen.
+- Visuals: atmendes Licht um das Cover (keine Wellenform), Shorts ohne Zoom und ohne Überlagerungen; Short-Clips
+  starten am Beat-Einsatz des Hauptteils. Bitte nicht auf die alte Wellenform zurückbauen.
 - KI-Label beim Upload immer gesetzt. **Mix und beide Shorts werden sofort ÖFFENTLICH veröffentlicht.**
 - Paket (MP3s einzeln in `mp3/`, Album-Cover, Video, Thumbnails, Metadaten, Shorts) in Google Drive unter
   „AIX WALKER Mixe/<Datum – Album>“; die MP3s liegen dort fertig für DistroKid.
