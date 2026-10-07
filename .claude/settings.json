@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Metricool_Social_Media_Management",
+      "mcp__Metricool_Social_Media_Management__*"
+    ]
+  }
+}
