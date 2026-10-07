@@ -54,7 +54,7 @@ def _find(obj, key_candidates, mime_prefix):
     return None
 
 
-def text(prompt: str, system: str = "", json_mode: bool = True, temperature: float = 1.0,
+def text(prompt: str, system: str = "", json_mode: bool = True,
          model: str | None = None, media: list[tuple[str, bytes]] | None = None, video_fps: float | None = None) -> str:
     """Textaufruf; bei json_mode wird die Antwort als reines JSON angefordert.
 
@@ -70,8 +70,10 @@ def text(prompt: str, system: str = "", json_mode: bool = True, temperature: flo
             part["videoMetadata"] = {"fps": video_fps}   # Standard ist 1 Bild/s – für genaue Zeiten mehr
         parts.append(part)
     parts.append({"text": prompt})
+    # Keine Sampling-Parameter (temperature/top_p/top_k) und kein thinking_budget mehr senden:
+    # Google hat sie abgekündigt, künftige Gemini-Modelle antworten darauf mit 400 INVALID_ARGUMENT.
     body = {"contents": [{"role": "user", "parts": parts}],
-            "generationConfig": {"temperature": temperature}}
+            "generationConfig": {}}
     if system:
         body["systemInstruction"] = {"parts": [{"text": system}]}
     if json_mode:
@@ -85,9 +87,9 @@ def text(prompt: str, system: str = "", json_mode: bool = True, temperature: flo
         raise RuntimeError(f"Gemini: keine Textantwort: {json.dumps(data)[:400]}") from e
 
 
-def text_json(prompt: str, system: str = "", temperature: float = 1.0, model: str | None = None,
+def text_json(prompt: str, system: str = "", model: str | None = None,
               media: list[tuple[str, bytes]] | None = None, video_fps: float | None = None) -> dict:
-    raw = text(prompt, system, True, temperature, model=model, media=media, video_fps=video_fps)
+    raw = text(prompt, system, True, model=model, media=media, video_fps=video_fps)
     raw = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.M).strip()
     data = json.loads(raw)
     if isinstance(data, list) and len(data) == 1 and isinstance(data[0], dict):   # manchmal als [ {...} ] verpackt

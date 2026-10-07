@@ -231,7 +231,7 @@ def brief_text(b: dict) -> str:
 def _gemini_json(prompt: str, model: str, timeout: int = 240) -> dict:
     url = f"{config.GEMINI_BASE}/models/{model}:generateContent"
     body = {"contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"responseMimeType": "application/json", "temperature": 1.0}}
+            "generationConfig": {"responseMimeType": "application/json"}}  # ohne temperature (von Google abgekündigt)
     r = requests.post(url, headers={"x-goog-api-key": config.require("GOOGLE_API_KEY"),
                                     "Content-Type": "application/json"}, json=body, timeout=timeout)
     if r.status_code != 200:

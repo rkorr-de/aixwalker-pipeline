@@ -105,7 +105,7 @@ def build(force: bool = False) -> dict:
             _clean(raw, DIR / f"{key}.mp3")
             level(DIR / f"{key}.mp3")
             raw.unlink(missing_ok=True)
-            r = gemini.text_json(RATING_PROMPT.format(desc=desc), "Answer ONLY with valid JSON.", temperature=0.1,
+            r = gemini.text_json(RATING_PROMPT.format(desc=desc), "Answer ONLY with valid JSON.",
                                  model=config.CRITIC_MODEL, media=[("audio/mpeg", (DIR / f"{key}.mp3").read_bytes())])
             ok = (bool(r.get("matches")) and not r.get("has_voice_or_babble") and not r.get("harsh_or_shrill")
                   and int(r.get("toddler_friendly", 0)) >= 8)

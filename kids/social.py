@@ -109,8 +109,7 @@ def texts(story: dict) -> dict:
             f"{HASHTAGS['tiktok']}; under 300 characters before hashtags), "
             "\"tiktok_title\": str (< 80 chars, the story in a few words)}"
         )
-        data = gemini.text_json(prompt, "You are a social media manager for a family-friendly kids channel. JSON only.",
-                                temperature=0.9)
+        data = gemini.text_json(prompt, "You are a social media manager for a family-friendly kids channel. JSON only.")
         out = {k: str(data.get(k) or fb[k]) for k in ("instagram", "tiktok", "tiktok_title")}
         for k in ("instagram", "tiktok"):
             if "#gigglemeadow" not in out[k]:

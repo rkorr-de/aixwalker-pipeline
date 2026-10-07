@@ -696,8 +696,7 @@ def metadata(info: dict, today: str) -> dict:
             "then the chapter list exactly as given, then a bullet list of the stories, then 8 search phrases, then "
             "8 hashtags), \"tags\": [15-20 strings]}. No brand names, no known characters."
         )
-        data = gemini.text_json(prompt, "You are a YouTube growth strategist for kids content. Answer with JSON only.",
-                                temperature=0.8)
+        data = gemini.text_json(prompt, "You are a YouTube growth strategist for kids content. Answer with JSON only.")
         title = str(data.get("title", "")).strip() or fallback_title
         desc = str(data.get("description", "")).strip() or fallback_desc
         if info["chapters"].split("\n")[1].split(" ", 1)[0] not in desc:

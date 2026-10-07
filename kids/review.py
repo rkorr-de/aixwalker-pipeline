@@ -50,7 +50,7 @@ def review_video(video: Path, story: dict, contact_sheet: Path | None = None) ->
         'Answer as JSON: {"problems": [{"second": n, "severity": "critical|major|minor", "text": "..."}], '
         '"overall": n}'
     )
-    r = gemini.text_json(prompt, SYSTEM, temperature=0.1, model=config.CRITIC_MODEL, media=media)
+    r = gemini.text_json(prompt, SYSTEM, model=config.CRITIC_MODEL, media=media)
     probs = r.get("problems") or []
     crit = [p for p in probs if p.get("severity") == "critical"]
     major = [p for p in probs if p.get("severity") == "major"]
@@ -96,7 +96,7 @@ def place_sounds(clip: Path, story: dict, total: float = config.SHORT_SEC) -> li
         f"LIBRARY: {json.dumps(lib_txt)}\n"
         'Answer as JSON: {"cues": [{"second": 3.4, "sound": "footsteps", "why": "visible action at that frame"}]}'
     )
-    r = gemini.text_json(prompt, "Answer ONLY with valid JSON.", temperature=0.1, model=config.CRITIC_MODEL,
+    r = gemini.text_json(prompt, "Answer ONLY with valid JSON.", model=config.CRITIC_MODEL,
                          media=[("video/mp4", small.read_bytes())], video_fps=8)
     cues = []
     for c in r.get("cues", []):
@@ -126,7 +126,7 @@ def check_sync(video: Path, cues: list[dict]) -> dict:
         'Answer as JSON: {"cues": [{"second": n, "sound": "...", "audible": true/false, "in_sync": true/false, '
         '"better_second": n}], "all_good": true/false}'
     )
-    r = gemini.text_json(prompt, "Answer ONLY with valid JSON.", temperature=0.1, model=config.CRITIC_MODEL,
+    r = gemini.text_json(prompt, "Answer ONLY with valid JSON.", model=config.CRITIC_MODEL,
                          media=[("video/mp4", small.read_bytes())], video_fps=8)
     return r[0] if isinstance(r, list) and r else r
 

@@ -201,7 +201,7 @@ def review(story: dict, history: list[dict], allow_repeat_species: bool = False)
         'Answer as JSON: {"scores": {"logic": n, "clarity": n, "lesson": n, "filmable": n, "originality": n, '
         '"charm": n}, "problems": ["concrete problem 1", ...], "fix": "concrete instructions how to rewrite it"}'
     )
-    r = gemini.text_json(prompt, CRITIC_SYSTEM, temperature=0.2, model=config.CRITIC_MODEL)
+    r = gemini.text_json(prompt, CRITIC_SYSTEM, model=config.CRITIC_MODEL)
     scores = {k: int(v) for k, v in (r.get("scores") or {}).items()}
     r["scores"] = scores
     r["min_score"] = min(scores.values()) if scores else 0
@@ -280,7 +280,7 @@ def _write(species: str, lesson: str, history: list[dict], rounds: int, log,
         prompt = base + (f"\n\nYour previous draft was rejected by the reviewer:\n{feedback}\n"
                          "Write a NEW, better story that fixes every problem." if feedback else "")
         try:
-            st = _sanitize(gemini.text_json(prompt, SYSTEM, temperature=0.9))
+            st = _sanitize(gemini.text_json(prompt, SYSTEM))
             st["lesson"] = st.get("lesson") or lesson
             if forced_character:   # Name/Tier/Look exakt fix halten, egal was Gemini geschrieben hat
                 st["character"] = dict(forced_character)
