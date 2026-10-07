@@ -126,6 +126,18 @@ def genre_scores(mem: dict, analytics_rows: list[dict] | None) -> dict[str, dict
     return out
 
 
+# Pflicht-Kernbegriff am Titelanfang je Genre (siehe prompts/concept_prompt.md). Ohne diese Prüfung konnte das
+# Textmodell trotz Vorgabe einen fremden Begriff wählen – genau das ist beim Sleep-Mix „Starlight Slumber“
+# (06.10.2026) passiert: Titel begann mit „Slow Beat“ statt „Sleep Music“, was Klicks mit falscher Erwartung
+# (energiegeladener Beat statt ruhiger Ambient-Sound) und dadurch frühe Abbrüche begünstigt.
+GENRE_TITLE_PREFIX = {
+    "Chillout Sleep": ("sleep music", "sleep"),
+    "Dark Ambient Spa": ("spa music", "spa"),
+    "Slow Gym Beats": ("slow gym beats", "gym"),
+    "Night Drive Deep Bass": ("night drive", "night ride"),
+    "Mediterranean Spa Lounge": ("spa music", "chillout lounge", "spa"),
+}
+
 # Suchbegriffe aus den Analytics stammen auch von alten Videos (Drohne, Walks). Nur Begriffe, die zum Genre passen, dürfen
 # in Titel/Tags einfließen – sonst entstehen Titel wie „Slow Beat“ für einen Sleep-Mix (Fehler vom 06.10.2026).
 GENRE_KEYWORDS = {
@@ -286,6 +298,10 @@ def validate(c: dict, mem: dict, brief: dict) -> list[str]:
         errs.append("yt_title ohne {MIN}/{HOURS}")
     if re.search(r"\b\d{2,3}\s*min", c["yt_title"], re.I) or re.search(r"\b\d{2,3}\s*min", c["hook"], re.I):
         errs.append("feste Minutenzahl in Titel/Hook – {MIN} verwenden")
+    title_kw = GENRE_TITLE_PREFIX.get(brief["genre"])
+    if title_kw and not c["yt_title"].strip().lower().startswith(title_kw):
+        errs.append(f"yt_title beginnt nicht mit dem Genre-Kernbegriff ({'/'.join(title_kw)}) – "
+                     f"sonst Erwartungs-Mismatch wie bei „Slow Beat“ für einen Sleep-Mix")
     c["hashtags"] = [h if h.startswith("#") else "#" + h for h in c["hashtags"]][:5]
     if "#AixWalker" not in c["hashtags"]:
         c["hashtags"] = c["hashtags"][:4] + ["#AixWalker"]
