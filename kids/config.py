@@ -133,6 +133,9 @@ STORY_MIN_SCORE = int(os.environ.get("KIDS_STORY_MIN_SCORE", "7"))      # Mindes
 VIDEO_MIN_SCORE = int(os.environ.get("KIDS_VIDEO_MIN_SCORE", "4"))         # Gesamtnote (1–10)
 VIDEO_MAX_CRITICAL = int(os.environ.get("KIDS_VIDEO_MAX_CRITICAL", "1"))   # schwere Fehler
 VIDEO_MAX_ERRORS = int(os.environ.get("KIDS_VIDEO_MAX_ERRORS", "4"))       # schwere + deutliche Fehler zusammen
+# Video-Versuche je Lauf (gleiche Story). Besteht keiner die Videoprüfung, wird das beste trotzdem veröffentlicht
+# (Rolf, 07.10.2026: täglich ein Short hat Vorrang). Weitere Versuche nur, solange das Budget reicht.
+VIDEO_ATTEMPTS = int(os.environ.get("KIDS_VIDEO_ATTEMPTS", "2"))
 
 # Suchbegriffe, nach denen Eltern suchen – fließen in Beschreibung und Tags ein (Englisch).
 PARENT_KEYWORDS = [

@@ -238,10 +238,14 @@ def create(history: list[dict], used_titles: list[str], theme: str | None = None
         last_err = err or last_err
         if st is not None and score > best_score:
             best, best_score = st, score
-    if best is not None and best_score >= config.STORY_MIN_SCORE - 1:
-        best["review"]["note"] = f"beste Fassung (Mindestnote {best_score})"
+    # Täglicher Short hat Vorrang (Rolf, 07.10.2026): besteht keine Story, wird IMMER die beste genommen statt
+    # abzubrechen. Abbruch nur, wenn überhaupt keine Story geschrieben werden konnte (z. B. Gemini nicht erreichbar).
+    if best is not None:
+        best.setdefault("review", {})["note"] = (f"keine Story hat die Mindestnote {config.STORY_MIN_SCORE} erreicht – "
+                                                 f"beste Fassung genommen (Mindestnote {best_score})")
+        log(f"Story-Prüfung: keine bestanden – nehme die beste Fassung (Mindestnote {best_score})")
         return best
-    raise RuntimeError(f"Keine Story hat die Prüfung bestanden (beste Mindestnote {best_score}). {last_err or ''}")
+    raise RuntimeError(f"Es konnte gar keine Story geschrieben werden: {last_err!r}")
 
 
 def _write(species: str, lesson: str, history: list[dict], rounds: int, log,
@@ -284,10 +288,19 @@ def _write(species: str, lesson: str, history: list[dict], rounds: int, log,
             st["lesson"] = st.get("lesson") or lesson
             if forced_character:   # Name/Tier/Look exakt fix halten, egal was Gemini geschrieben hat
                 st["character"] = dict(forced_character)
-            rv = review(st, history, allow_repeat_species=bool(forced_character))
         except Exception as e:  # noqa: BLE001
             last_err = e
             feedback = f"Technical problem: {e}. Answer with valid JSON matching the schema."
+            continue
+        try:
+            rv = review(st, history, allow_repeat_species=bool(forced_character))
+        except Exception as e:  # noqa: BLE001   Prüfung selbst ausgefallen → Story trotzdem als Kandidat behalten
+            last_err = e
+            log(f"Story-Prüfung Runde {i + 1} technisch fehlgeschlagen ({str(e)[:120]}) – Story bleibt Kandidat")
+            st["review"] = {"round": i + 1, "scores": {}, "problems": [f"Prüfung ausgefallen: {str(e)[:120]}"],
+                            "passed": False}
+            if best is None:
+                best, best_score = st, 0
             continue
         st["review"] = {"round": i + 1, "scores": rv["scores"], "problems": rv.get("problems", []),
                         "passed": rv["passed"]}

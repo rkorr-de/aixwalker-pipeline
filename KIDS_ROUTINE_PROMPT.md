@@ -32,9 +32,15 @@ Danach bekommt Rolf eine E-Mail mit Link und allen Infos.
    **vor** dem heutigen Short, damit nichts dauerhaft verloren geht.
 1. Arbeitsverzeichnis ist das Repo `aixwalker-pipeline` (prüfe mit `ls`: run_kids_short.py, kids/).
 2. `which ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)` und
-   `pip install -q -r requirements.txt --break-system-packages` (enthält `rembg` fürs Freistellen der Figur in den
-   Thumbnails; das Modell lädt beim ersten Aufruf ≈ 170 MB von GitHub – schlägt das fehl, fällt das Thumbnail
-   automatisch auf die Variante ohne Freisteller zurück, kein Abbruch).
+   `python -m pip install -q -r requirements.txt --break-system-packages` (**immer `python -m pip`, nie nur `pip`** –
+   `pip` kann zu einem anderen Python gehören; am 07.10.2026 fehlte deshalb `googleapiclient`). Danach prüfen:
+   `python -c "import googleapiclient, PIL, requests; print('Python ok')"`. Schlägt das fehl, nutze für **alle**
+   folgenden Befehle `/usr/bin/python3` statt `python` (und installiere dort mit `/usr/bin/python3 -m pip …`).
+   Zusätzlich installiert das Paket `kids` fehlende Kernpakete beim Start selbst nach (`kids/__init__.py`) – ein
+   fehlendes Paket ist also **nie** ein Grund, den Lauf abzubrechen.
+   (`requirements.txt` enthält `rembg` fürs Freistellen der Figur in den Thumbnails; das Modell lädt beim ersten
+   Aufruf ≈ 170 MB von GitHub – schlägt das fehl, fällt das Thumbnail automatisch auf die Variante ohne Freisteller
+   zurück, kein Abbruch).
 3. Prüfe, dass `GOOGLE_API_KEY`, `YT_CLIENT_ID`, `YT_CLIENT_SECRET`, `KIDS_YT_REFRESH_TOKEN`, `FAL_KEY`,
    `DRIVE_REFRESH_TOKEN` gesetzt sind (`env | grep -c -E '^(GOOGLE_API_KEY|YT_CLIENT_ID|YT_CLIENT_SECRET|KIDS_YT_REFRESH_TOKEN|FAL_KEY|DRIVE_REFRESH_TOKEN)='`
    muss 6 ergeben). Fehlt nur `DRIVE_REFRESH_TOKEN`: Lauf trotzdem starten, in der Mail klar melden, dass die
@@ -62,32 +68,41 @@ Quellclips) in Google Drive unter **„Giggle Meadow Shorts/<Datum – Titel>“
 balance“ = fal.ai-Guthaben leer → Fehlermail mit dem Hinweis „Bitte bei fal.ai Guthaben aufladen
 (https://fal.ai/dashboard/billing)“.
 
+**Oberste Regel (Rolf, 07.10.2026): Jeden Tag muss ein Short online gehen.** Das Skript ist darauf gebaut:
+- Besteht keine Story die Story-Prüfung, nimmt es die beste Fassung (kein Abbruch).
+- Lehnt die Videoprüfung das Video ab, erzeugt es mit derselben Story ein zweites Video
+  (`KIDS_VIDEO_ATTEMPTS`, Standard 2) und veröffentlicht am Ende **immer das beste** – auch wenn keins bestanden hat;
+  das steht dann unter `warnings` und `video_attempts` in `result.json` und muss in die Mail.
+- Ist 16:00 Uhr beim Hochladen schon vorbei (später Start, Neustart), geht der Short **sofort öffentlich** online.
+- Startet die Routine nach 16:00 Uhr: trotzdem ganz normal laufen lassen – nie wegen der Uhrzeit abbrechen.
+
 Lies danach `build/kids/<heutiges Datum>/result.json`. Prüfe `drive._folder` (Link zum Drive-Ordner) – fehlt er,
-steht der Grund unter `warnings`; dann `python -m kids.drive build/kids/<Datum>` einmal nachholen. Ist `status` nicht `ok` (oder der Befehl ist abgebrochen):
-**einmal** erneut starten (gleicher Befehl – der Kostenzähler läuft weiter, das Budget bleibt die Grenze).
-Scheitert es wieder: Fehlermail (Schritt 5), fertig.
+steht der Grund unter `warnings`; dann `python -m kids.drive build/kids/<Datum>` einmal nachholen. Ist `status` nicht
+`ok` (oder der Befehl ist abgebrochen): Grund im Log lesen (`build/kids/run.log`, letzte 40 Zeilen) und **einmal**
+erneut starten, diesmal mit erhöhtem Tagesbudget, weil der Kostenzähler des Tages weiterläuft:
+`KIDS_BUDGET_USD=15 python run_kids_short.py --publish-local 16:00 2>&1 | tee build/kids/run2.log`.
+Ausnahmen, bei denen ein Neustart nichts bringt (dann direkt Fehlermail): fal.ai-Guthaben leer (HTTP 402/403,
+„insufficient balance“), YouTube-Token abgelaufen (`invalid_grant`), Kanal falsch. Scheitert auch der Neustart:
+Fehlermail (Schritt 5) mit dem genauen Grund aus dem Log, fertig.
 
 ## Schritt 3 – Sichtprüfung (Pflicht, bevor es öffentlich wird)
 
 Die automatische Videoprüfung steht in `result.json` unter `video_review` (Gesamtnote, Anzahl schwerer/deutlicher
-Fehler, Fehlerliste). Zusätzlich
-öffne mit `Read` das Prüfbild `build/kids/<Datum>/contact_sheet.jpg` und `thumbnail.jpg` und sei **streng** – im
-Zweifel löschen statt veröffentlichen. Prüfe:
-- Ergibt die Geschichte in den Bildern Sinn (Wunsch → Problem → Lösung → glückliches Ende)? Ist sie neu (anderes
-  Tier, andere Idee als die letzten Shorts laut `python -m kids.history`)?
-- Figur sieht süß und kindgerecht aus, kein Text/Buchstaben im Bild, keine gruseligen oder kaputten Darstellungen
-  (deformierte Körper, zusätzliche Gliedmaßen, Schmutz-Artefakte), Figur durchgehend erkennbar dieselbe.
-- Niedliches Fantasie-Plappern und Kichern der Tiere ist erlaubt (von Rolf so abgenommen), echte Wörter nicht.
-- Falls **eindeutig unbrauchbar**: `python run_kids_short.py --publish-local 16:00` ein zweites Mal ausführen
-  (neue Story, Kosten zählen weiter – das Budget stoppt automatisch). Wenn auch das nichts Brauchbares liefert
-  oder das Budget erreicht ist: das geplante Video **löschen** (`python -c "from kids import youtube as y;
-  y.delete('<video_id>')"`), Fehlermail, fertig. Nie etwas Unbrauchbares online lassen.
-- Kleine Schönheitsfehler (leichte Unschärfe) sind okay; typische KI-Fehler (falsche Beine, Morphing, Dinge tauchen
-  auf/verschwinden, unlogische Handlung) sind es **nicht** – dann löschen bzw. neu erzeugen.
+Fehler, Fehlerliste), alle Versuche unter `video_attempts`. Zusätzlich öffne mit `Read` das Prüfbild
+`build/kids/<Datum>/contact_sheet.jpg` und `thumbnail.jpg`.
+
+**Seit 07.10.2026 gilt: Der Short bleibt online.** Typische KI-Schönheitsfehler (Pfoten verschmelzen kurz, leichtes
+Morphing, kleiner Sprung, Handlung nicht ganz klar) sind **kein** Grund zum Löschen – sie werden nur in der Mail
+unter „Hinweise“ aufgeführt, damit Rolf selbst entscheiden kann.
+Gelöscht wird **nur**, wenn etwas für Kleinkinder eindeutig ungeeignet ist: gruselige/verstörende oder eklige
+Darstellung (z. B. stark entstellter Körper, Gesicht zerfließt), Gewalt, echte unpassende Wörter, bekannte
+Marken/Figuren. Nur dann: Video löschen (`python -c "from kids import youtube as y; y.delete('<video_id>')"`) und
+sofort **einen** Neustart wie in Schritt 2 (mit `KIDS_BUDGET_USD=15`), damit trotzdem ein Short online geht.
 
 ## Schritt 4 – Veröffentlichung bestätigen
 
-Warte bis 16:01 Uhr Berlin (`sleep` in Schritten von maximal 10 Minuten, z. B. `sleep 600`), dann:
+Steht in `result.json` schon `privacy == "public"` (später Start → sofort veröffentlicht): kein Warten, direkt
+weiter zu Schritt 4b. Sonst warte bis 16:01 Uhr Berlin (`sleep` in Schritten von maximal 10 Minuten, z. B. `sleep 600`), dann:
 `python -c "from kids import youtube as y; import json; print(json.dumps(y.status('<video_id>')['status']))"`.
 Erwartet: `privacyStatus` = `public`. Ist es um 16:05 noch nicht öffentlich: `y.set_public('<video_id>')` und erneut
 prüfen. Erst wenn `public` bestätigt ist, geht es zu Schritt 5.

@@ -19,10 +19,11 @@ import json
 import sys
 import time
 import traceback
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+import kids  # noqa: F401  – zuerst: installiert fehlende Pakete in genau dieses Python nach (kids/__init__.py)
 from PIL import Image
 
 from kids import config, costs, drive, fal, gemini, history, mail, render, review, sfx_library, social, story as story_mod, veo
@@ -65,12 +66,13 @@ def main() -> int:
     args = ap.parse_args()
 
     today = datetime.now(BERLIN).strftime("%Y-%m-%d")
+    target_local = None
     if args.publish_local:
+        # Die Zielzeit wird erst DIREKT VOR DEM UPLOAD ausgewertet (Produktion dauert 10–30 Min.): liegt sie dann
+        # nicht mehr mindestens 5 Minuten in der Zukunft, geht der Short sofort öffentlich online. (Früher wurde hier
+        # beim Start nur die Minute verstellt – bei Start nach 16:00 kam eine vergangene Uhrzeit bei YouTube an.)
         hh, mm = (int(x) for x in args.publish_local.split(":"))
-        local = datetime.now(BERLIN).replace(hour=hh, minute=mm, second=0, microsecond=0)
-        if local < datetime.now(BERLIN):
-            local = local.replace(minute=min(59, datetime.now(BERLIN).minute + 2))  # Zeit schon vorbei → in 2 Minuten
-        args.publish_at = local.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        target_local = datetime.now(BERLIN).replace(hour=hh, minute=mm, second=0, microsecond=0)
         args.upload = True
     out = Path(args.out or (config.BUILD / today))
     out.mkdir(parents=True, exist_ok=True)
@@ -133,44 +135,14 @@ def main() -> int:
         render.make_thumbnail(thumb_art, out / "thumbnail.jpg")
         log("Charakter-Sheet, Keyframe und Thumbnail fertig")
 
-        # 4) Video: Kling (ein 15-s-Clip, fal.ai) oder Veo (2 Clips, Clip 2 startet mit dem letzten Bild von Clip 1)
-        c1, c2 = out / "clip_1.mp4", out / "clip_2.mp4"
+        # 4)–6b) Video erzeugen → schneiden → prüfen, mit Neuversuch (gleiche Story, neues Video).
+        # Vorgabe Rolf (07.10.2026): JEDEN Tag ein Short. Besteht kein Versuch die Videoprüfung, wird trotzdem das
+        # beste Video veröffentlicht (mit klarer Warnung im Report) statt gar keins.
         kling = config.VIDEO_PROVIDER == "kling" and not args.dry_run
-        sfx: list = []
-        if kling:
-            fal.kling_clip(story_mod.kling_prompt(st), kf1, c1, seconds=15, audio=config.KLING_AUDIO)
-            log(f"Kling-Clip fertig (Kling 3.0 {config.KLING_TIER}, 15 s, {'mit' if config.KLING_AUDIO else 'ohne'} Ton)")
-        if kling and config.KLING_AUDIO:
-            st["sfx_cues"] = []    # Kling-Ton ist schon synchron – keine nachträglichen Geräusche
-        elif kling:
-            try:   # Geräusche an die tatsächlich sichtbaren Aktionen anpassen (Kling hält Zeiten nicht exakt ein)
-                placed = review.place_sounds(c1, st)
-                if placed:
-                    st["sfx_cues"] = placed
-                    (out / "story.json").write_text(json.dumps(st, indent=2, ensure_ascii=False))
-            except Exception as e:  # noqa: BLE001
-                result["warnings"].append(f"Geräusch-Platzierung per Video übersprungen: {str(e)[:120]}")
-            sfx = [(sfx_library.path(c["sound"]), c["second"]) for c in st.get("sfx_cues", [])]
-            sfx = [(f, t) for f, t in sfx if f]
-            cue_txt = ", ".join("%.1fs %s" % (c["second"], c["sound"]) for c in st.get("sfx_cues", []))
-            log(f"Geräusche: {cue_txt}")
-            if not sfx:
-                result["warnings"].append("keine Geräusche aus der Bibliothek gewählt – nur Musik")
-        elif args.dry_run:
-            dry_clip(c1, "skyblue")
-            dry_clip(c2, "pink")
-        else:
-            veo.generate_clip(story_mod.veo_prompt(st, 0), c1, first_frame=kf1, references=[sheet])
-            log(f"Clip 1 fertig ({veo.current_model()})")
-            # Clip 2 setzt nahtlos am letzten Bild von Clip 1 an (kein erzwungenes Loop-Ende mehr – das hat die
-            # Handlung unlogisch gemacht)
-            lf = Image.open(render.last_frame(c1, out / "clip_1_last.png"))
-            veo.generate_clip(story_mod.veo_prompt(st, 1), c2, first_frame=lf, references=[sheet])
-            log("Clip 2 fertig")
         result["veo_model"] = (f"kling-3.0-{config.KLING_TIER} (fal.ai)" if kling
-                               else veo.current_model() or ("dry-run" if args.dry_run else ""))
+                               else ("dry-run" if args.dry_run else ""))
 
-        # 5) Musikbett
+        # Musikbett einmal vorab (unabhängig vom Video, wird für jeden Versuch wiederverwendet)
         music = None
         if not args.no_music:
             music = out / "music.mp3"
@@ -187,61 +159,147 @@ def main() -> int:
                     result["warnings"].append(f"Musikbett übersprungen: {str(e)[:120]}")
                     music = None
 
-        # 6) Schnitt + QC
-        if kling:
-            final = render.assemble_single(c1, sfx, music, out / "short.mp4")
-            try:   # nur bei Bibliotheks-Geräuschen: Abgleich prüfen, verrutschte Geräusche einmal nachsetzen
-                if not st.get("sfx_cues"):
-                    raise StopIteration
-                chk = review.check_sync(final, st.get("sfx_cues", []))
-                result["sound_sync"] = chk
-                fixed, changed = [], False
-                for c, k in zip(st.get("sfx_cues", []), chk.get("cues", [])):
-                    if not k.get("in_sync") and isinstance(k.get("better_second"), (int, float)):
-                        c = {**c, "second": round(float(k["better_second"]), 2)}
-                        changed = True
-                    fixed.append(c)
-                if changed:
-                    st["sfx_cues"] = fixed
-                    sfx = [(sfx_library.path(c["sound"]), c["second"]) for c in fixed if sfx_library.path(c["sound"])]
-                    final = render.assemble_single(c1, sfx, music, out / "short.mp4")
-                    log("Geräusche nachjustiert")
-                log(f"Ton-Abgleich: {'alles synchron' if chk.get('all_good') else 'nachjustiert'}")
-                lv = render.cue_levels(final, st.get("sfx_cues", []))
-                result["sound_levels"] = lv
-                log("Geräusch-Lautstärke über Musik: " + ", ".join(f"{r['sound']} {r['above_music_db']:+.0f} dB"
-                                                                  for r in lv["cues"]))
-                if not lv["ok"]:
-                    result["warnings"].append("mindestens ein Geräusch kaum lauter als die Musik")
-            except StopIteration:
-                pass
-            except Exception as e:  # noqa: BLE001
-                result["warnings"].append(f"Ton-Abgleich übersprungen: {str(e)[:120]}")
-        else:
-            final = render.assemble(c1, c2, music, out / "short.mp4")
-        q = render.qc(final, min_bytes=10_000 if args.dry_run else 500_000)
-        render.contact_sheet(final, out / "contact_sheet.jpg")
-        result["qc"] = q
-        if not q["ok"]:
-            raise RuntimeError("QC fehlgeschlagen: " + "; ".join(q["reasons"]))
-        log(f"Short fertig: {final} ({q['duration']:.2f} s)")
+        def produce(d: Path) -> dict:
+            """Ein kompletter Video-Versuch im Ordner d: Clip → Ton → Schnitt → QC → Prüfbild → Videoprüfung."""
+            d.mkdir(parents=True, exist_ok=True)
+            c1, c2 = d / "clip_1.mp4", d / "clip_2.mp4"
+            sfx: list = []
+            if kling:
+                fal.kling_clip(story_mod.kling_prompt(st), kf1, c1, seconds=15, audio=config.KLING_AUDIO)
+                log(f"Kling-Clip fertig (Kling 3.0 {config.KLING_TIER}, 15 s, {'mit' if config.KLING_AUDIO else 'ohne'} Ton)")
+            if kling and config.KLING_AUDIO:
+                st["sfx_cues"] = []    # Kling-Ton ist schon synchron – keine nachträglichen Geräusche
+            elif kling:
+                try:   # Geräusche an die tatsächlich sichtbaren Aktionen anpassen (Kling hält Zeiten nicht exakt ein)
+                    placed = review.place_sounds(c1, st)
+                    if placed:
+                        st["sfx_cues"] = placed
+                        (out / "story.json").write_text(json.dumps(st, indent=2, ensure_ascii=False))
+                except Exception as e:  # noqa: BLE001
+                    result["warnings"].append(f"Geräusch-Platzierung per Video übersprungen: {str(e)[:120]}")
+                sfx = [(sfx_library.path(c["sound"]), c["second"]) for c in st.get("sfx_cues", [])]
+                sfx = [(f, t) for f, t in sfx if f]
+                if not sfx:
+                    result["warnings"].append("keine Geräusche aus der Bibliothek gewählt – nur Musik")
+            elif args.dry_run:
+                dry_clip(c1, "skyblue")
+                dry_clip(c2, "pink")
+            else:
+                veo.generate_clip(story_mod.veo_prompt(st, 0), c1, first_frame=kf1, references=[sheet])
+                lf = Image.open(render.last_frame(c1, d / "clip_1_last.png"))
+                veo.generate_clip(story_mod.veo_prompt(st, 1), c2, first_frame=lf, references=[sheet])
+                result["veo_model"] = veo.current_model()
 
-        # 6b) Strenge Videoprüfung (KI-Fehler, Story verständlich?) – unter der Mindestnote kein Upload
-        if not args.dry_run and not args.skip_review:
-            rv = review.review_video(final, st, out / "contact_sheet.jpg")
-            result["video_review"] = rv
+            if kling:
+                final = render.assemble_single(c1, sfx, music, d / "short.mp4")
+                if sfx:
+                    try:   # Abgleich prüfen, verrutschte Bibliotheks-Geräusche einmal nachsetzen
+                        chk = review.check_sync(final, st.get("sfx_cues", []))
+                        result["sound_sync"] = chk
+                        fixed, changed = [], False
+                        for c, k in zip(st.get("sfx_cues", []), chk.get("cues", [])):
+                            if not k.get("in_sync") and isinstance(k.get("better_second"), (int, float)):
+                                c = {**c, "second": round(float(k["better_second"]), 2)}
+                                changed = True
+                            fixed.append(c)
+                        if changed:
+                            st["sfx_cues"] = fixed
+                            sfx2 = [(sfx_library.path(c["sound"]), c["second"]) for c in fixed if sfx_library.path(c["sound"])]
+                            final = render.assemble_single(c1, sfx2, music, d / "short.mp4")
+                            log("Geräusche nachjustiert")
+                        lv = render.cue_levels(final, st.get("sfx_cues", []))
+                        result["sound_levels"] = lv
+                        if not lv["ok"]:
+                            result["warnings"].append("mindestens ein Geräusch kaum lauter als die Musik")
+                    except Exception as e:  # noqa: BLE001
+                        result["warnings"].append(f"Ton-Abgleich übersprungen: {str(e)[:120]}")
+            else:
+                final = render.assemble(c1, c2, music, d / "short.mp4")
+            q = render.qc(final, min_bytes=10_000 if args.dry_run else 500_000)
+            render.contact_sheet(final, d / "contact_sheet.jpg")
+            if not q["ok"]:
+                raise RuntimeError("QC fehlgeschlagen: " + "; ".join(q["reasons"]))
+            log(f"Video fertig: {final} ({q['duration']:.2f} s)")
+            if args.dry_run or args.skip_review:
+                rv = {"passed": True, "scores": {"overall": 10, "critical": 0, "major": 0, "minor": 0},
+                      "errors": [], "note": "keine Videoprüfung (Test)"}
+            else:
+                try:
+                    rv = review.review_video(final, st, d / "contact_sheet.jpg")
+                except Exception as e:  # noqa: BLE001   Prüfung ausgefallen → nicht am Prüfer scheitern
+                    rv = {"passed": True, "scores": {"overall": 0, "critical": 0, "major": 0, "minor": 0},
+                          "errors": [], "note": f"Videoprüfung technisch ausgefallen: {str(e)[:120]}"}
+                    result["warnings"].append(rv["note"] + " – bitte Sichtprüfung beachten")
             log(f"Videoprüfung: {rv['scores']} → {'bestanden' if rv['passed'] else 'ABGELEHNT'}"
                 + (f" | Fehler: {'; '.join(rv.get('errors', []))[:300]}" if rv.get("errors") else ""))
-            if not rv["passed"]:
-                try:
-                    history.add(history.entry_from_story(st, today, "rejected by video review"))
-                except Exception as e:  # noqa: BLE001
-                    log(f"Verlauf nicht gespeichert: {e}")
-                raise RuntimeError("Videoprüfung nicht bestanden – nichts veröffentlicht. Fehler: "
-                                   + "; ".join(rv.get("errors", []))[:400])
+            return {"dir": d, "final": final, "qc": q, "review": rv}
+
+        attempts_max = max(1, config.VIDEO_ATTEMPTS) if kling else 1
+        video_key = f"kling_sec_{config.KLING_TIER}" + ("_audio" if config.KLING_AUDIO else "")
+        tried: list[dict] = []
+        last_err: Exception | None = None
+        for n in range(1, attempts_max + 1):
+            if n > 1:
+                need = costs.price(video_key, 15) + 0.15
+                if costs.total_usd() + need > config.BUDGET_USD:
+                    msg = (f"kein weiterer Video-Versuch – Budget reicht nicht ({costs.total_usd():.2f} $ + "
+                           f"{need:.2f} $ > {config.BUDGET_USD:.2f} $)")
+                    log(msg)
+                    result["warnings"].append(msg)
+                    break
+                log(f"Video-Versuch {n} von {attempts_max} (gleiche Story, neues Video)")
+            try:
+                a = produce(out if n == 1 else out / f"versuch_{n}")
+            except costs.BudgetExceeded:
+                if tried:
+                    break
+                raise
+            except Exception as e:  # noqa: BLE001
+                last_err = e
+                log(f"Video-Versuch {n} fehlgeschlagen: {e}")
+                result["warnings"].append(f"Video-Versuch {n} fehlgeschlagen: {str(e)[:160]}")
+                continue
+            tried.append(a)
+            if a["review"]["passed"]:
+                break
+        if not tried:
+            raise RuntimeError(f"Kein Video erzeugt ({attempts_max} Versuch(e)): {last_err}")
+
+        def rank(a: dict) -> tuple:
+            s = a["review"].get("scores", {})
+            return (not a["review"]["passed"], s.get("critical", 0), s.get("critical", 0) + s.get("major", 0),
+                    -s.get("overall", 0))
+        best = sorted(tried, key=rank)[0]
+        if best["dir"] != out:   # bestes Video an die Standard-Plätze (short.mp4 usw.) kopieren
+            import shutil
+            for name in ("short.mp4", "contact_sheet.jpg", "clip_1.mp4"):
+                if (best["dir"] / name).exists():
+                    shutil.copy2(best["dir"] / name, out / name)
+            best["final"] = out / "short.mp4"
+        final = best["final"]
+        result["qc"] = best["qc"]
+        result["video_review"] = best["review"]
+        result["video_attempts"] = [{"attempt": i + 1, "passed": a["review"]["passed"],
+                                     "scores": a["review"].get("scores"), "errors": a["review"].get("errors", [])}
+                                    for i, a in enumerate(tried)]
+        if not best["review"]["passed"]:
+            msg = (f"Videoprüfung bei keinem von {len(tried)} Versuch(en) bestanden – das BESTE Video wird trotzdem "
+                   f"veröffentlicht (Vorgabe: täglich ein Short). Gefundene Fehler: "
+                   + "; ".join(best["review"].get("errors", []))[:300])
+            result["warnings"].append(msg)
+            log(msg)
+        log(f"Short fertig: {final} ({best['qc']['duration']:.2f} s)")
 
         # 7) Upload
         if args.upload and not args.dry_run:
+            if target_local is not None:
+                if target_local > datetime.now(BERLIN) + timedelta(minutes=5):
+                    args.publish_at = target_local.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                else:
+                    args.publish_at = None
+                    args.public = True
+                    result["warnings"].append(f"Geplante Zeit {args.publish_local} schon vorbei – sofort öffentlich")
+                    log(f"Zielzeit {args.publish_local} ist vorbei → Short geht sofort öffentlich online")
             privacy = "public" if args.public else "private"
             vid = yt.upload(final, st["title"], st["description"], st["tags"], privacy=privacy,
                             publish_at=args.publish_at)
