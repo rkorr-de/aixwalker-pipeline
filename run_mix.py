@@ -102,7 +102,13 @@ def main() -> int:
         config.GOOGLE_API_KEY = ""  # erzwingt prozedurale Bilder
     year = date.today().year
     tracks = list(concept["tracks"])
-    album = concept["album"]
+    album = concept["album"].strip()
+    concept["album"] = album
+    # Wiedererkennung: YouTube-Titel beginnt mit dem Albumnamen, Thumbnail zeigt exakt den Albumnamen
+    from pipeline.planner import unify_title
+    concept["yt_title"] = unify_title(concept["yt_title"], album)
+    concept["thumbnail_headline"] = album
+    concept["ab_thumbs"] = []
     genre = concept["genre"]
     bpm = int(concept["bpm"])
     is_long = concept.get("format") == "long"
@@ -192,7 +198,7 @@ def main() -> int:
     if config.ANIMATED_VISUALS:
         try:
             mp4 = visuals.build_video_animated(frames, starts, mix_wav, total_sec, mp4_path, fps=10 if is_long else 15)
-            log("Video mit bewegter Wellenform gebaut")
+            log("Video mit atmendem Licht gebaut")
         except Exception as e:  # noqa: BLE001 – im Zweifel lieber das bewährte Standbild-Video als gar keins
             log(f"Animiertes Video fehlgeschlagen ({e}); Fallback auf Standbild-Video")
             mp4 = video.build_video(frames, starts, mix_wav, total_sec, mp4_path, fps=10 if is_long else 30)
@@ -237,7 +243,8 @@ def main() -> int:
         for k, p in enumerate(passages):
             t_title = tracks[p["track_index"]]["title"]
             frame = shorts.make_short_frame(thumb_art, covers[p["track_index"]], overlays[k], t_title,
-                                            out / "shorts" / f"short_{k + 1}_frame.png", total_min=total_min)
+                                            out / "shorts" / f"short_{k + 1}_frame.png", total_min=total_min,
+                                            album=album)
             clip_path = out / "shorts" / f"short_{k + 1}.mp4"
             if config.ANIMATED_VISUALS:
                 try:

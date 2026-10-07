@@ -67,7 +67,7 @@ LONG_PLANNED_TRACKS = 28
 LONG_EXTRA_TRACKS = 40
 LONG_MAX_TRACKS = 90
 LONG_ART_GROUP = 4           # ein Cover-Bild je 4 Tracks (Kosten), Titel/Nummer wechseln trotzdem
-# Bewegte Visuals (audio-reaktive Wellenform) statt Standbild; MIX_ANIMATED_VISUALS=0 schaltet auf das alte Standbild zurück
+# Bewegte Visuals (sanft atmendes Licht um das Cover) statt Standbild; MIX_ANIMATED_VISUALS=0 schaltet auf das alte Standbild zurück
 ANIMATED_VISUALS = os.environ.get("MIX_ANIMATED_VISUALS", "1") == "1"
 BILLING_URL = "https://console.cloud.google.com/billing?project=bodydashboard-fde82"
 MP3_BITRATE = "192k"

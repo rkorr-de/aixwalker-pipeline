@@ -217,13 +217,13 @@ def brief_text(b: dict) -> str:
             f"Purpose / listening situation: {b['purpose']}\nMood direction: {b['mood_hint']}\n"
             f"Visual motif family: {b['motif_family']}\nLight: {b['light']}\n"
             f"Why this genre now: last mix was {b['last_genre'] or '-'}; genre scores {json.dumps(b['scores'])}"
-            + (f"\nReal viewer search terms that fit this genre (inspiration for 1–2 keywords in hook and tags; the title must "
-               f"still begin with the genre's core keyword, e.g. 'Sleep Music', 'Spa Music', 'Slow Gym Beats', "
+            + (f"\nReal viewer search terms that fit this genre (inspiration for 1–2 keywords in hook and tags; right after the album "
+               f"name the title must continue with the genre's core keyword, e.g. 'Sleep Music', 'Spa Music', 'Slow Gym Beats', "
                f"'Chillout Lounge'): {', '.join(b['search_terms'])}"
                if b.get("search_terms") else
                "\nKeyword angle: pick ONE specific search phrase for this mix (e.g. use case + duration) that differs "
-               "from the titles in the history, and use it in title, hook and tags. The title must begin with the genre's core "
-               "keyword (e.g. 'Sleep Music', 'Spa Music', 'Slow Gym Beats', 'Chillout Lounge')."))
+               "from the titles in the history, and use it in title, hook and tags. Right after the album name the title must continue with "
+               "the genre's core keyword (e.g. 'Sleep Music', 'Spa Music', 'Slow Gym Beats', 'Chillout Lounge')."))
 
 
 # ---------------------------------------------------------------- Textmodell
@@ -249,12 +249,27 @@ def _words(s: str) -> int:
     return len(re.findall(r"[A-Za-z0-9'’]+", s))
 
 
+TITLE_SEP = " · "
+
+
+def unify_title(title: str, album: str) -> str:
+    """Wiedererkennung (Rolf, 07.10.2026): Video-, Album-, Cover- und Thumbnail-Titel sind derselbe Name.
+    Der YouTube-Titel beginnt deshalb immer exakt mit dem Albumnamen; dahinter folgen die Suchbegriffe.
+    Kommt der Albumname schon irgendwo im Titel vor (z. B. „… – Azure Terrace Spa"), wird er dort entfernt."""
+    a = re.escape(album.strip())
+    rest = title.strip()
+    rest = re.sub(r"^" + a + r"\s*[–\-·|:]*\s*", "", rest, flags=re.I)      # schon vorne → nicht doppeln
+    rest = re.sub(r"\s*[–\-·|:]+\s*" + a + r"$", "", rest, flags=re.I)      # „… – Album" am Ende → nach vorne
+    rest = re.sub(r"\s{2,}", " ", rest).strip(" –-·|:")
+    return f"{album.strip()}{TITLE_SEP}{rest}" if rest else album.strip()
+
+
 def validate(c: dict, mem: dict, brief: dict) -> list[str]:
     """Liefert eine Liste von Beanstandungen (leer = ok). Kleine Dinge werden direkt repariert."""
     errs = []
     req = ["album", "genre", "bpm", "mood", "purpose", "sound_design", "tracks", "extra_tracks", "visual", "art_prompt",
-           "thumbnail_prompt", "thumbnail_headline", "yt_title", "hook", "intro", "use_line", "cta_question", "hashtags",
-           "tags", "ab_titles", "ab_thumbs", "short_overlays", "short_titles", "shorts", "title_de", "teaser_de",
+           "thumbnail_prompt", "yt_title", "hook", "intro", "use_line", "cta_question", "hashtags",
+           "tags", "ab_titles", "short_overlays", "short_titles", "shorts", "title_de", "teaser_de",
            "pinned_comment"]
     for k in req:
         if k not in c or c[k] in ("", None, [], {}):
@@ -291,6 +306,12 @@ def validate(c: dict, mem: dict, brief: dict) -> list[str]:
     if (not is_long and c["tracks"] and c["extra_tracks"]
             and c["extra_tracks"][0]["title"].lower() < c["tracks"][-1]["title"].lower()):
         errs.append("extra_tracks müssen alphabetisch nach dem letzten regulären Track liegen")
+    if _words(c["album"]) > 3:
+        errs.append("Album-Name zu lang (max. 3 Wörter, er steht groß auf dem Thumbnail)")
+    c["album"] = c["album"].strip()
+    c["yt_title"] = unify_title(c["yt_title"], c["album"])
+    c["ab_titles"] = [unify_title(t, c["album"]) for t in c.get("ab_titles") or []]
+    c["thumbnail_headline"] = c["album"]          # Thumbnail zeigt exakt den Albumnamen
     t_len = len(c["yt_title"].replace("{MIN}", "60").replace("{HOURS}", "2.5 Hours"))
     if t_len > 75:
         errs.append(f"yt_title zu lang ({t_len})")
@@ -299,8 +320,9 @@ def validate(c: dict, mem: dict, brief: dict) -> list[str]:
     if re.search(r"\b\d{2,3}\s*min", c["yt_title"], re.I) or re.search(r"\b\d{2,3}\s*min", c["hook"], re.I):
         errs.append("feste Minutenzahl in Titel/Hook – {MIN} verwenden")
     title_kw = GENRE_TITLE_PREFIX.get(brief["genre"])
-    if title_kw and not c["yt_title"].strip().lower().startswith(title_kw):
-        errs.append(f"yt_title beginnt nicht mit dem Genre-Kernbegriff ({'/'.join(title_kw)}) – "
+    after_album = c["yt_title"][len(c["album"]):].strip(" –-·|:").lower()
+    if title_kw and not after_album.startswith(title_kw):
+        errs.append(f"yt_title: nach dem Albumnamen fehlt der Genre-Kernbegriff ({'/'.join(title_kw)}) – "
                      f"sonst Erwartungs-Mismatch wie bei „Slow Beat“ für einen Sleep-Mix")
     c["hashtags"] = [h if h.startswith("#") else "#" + h for h in c["hashtags"]][:5]
     if "#AixWalker" not in c["hashtags"]:
@@ -313,11 +335,10 @@ def validate(c: dict, mem: dict, brief: dict) -> list[str]:
     if len(c["tags"]) < 10:
         errs.append("zu wenige Tags")
     c["ab_titles"] = [t for t in c["ab_titles"] if len(t.replace("{MIN}", "60").replace("{HOURS}", "1 Hour")) <= 75][:3]
-    if len(c["ab_titles"]) < 2:
-        errs.append("ab_titles")
-    c["ab_thumbs"] = [t for t in c["ab_thumbs"] if _words(t) <= 3][:2]
+    # ab_titles sind nur Vorschläge für die Mail – zu wenige blockieren das Konzept nicht
+    c["ab_thumbs"] = []   # kein Thumbnail mit abweichendem Text – Wiedererkennung über den Albumnamen
     c["short_overlays"] = [t for t in c["short_overlays"] if _words(t) <= 4][:2]
-    if len(c["short_overlays"]) < 2 or _words(c["thumbnail_headline"]) > 3:
+    if len(c["short_overlays"]) < 2:
         errs.append("Overlays/Headline zu lang")
     c["short_titles"] = [t[:70] for t in c["short_titles"]][:2]
     for k in ("art_prompt", "thumbnail_prompt"):

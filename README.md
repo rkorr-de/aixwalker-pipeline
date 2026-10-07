@@ -71,10 +71,16 @@ Optionen:
 
 ## Bewegte Visuals und Nischenanalyse
 
-- **Bewegte Visuals** (`pipeline/visuals.py`): Das Mix-Video zeigt unter dem Cover eine audio-reaktive Wellenform
-  (nur ffmpeg, kostenlos, 15 Bilder/s; Lang-Format 10 Bilder/s). Fällt der Bau aus, nutzt `run_mix.py` automatisch das
-  bisherige Standbild-Video. `MIX_ANIMATED_VISUALS=0` schaltet auf das alte Standbild zurück.
-  Gemessen auf 2 CPU-Kernen: ca. 15 Min Renderzeit je 60 Min Mix, ca. 46 Min je 3 Stunden.
+- **Bewegte Visuals** (`pipeline/visuals.py`): Mix-Video und Shorts zeigen ein sanft „atmendes" Teal-Licht um das
+  Cover, dessen Helligkeit langsam (über 1–2 s geglättet) der Lautstärke folgt – dezent statt Wellenform. Cover und
+  Textflächen bleiben ausgespart; Shorts ohne Zoom, damit nichts überlagert wird (nur ffmpeg, kostenlos, 15 Bilder/s;
+  Lang-Format 10 Bilder/s). Fällt der Bau aus, nutzt `run_mix.py` automatisch das Standbild-Video.
+  `MIX_ANIMATED_VISUALS=0` schaltet auf das Standbild zurück.
+  Gemessen auf 2 CPU-Kernen: ca. 7 Min Renderzeit je 60 Min Mix (vorher mit Wellenform ca. 15 Min).
+- **Einheitlicher Name** (Wiedererkennung): YouTube-Titel beginnt mit dem Albumnamen, Thumbnail-Überschrift = Albumname,
+  Album- und Track-Cover zeigen ihn, Short-Bild und Short-Titel enthalten ihn (`planner.unify_title`).
+- **Short-Ausschnitt** (`shorts.find_passages`): startet je Track am Beginn des Hauptteils, auf dem ersten Schlag –
+  nie im leisen Intro; der Clip bleibt komplett im Track.
 - **Nischenanalyse** (`pipeline/research.py`): `python -m pipeline.research "luxury spa lounge music" --days 180 --top 15`
   zeigt die stärksten Videos einer Nische (Aufrufe/Tag, Länge, Kanalgröße). Nutzt das vorhandene `YT_REFRESH_TOKEN`,
   kein zusätzlicher API-Schlüssel nötig. Jede Suche kostet deutlich mehr Tageskontingent als Datenabfragen.
