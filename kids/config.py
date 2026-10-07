@@ -125,7 +125,9 @@ FLAGSHIP_CHARACTERS = [
              "tail, and one tiny daisy-flower clip behind her left ear"},
 ]
 FLAGSHIP_EVERY_N_DAYS = int(os.environ.get("KIDS_FLAGSHIP_EVERY_N_DAYS", "4"))
-STORY_MIN_SCORE = int(os.environ.get("KIDS_STORY_MIN_SCORE", "8"))      # Mindestnote (1–10) je Prüfkriterium
+STORY_MIN_SCORE = int(os.environ.get("KIDS_STORY_MIN_SCORE", "7"))      # Mindestnote (1–10) je Prüfkriterium
+# (07.10.2026 von 8 auf 7 gesenkt, auf Rolfs Wunsch: höhere Wahrscheinlichkeit, dass täglich ein Video entsteht;
+# siehe auch den Prompt-Text in kids/story.py, der diesen Wert jetzt direkt übernimmt statt ihn fest zu nennen.)
 # Videoprüfung (kids/review.py) – kalibriert am 03.10.2026: Goldfisch-Video 7 schwere Fehler → abgelehnt,
 # Kling-Video, das Rolf „sehr gut“ fand: 1 schwerer + 3 deutliche → bestanden
 VIDEO_MIN_SCORE = int(os.environ.get("KIDS_VIDEO_MIN_SCORE", "4"))         # Gesamtnote (1–10)

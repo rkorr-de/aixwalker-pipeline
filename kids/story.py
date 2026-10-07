@@ -272,7 +272,8 @@ def _write(species: str, lesson: str, history: list[dict], rounds: int, log,
         "A strict reviewer will score your story 1–10 on: logic, clarity (understandable without words for a "
         "2-year-old), lesson (clearly visible at the end), filmable (only slow, simple, large motions; nothing rolls "
         "far, falls, flies, splashes or changes shape; max 3 big props; the same props in both shots), originality "
-        "and charm. Everything below 8 is rejected – check your draft against this list before answering."
+        f"and charm. Everything below {config.STORY_MIN_SCORE} is rejected – check your draft against this list "
+        "before answering."
     )
     best, best_score, feedback, last_err = None, -1, "", None
     for i in range(rounds):
