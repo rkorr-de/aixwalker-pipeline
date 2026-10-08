@@ -194,11 +194,11 @@ def make_animated_frame(cover_png: Path, out: Path, w: int = 1920, h: int = 1080
     # statt Schriftzug: rundes Kanal-Logo unten links (Rolf 08.10.2026), leicht transparent gegen Einbrennen,
     # Abstand nach unten so, dass der Fortschrittsstrich frei bleibt
     if config.LOGO_PNG.exists():
-        side_l = int(h * 0.085)
+        side_l = int(h * 0.06)          # ca. 65 px bei 1080p (Rolf 08.10.: kleiner)
         logo = Image.open(config.LOGO_PNG).convert("RGBA").resize((side_l, side_l), Image.LANCZOS)
-        a = logo.getchannel("A").point(lambda v: int(v * 0.8))
+        a = logo.getchannel("A").point(lambda v: int(v * 0.7))   # 30 % transparent
         logo.putalpha(a)
-        margin = int(h * 0.035)
+        margin = int(h * 0.03)
         bg.paste(logo, (margin, h - margin - side_l), logo)
     out.parent.mkdir(parents=True, exist_ok=True)
     bg.save(out, "PNG")
