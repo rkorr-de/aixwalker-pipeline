@@ -66,6 +66,11 @@ def main() -> int:
     ap.add_argument("--no-upload", action="store_true")
     ap.add_argument("--seed", type=int, default=None, help="Zufall für die Planung festlegen (Tests)")
     args = ap.parse_args()
+    if args.long and args.genre in planner.ROTATION_EXCLUDE:
+        # Rolf 08.10.2026: lange Mixe eigener Linien werden NUR aus den Tages-Mixen zusammengeschnitten (kostenfrei)
+        log(f"ABBRUCH: kein neu erzeugter Lang-Mix für {args.genre} – stattdessen "
+            f"python run_weekly_compilation.py --genre \"{args.genre}\"")
+        return 4
     use_drive = not args.dry_run and bool(os.environ.get("DRIVE_REFRESH_TOKEN"))
     missing = check_env(args.dry_run)
 

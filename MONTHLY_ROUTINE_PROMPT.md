@@ -22,5 +22,7 @@ Antworte auf Deutsch (YouTube-Metadaten sind Englisch). Du arbeitest komplett oh
 7. Abschluss: 2–3 Sätze auf Deutsch (Genres, Links, Dauer, Probleme).
 
 ## Regeln
-- Kosten: 1 Motivbild je Monats-Mix (ca. 0,13 $), keine Lyria-Kosten.
+- Kosten: 1 Motivbild je Monats-Mix (ca. 0,13 $), keine Lyria-Kosten. Kein DistroKid-Release für Monats-Mixe.
+- Video mit atmendem Licht aus den Album-Covern der Tages-Mixe (wie die normalen Mixe); nur bei Fehler Standbild.
+- Eigene Linien (Italian Chillout) haben Vorrang und fallen nie wegen der Obergrenze von 4 Monats-Mixen weg.
 - Nichts löschen, keine Quell-Mixe verändern.

@@ -208,3 +208,26 @@ def make_texts(genre: str, month_label: str, year: int, total_min: int, albums: 
                  f"blended seamlessly. Listen here and tell us your favourite track!")
     return {"title": title, "description": desc[:5000], "tags": tags, "comment": comment, "community_de": community,
             "playlist": playlist}
+
+
+def build_animated_video(pairs: list[tuple[dict, dict]], audio_file: Path, starts: list[float], out: Path,
+                         fps: int = 10) -> Path:
+    """Video mit atmendem Licht für Zusammenschnitte (Samstags-/Monats-Mix, Rolf 08.10.2026): je Track das Album-Cover
+    des Tages-Mixes, aus dem er stammt – wie bei den normalen Mixen, aber ohne neue Bilder/Kosten. Fallback Standbild."""
+    from . import visuals
+    fdir = out.parent / "frames"
+    fdir.mkdir(parents=True, exist_ok=True)
+    frames, cache = [], {}
+    for i, (_, mx) in enumerate(pairs):
+        cover = mx.get("cover")
+        for _ in mx["tracks"]:
+            if i not in cache:
+                if cover and Path(cover).exists():
+                    cache[i] = visuals.make_animated_frame(Path(cover), fdir / f"mix{i:02d}.png")
+                else:
+                    p = fdir / f"mix{i:02d}_src.png"
+                    images.procedural_art("1:1", seed=i).save(p)
+                    cache[i] = visuals.make_animated_frame(p, fdir / f"mix{i:02d}.png")
+            frames.append(cache[i])
+    total = audio.probe_duration(audio_file)
+    return visuals.build_video_animated(frames, starts[:len(frames)], audio_file, total, out, fps=fps)

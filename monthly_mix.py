@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Monats-Mix (am 1. des Monats, vollautomatisch): je Thema/Genre, das im Vormonat ≥ 2 Wochen-Mixe hat, werden die
-Mixe aus Drive zu einem 2–4-Stunden-Mix verbunden und öffentlich auf YouTube hochgeladen (inkl. Kommentar, Drive-Ordner,
-Bericht per E-Mail, Gedächtnis). Kosten: nur 1 Motivbild je Monats-Mix (ca. 0,13 $), keine Lyria-Kosten.
+Mixe aus Drive zu einem 2–4-Stunden-Mix verbunden (Video mit atmendem Licht aus den Album-Covern) und öffentlich auf
+YouTube hochgeladen (inkl. Kommentar, Drive-Ordner, Bericht per E-Mail, Gedächtnis). Kosten: nur 1 Motivbild je
+Monats-Mix (ca. 0,13 $), keine Lyria-Kosten, kein DistroKid.
 
   python monthly_mix.py                    # Vormonat, alle Genres mit genug Material
   python monthly_mix.py --month 2026-10    # bestimmten Monat
@@ -25,7 +26,8 @@ from PIL import Image
 
 from pipeline import audio, config, drive, images, memory, metadata, monthly, youtube
 
-MIN_MIN, TARGET_MIN, MAX_MIN, MAX_RUNS = 100, 150, 240, 3
+MIN_MIN, TARGET_MIN, MAX_MIN, MAX_RUNS = 100, 150, 240, 4
+OWN_LINES = ("Italian Chillout",)   # eigene Linien zuerst – sie fallen nie wegen MAX_RUNS weg (Rolf 08.10.2026)
 
 
 def log(msg: str) -> None:
@@ -152,8 +154,12 @@ def produce(genre: str, month: str, pairs: list[tuple[dict, dict]], out: Path, m
     fr = Image.open(frame).convert("RGB")
     images.add_subscribe_badge(fr)
     fr.save(frame)
-    log("Video rendern …")
-    mp4 = monthly.build_still_video(frame, flac, out / "monthly.mp4")
+    log("Video rendern (atmendes Licht) …")
+    try:
+        mp4 = monthly.build_animated_video(pairs, flac, starts, out / "monthly.mp4")
+    except Exception as e:  # noqa: BLE001 – lieber Standbild als kein Video
+        log(f"Animiertes Video fehlgeschlagen ({str(e)[:160]}) – Standbild")
+        mp4 = monthly.build_still_video(frame, flac, out / "monthly.mp4")
     flac.unlink(missing_ok=True)
     result = {"genre": genre, "month": month, "title": texts["title"], "duration_min": total_min,
               "albums": [p["album"] for p, _ in pairs], "tracks": len(tracks), "thumbnail": str(thumb),
@@ -266,7 +272,8 @@ def main() -> int:
             groups[g] = fetched
         log(f"Genres mit Monats-Mix: {list(groups) or 'keine'}")
 
-    for g, pairs in list(groups.items())[:MAX_RUNS]:
+    ordered = sorted(groups.items(), key=lambda kv: kv[0] not in OWN_LINES)
+    for g, pairs in ordered[:MAX_RUNS]:
         # Obergrenze: ältere Mixe verwerfen, bis ≤ MAX_MIN
         while len(pairs) > 2 and sum(mx["minutes"] for _, mx in pairs) > MAX_MIN:
             pairs = pairs[1:]
