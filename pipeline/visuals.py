@@ -111,6 +111,65 @@ def _glow_graph(w: int, h: int, fps: float, mask: Path, pos: tuple[int, int], st
             f"[bg][glow]overlay={pos[0]}:{pos[1]}:format=yuv420:shortest=1,format=yuv420p[v]")
 
 
+# ---------------------------------------------------------------- Fortschrittsstrich (Rolf 08.10.2026)
+# Hauchdünner Verlaufsstrich ganz unten, der pro Song von links nach rechts mitläuft und beim nächsten Song neu beginnt.
+# Farben je Song aus dessen Cover gemessen; darunter eine kaum sichtbare Spur. Liegt UNTER dem Kanal-Logo (Logo endet
+# ca. 28 px über der Unterkante) – kein Überlappen.
+BAR_H = 3            # Strichstärke in px bei 1080p
+BAR_BOTTOM = 4       # Abstand zur Unterkante in px
+
+
+def _cover_colors(frame_png: Path, w: int = 1920, h: int = 1080) -> tuple[tuple, tuple]:
+    """Zwei harmonische Farben aus dem Cover-Bereich des Videobilds: gedeckter Grundton + helle, warme Akzentfarbe."""
+    x0, y0, x1, y1 = mix_cover_rect(w, h)
+    im = Image.open(frame_png).convert("RGB").crop((x0, y0, x1, y1)).resize((64, 64))
+    arr = np.asarray(im, dtype=np.float32).reshape(-1, 3)
+    lum = arr @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
+    sat = arr.max(1) - arr.min(1)
+    base = arr[lum < np.percentile(lum, 45)].mean(0)                       # gedeckter Grundton
+    bright = arr[(lum > np.percentile(lum, 70)) & (sat >= np.percentile(sat, 40))]
+    acc = (bright.mean(0) if len(bright) else arr[lum > np.percentile(lum, 80)].mean(0))
+    acc = np.clip(acc * 1.15 + 18, 0, 255)                                  # Akzent etwas heller → leuchtet dezent
+    return tuple(int(v) for v in base), tuple(int(v) for v in acc)
+
+
+def _bar_images(frame_png: Path, outdir: Path, idx: int, w: int = 1920) -> tuple[Path, Path]:
+    """Spur (statisch, kaum sichtbar) + Verlaufsstrich (gleitet) als RGBA-Streifen in voller Bildbreite."""
+    base, acc = _cover_colors(frame_png)
+    t = np.linspace(0, 1, w, dtype=np.float32)[None, :, None]
+    grad = (np.array(base, np.float32) * (1 - t) + np.array(acc, np.float32) * t)            # links Grundton → rechts Akzent
+    alpha = (0.35 + 0.65 * t ** 0.7) * 255                                                  # nach vorne kräftiger
+    bar = np.concatenate([np.repeat(grad, BAR_H, 0), np.repeat(alpha, BAR_H, 0)], 2).clip(0, 255).astype(np.uint8)
+    rail = np.zeros((BAR_H, w, 4), np.uint8)
+    rail[..., :3] = np.array(acc, np.uint8)
+    rail[..., 3] = 46                                                                        # ca. 18 % Deckkraft
+    outdir.mkdir(parents=True, exist_ok=True)
+    pb, pr = outdir / f"bar{idx:03d}.png", outdir / f"rail{idx:03d}.png"
+    Image.fromarray(bar, "RGBA").save(pb)
+    Image.fromarray(rail, "RGBA").save(pr)
+    return pb, pr
+
+
+def _progress_expr(starts: list[float], total_sec: float) -> str:
+    """ffmpeg-Ausdruck 0..1 = Fortschritt im aktuellen Song (stückweise über alle Songs)."""
+    parts = []
+    for i, s in enumerate(starts):
+        e = starts[i + 1] if i + 1 < len(starts) else total_sec
+        d = max(0.5, e - s)
+        parts.append(f"between(t,{s:.3f},{e:.3f})*(t-{s:.3f})/{d:.3f}")
+    return "min(1,(" + "+".join(parts) + "))"
+
+
+def _concat_list(paths: list[Path], starts: list[float], total_sec: float, out: Path) -> Path:
+    lines = []
+    for i, f in enumerate(paths):
+        end = starts[i + 1] if i + 1 < len(starts) else total_sec
+        lines.append(f"file '{f.resolve()}'\nduration {max(0.5, end - starts[i]):.3f}")
+    lines.append(f"file '{paths[-1].resolve()}'")
+    out.write_text("\n".join(lines))
+    return out
+
+
 # ---------------------------------------------------------------- Mix
 
 def mix_cover_rect(w: int = 1920, h: int = 1080) -> tuple[int, int, int, int]:
@@ -156,11 +215,31 @@ def build_video_animated(frames: list[Path], starts: list[float], audio_wav: Pat
     glow, pos = make_glow((w, h), mix_cover_rect(w, h), out.parent / "glow.png",
                           clear=[(40, h - 70, 700, h - 20)])     # Kanalname unten links frei lassen
     env = _write_env_video(envelope(audio_wav, fps), out.parent / "glow_env.gray")
+    # Fortschrittsstrich je Song (Farben aus dem jeweiligen Cover; gleiche Bilder → gleiche Streifen wiederverwenden)
+    bdir = out.parent / "progress"
+    cache: dict[str, tuple[Path, Path]] = {}
+    bars, rails = [], []
+    for i, f in enumerate(frames):
+        key = str(Path(f).resolve())
+        if key not in cache:
+            cache[key] = _bar_images(Path(f), bdir, len(cache), w)
+        bars.append(cache[key][0])
+        rails.append(cache[key][1])
+    bar_list = _concat_list(bars, starts, total_sec, out.parent / "bars_concat.txt")
+    rail_list = _concat_list(rails, starts, total_sec, out.parent / "rails_concat.txt")
+    y = h - BAR_BOTTOM - BAR_H
+    graph = (_glow_graph(w, h, fps, glow, pos).replace("format=yuv420p[v]", "format=yuv420p[g]") +
+             f";[4:v]fps={fps},format=rgba[rl];[5:v]fps={fps},format=rgba[br];"
+             f"[g][rl]overlay=0:{y}:format=auto:shortest=1[g2];"
+             f"[g2][br]overlay=x='-{w}+{w}*({_progress_expr(starts, total_sec)})':y={y}:format=auto:eval=frame:shortest=1,"
+             f"format=yuv420p[v]")
     cmd = ["ffmpeg", "-hide_banner", "-nostats", "-y",
            "-f", "concat", "-safe", "0", "-i", str(concat), "-i", str(audio_wav),
            "-i", str(glow),
            "-f", "rawvideo", "-pix_fmt", "gray", "-s", "16x9", "-r", str(fps), "-i", str(env),
-           "-filter_complex", _glow_graph(w, h, fps, glow, pos), "-map", "[v]", "-map", "1:a",
+           "-f", "concat", "-safe", "0", "-i", str(rail_list),
+           "-f", "concat", "-safe", "0", "-i", str(bar_list),
+           "-filter_complex", graph, "-map", "[v]", "-map", "1:a",
            "-c:v", "libx264", "-preset", "veryfast", "-crf", str(crf), "-g", str(fps * 10),
            "-c:a", "aac", "-b:a", "192k", "-t", f"{total_sec:.3f}", "-movflags", "+faststart", str(out)]
     subprocess.run(cmd, check=True, capture_output=True)
