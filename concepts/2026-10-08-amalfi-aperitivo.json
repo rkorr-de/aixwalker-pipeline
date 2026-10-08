@@ -1,0 +1,217 @@
+{
+  "album": "Amalfi Aperitivo",
+  "genre": "Italian Chillout",
+  "bpm": 88,
+  "mood": [
+    "intimate",
+    "sophisticated",
+    "romantic",
+    "nostalgic",
+    "calm"
+  ],
+  "purpose": "Italian Café",
+  "sound_design": "Italian Riviera Chillout Lounge. Calm, romantic Italian dinner music with an elegant 1960s dolce vita jet-set feeling. Soft bossa nova groove with brushed drums and light shaker, warm nylon-string guitar and gentle mandolin melodies, mellow Rhodes and grand piano, round upright bass, lush string pads like a classic Italian film score, a subtle touch of accordion. Distant sea waves and evening cicadas in the background. Sunset aperitivo on the Amalfi Coast, candlelit terrace dinner on Lake Como, Mediterranean warmth, relaxed, sophisticated, nostalgic and romantic. Intimate high-end lounge production, warm analog tape character, clean mix, no vocals, 88 BPM. Focus: Riviera café jazz – light swing, muted trumpet, vibraphone, espresso bar on the piazza. Warm, analog-style Italian Riviera chillout lounge centered around a mellow 88 BPM bossa nova and light swing feel. Instrumentation relies on brushed jazz drums, round upright bass, warm nylon-string guitar, soft mandolin picking, and a lush cinematic string section. The acoustic space feels organic and intimate, framed by subtle background textures like distant sea waves and evening cicadas.",
+  "playlist": "italian",
+  "minutes_per_track": 5,
+  "min_minutes": 60,
+  "tracks": [
+    {
+      "title": "Amalfi Acoustics",
+      "variation": "Warm nylon-string guitar intro with distant sea waves"
+    },
+    {
+      "title": "Balcony Bossa",
+      "variation": "Light shaker and brushed snare driving a mellow bossa nova groove"
+    },
+    {
+      "title": "Candlelit Crema",
+      "variation": "Soft Rhodes piano chords with a muted trumpet melody"
+    },
+    {
+      "title": "Dolce Far Niente",
+      "variation": "Gentle mandolin picking over lush cinematic string pads"
+    },
+    {
+      "title": "Elegant Espresso",
+      "variation": "Upright bass solo over a light 6/8 swing feel"
+    },
+    {
+      "title": "Fresco Shadows",
+      "variation": "Cinematic grand piano with subtle accordion swells"
+    },
+    {
+      "title": "Grand Hotel Lounge",
+      "variation": "Vibraphone leads the melody with soft jazz brushed drums"
+    },
+    {
+      "title": "Hidden Trattoria",
+      "variation": "Intimate nylon guitar and mandolin duet"
+    },
+    {
+      "title": "Island Of Capri",
+      "variation": "Sweeping romantic string section with warm analog tape saturation"
+    },
+    {
+      "title": "Jazz In Sorrento",
+      "variation": "Muted trumpet and Rhodes call-and-response"
+    },
+    {
+      "title": "Keys Of Sorrento",
+      "variation": "Warm grand piano chords drifting over a relaxed bossa rhythm"
+    },
+    {
+      "title": "Mediterranean Swing",
+      "variation": "Light jazz swing with piano and acoustic guitar"
+    },
+    {
+      "title": "Napoli Nights",
+      "variation": "Soft bossa rhythm with a nostalgic accordion melody"
+    },
+    {
+      "title": "Orange Sky Bossa",
+      "variation": "Warm vibraphone chords melting into a sunset atmosphere"
+    },
+    {
+      "title": "Positano Piano",
+      "variation": "Solo grand piano intro leading into a lush full arrangement"
+    },
+    {
+      "title": "Quaint Piazza",
+      "variation": "Playful but slow mandolin and acoustic guitar interplay"
+    },
+    {
+      "title": "Red Silk Romance",
+      "variation": "Elegant string pads supporting a romantic muted trumpet"
+    },
+    {
+      "title": "Salerno Strings",
+      "variation": "Classical-inspired cello and violin over a jazz rhythm section"
+    },
+    {
+      "title": "Trattoria Trumpet",
+      "variation": "Late-night muted trumpet solo with sparse piano backing"
+    },
+    {
+      "title": "Under The Awnings",
+      "variation": "Gentle rain textures mixed with a warm Rhodes and bass groove"
+    }
+  ],
+  "extra_tracks": [
+    {
+      "title": "Vespa By Night",
+      "variation": "Steady brushed snare rhythm with a driving but soft acoustic bass"
+    },
+    {
+      "title": "Vesuvian Warmth",
+      "variation": "Warm saturated tape sound featuring a gentle nylon guitar"
+    },
+    {
+      "title": "Warm Cobblestones",
+      "variation": "Minimalist upright bass and piano trio arrangement"
+    },
+    {
+      "title": "Waves At Dusk",
+      "variation": "Prominent sea wave foley with floating vibraphone chords"
+    },
+    {
+      "title": "Whispering Mandolin",
+      "variation": "Soft tremolo mandolin over deep atmospheric string pads"
+    },
+    {
+      "title": "Yacht Club Jazz",
+      "variation": "Sophisticated piano chords with a light cymbal swing"
+    },
+    {
+      "title": "Yellow Moon Rising",
+      "variation": "Cinematic crescendo with full strings and acoustic guitar"
+    },
+    {
+      "title": "Zesty Bossa Rhythm",
+      "variation": "Slightly more upbeat bossa shaker and gentle percussion"
+    }
+  ],
+  "visual": {
+    "motif_family": "elegant woman in a fitted deep red silk evening gown leaning on a white stone balustrade above the sea at Amalfi",
+    "motif": "romantic sunset aperitivo with candles on the Amalfi Coast",
+    "light": "orange and pink sunset sky with first candles lit"
+  },
+  "art_prompt": "A professional editorial photo shoot of ONE attractive, beautiful, elegant woman with a feminine silhouette in a fitted deep red silk evening gown. She is standing at the FAR RIGHT of the frame (face in the right quarter, x above 75%), clearly visible from the waist up. She leans on a white stone balustrade. Her head is SMALL (head height about 8% of the image height) and the WHOLE head is positioned exactly between 30% and 40% from the top of the image, fully visible and never cut off. The left side and background feature the famous Amalfi Coast with steep cliffs and the calm Tyrrhenian Sea. Dinner mood with white linen, lit candles, and aperitivo glasses on a nearby table. Classy, advertiser-friendly, natural sunset light, orange and pink sky, skin texture, film grain, shot on 35mm lens, photorealistic, bright and colorful. No text, no letters, no logos, no watermarks.",
+  "thumbnail_prompt": "A professional editorial photo shoot of ONE attractive, beautiful, elegant woman with a feminine silhouette in a fitted deep red silk evening gown. She is standing at the FAR RIGHT of the frame (face in the right quarter, x above 75%), clearly visible from the waist up, leaning on a white stone balustrade. Her head is SMALL (head height about 8% of the image height) and the WHOLE head is positioned exactly between 30% and 40% from the top of the image, fully visible and never cut off. The middle of the frame is completely empty for a big text overlay, showing only the calm open Tyrrhenian Sea and a colorful orange and pink sunset sky. The left side features the famous Amalfi Coast with steep cliffs. Dinner mood with white linen, lit candles, and aperitivo glasses. Classy, advertiser-friendly, natural light, skin texture, film grain, photorealistic, bright and colorful. No text, no letters, no logos, no watermarks.",
+  "thumbnail_headline": "Amalfi Aperitivo",
+  "yt_title": "Amalfi Aperitivo · Italian Chillout Music · {MIN} Min · Italian Café (88 BPM)",
+  "hook": "Experience the ultimate romantic Italian chillout music for {HOURS}.",
+  "intro": "Welcome to a mesmerizing evening on the Amalfi Coast, wrapped in warm strings, gentle mandolins, and soft bossa rhythms. This sophisticated Italian lounge mix creates the perfect cinematic backdrop for a romantic dinner or a relaxed sunset aperitivo.",
+  "use_line": "🍷 Perfect for: Italian dinner, sunset lounging, romantic evenings, café background, and elegant relaxation.",
+  "cta_question": "Which track makes you feel like you are sitting right on the Italian Riviera?",
+  "hashtags": [
+    "#ItalianChillout",
+    "#LoungeMusic",
+    "#AmalfiCoast",
+    "#CafeJazz",
+    "#AixWalker"
+  ],
+  "tags": [
+    "italian chillout music",
+    "italian cafe music",
+    "riviera lounge jazz",
+    "dolce vita chillout",
+    "amalfi coast sunset",
+    "dinner background music",
+    "romantic italian music",
+    "bossa nova lounge",
+    "luxury spa lounge",
+    "aixwalker",
+    "aix walker",
+    "cafe jazz instrumental",
+    "sunset chillout",
+    "italian dinner music"
+  ],
+  "ab_titles": [
+    "Amalfi Aperitivo · Italian Chillout Music ({MIN} Min)",
+    "Amalfi Aperitivo · Italian Chillout Music · {HOURS} Riviera Lounge & Café Jazz",
+    "Amalfi Aperitivo · Italian Chillout Music · Chill Italian Music for Dinner ({MIN} Mins)"
+  ],
+  "ab_thumbs": [],
+  "short_overlays": [
+    "Taste the dolce vita",
+    "Your sunset table awaits"
+  ],
+  "short_titles": [
+    "Amalfi Aperitivo 🍷 Italian Chillout Music",
+    "Sunset Lounge Jazz 🌅 Dolce Vita Vibe"
+  ],
+  "shorts": [
+    {
+      "start": "02:15",
+      "end": "02:45",
+      "overlay": "Taste the dolce vita",
+      "why": "Zeigt den sanften Mandolinen-Vibe, der sofort Fernweh weckt."
+    },
+    {
+      "start": "18:30",
+      "end": "19:00",
+      "overlay": "Your sunset table awaits",
+      "why": "Fängt den Moment ein, wenn die gedämpfte Trompete die romantische Stimmung auf den Höhepunkt bringt."
+    }
+  ],
+  "title_de": "Amalfi Aperitivo – Italienische Chillout & Lounge Musik (88 BPM)",
+  "teaser_de": "Genieße die elegante Atmosphäre der italienischen Riviera mit warmen Gitarren und sanften Bossa-Rhythmen zum Sonnenuntergang.",
+  "pinned_comment": "What is your favorite track for a sunset aperitivo? Let us know in the comments and use the timestamps in the description to find it!",
+  "format": "standard",
+  "slug": "2026-10-08-amalfi-aperitivo",
+  "_brief": {
+    "date": "2026-10-08",
+    "genre": "Italian Chillout",
+    "playlist": "italian",
+    "bpm": 88,
+    "purpose": "Italian Café (Riviera café jazz)",
+    "mood_hint": "intimate, sophisticated, calm",
+    "motif_family": "elegant woman in a fitted deep red silk evening gown leaning on a white stone balustrade above the sea at Amalfi",
+    "light": "orange and pink sunset sky with first candles lit",
+    "last_genre": null,
+    "long": false,
+    "style": "Italian Riviera Chillout Lounge. Calm, romantic Italian dinner music with an elegant 1960s dolce vita jet-set feeling. Soft bossa nova groove with brushed drums and light shaker, warm nylon-string guitar and gentle mandolin melodies, mellow Rhodes and grand piano, round upright bass, lush string pads like a classic Italian film score, a subtle touch of accordion. Distant sea waves and evening cicadas in the background. Sunset aperitivo on the Amalfi Coast, candlelit terrace dinner on Lake Como, Mediterranean warmth, relaxed, sophisticated, nostalgic and romantic. Intimate high-end lounge production, warm analog tape character, clean mix, no vocals, 88 BPM. Focus: Riviera café jazz – light swing, muted trumpet, vibraphone, espresso bar on the piazza.",
+    "visual_rule": "For THIS line the general rule 'people only small or seen from behind' does NOT apply. Every art_prompt and thumbnail_prompt shows ONE attractive, elegant woman with a feminine silhouette in a fitted evening gown that matches the scene (use the motif's gown), clearly visible from knee or waist up, face visible and beautiful, standing at the FAR RIGHT of the frame (face in the right quarter, x above 75%), framed medium-wide so her head is SMALL (head height about 8% of the image height) with the WHOLE head, forehead to chin, between 30% and 40% from the top – fully visible, never cut off at the top (the square image is also cropped to 16:9 from the middle, losing the top 22%) and never below 42% (the big title lines run across the image from 32% down), because the big title is set across the middle and must cover only her dress, never her face. Always sunset light and dinner mood (candles, wine or aperitivo glasses, white linen). The famous place (Amalfi Coast / Lake Como as named in the motif) fills the left side and the background, with sunset sky over sea or lake. Write it as a real professional editorial photo shoot (camera, lens, natural light, skin texture, film grain) – never 'illustration', 'render' or 'digital art'. Classy and advertiser-friendly: no lingerie, no cleavage focus, no suggestive pose.",
+    "search_terms": []
+  }
+}
