@@ -75,7 +75,7 @@ smooth crossfades. No vocals, no ads in between – perfect for dinner, reading,
 🔊 {bpm_range} BPM · no vocals · mastered for headphones and speakers
 🎵 All tracks produced by {config.ARTIST} (AI-assisted, original music)
 ▶️ Full playlist: https://www.youtube.com/playlist?list={playlist_id}
-🔔 New Italian chillout mixes every Monday, Wednesday, Friday and Sunday, a long weekend mix every Saturday – subscribe!
+🔔 New mixes every week – subscribe and hit the bell!
 
 👇 Where would you listen to this – Amalfi Coast or Lake Como?
 

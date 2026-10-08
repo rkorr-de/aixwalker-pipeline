@@ -55,7 +55,7 @@ def description(concept: dict, chapter_text: str, playlist_id: str, total_min: i
 
 🎵 All tracks produced by {config.ARTIST} (AI-assisted, original music)
 ▶️ Full playlist: https://www.youtube.com/playlist?list={playlist_id}
-🔔 {'New Italian chillout mixes every Monday, Wednesday, Friday and Sunday' if c.get('playlist') == 'italian' else 'New mixes every Tuesday and Friday'} – subscribe and hit the bell!
+🔔 New mixes every week – subscribe and hit the bell!
 
 👇 {c['cta_question']}
 

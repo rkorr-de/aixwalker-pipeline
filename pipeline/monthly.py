@@ -193,7 +193,7 @@ def make_texts(genre: str, month_label: str, year: int, total_min: int, albums: 
 🔊 {bpm_range} BPM · no vocals · mastered for headphones and speakers
 🎵 All tracks produced by {config.ARTIST} (AI-assisted, original music)
 ▶️ Full playlist: https://www.youtube.com/playlist?list={playlist_id}
-🔔 New mixes every Tuesday and Friday, a monthly mix on the 1st – subscribe and hit the bell!
+🔔 New mixes every week – subscribe and hit the bell!
 
 👇 Which track was your favourite this month? Drop it in the comments.
 
