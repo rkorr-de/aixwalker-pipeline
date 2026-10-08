@@ -29,11 +29,11 @@ GENRES = {
                   "positive emotions, highly professional production, cinematic depth, clean mix, no vocals, 92 BPM."),
         "purposes": ["sunset lounge at the sea", "luxury spa & wellness", "beach club chill", "villa dinner background",
                      "yoga & stretching by the ocean", "rooftop evening", "massage & relaxation", "relaxed focus & reading"],
-        "motifs": ["elegant woman on a luxury resort terrace at sunset (advertiser-friendly)",
-                   "woman relaxing at an infinity pool above the sea (advertiser-friendly)",
-                   "woman in a white spa robe with sea view (advertiser-friendly)",
-                   "woman walking along a Mediterranean beach at golden hour (advertiser-friendly)",
-                   "sunset over the Ibiza coast, empty lounge terrace", "beach lounge with lanterns and ocean"],
+        # Analyse 08.10.2026: erfolgreiche Thumbnails zeigen einen Sehnsuchtsort, Personen nur selten und klein
+        "motifs": ["infinity pool above the sea with white lounge beds", "luxury resort terrace lounge with sofas and lanterns over the sea",
+                   "beach club with white daybeds and parasols", "white Mediterranean villa with pool and bougainvillea",
+                   "yacht deck lounge on turquoise water", "cliffside bar terrace above the Ibiza coast",
+                   "small figure of a woman seen from behind at an infinity pool edge (advertiser-friendly)"],
         "moods": ["warm, sunlit, luxurious, relaxed", "positive, smooth, sunset-golden", "airy, organic, deeply relaxing",
                   "cinematic, balmy, elegant"],
     },
@@ -50,8 +50,9 @@ GENRES = {
         "playlist": "chillout", "bpm": (50, 62),
         "purposes": ["massage & wellness", "hot stone ritual", "sauna & steam", "evening bath", "yin yoga & stretching",
                      "breathwork", "meditation", "floating / sensory calm"],
-        "motifs": ["spa scene (stones, candles, water)", "steam & dark tiles", "rain on dark glass",
-                   "calm woman in spa robe (advertiser-friendly)", "misty forest pool", "zen garden at night"],
+        "motifs": ["candlelit spa with hot stones, orchids and warm wood", "luxury spa pool with candles and palm leaves",
+                   "massage room with candles, white towels and sea view", "outdoor spa pool with lanterns",
+                   "spa bath with rose petals and candlelight", "zen spa courtyard with lanterns and bamboo"],
         "moods": ["deep, warm, weightless", "dark, slow, healing", "humid, soft, timeless", "still, glowing, serene"],
     },
     "Night Drive Deep Bass": {
@@ -67,8 +68,9 @@ GENRES = {
         "playlist": "chillout", "bpm": (45, 65),
         "purposes": ["fall asleep fast", "study & deep focus", "night forest rest", "rainy night reading",
                      "insomnia relief", "nap reset", "winter night calm", "ocean night drift"],
-        "motifs": ["empty bed", "window with night rain", "dark forest with fireflies", "lantern on a dock",
-                   "reading nook by candlelight", "night sky over calm water"],
+        "motifs": ["cozy bedroom with warm lamps and a blue dusk window", "lake cabin with warm windows at blue hour",
+                   "lantern-lit dock on calm water at dusk", "reading nook by candlelight",
+                   "starry sky over a calm bay with village lights", "hammock on a terrace at dusk"],
         "moods": ["warm, soft, weightless", "hazy, slow, tender", "cool, misty, quiet", "deep, dreamy, slow"],
     },
 }
@@ -76,17 +78,17 @@ GENRES = {
 # Gym/Night Drive bleiben als Abwechslung, kommen aber seltener dran.
 GENRE_WEIGHT = {"Mediterranean Spa Lounge": 1.6, "Chillout Sleep": 1.35, "Dark Ambient Spa": 1.25, "Slow Gym Beats": 0.8, "Night Drive Deep Bass": 0.75}
 LIGHTS = {
-    "Mediterranean Spa Lounge": ["golden hour sunset over the sea", "warm amber dusk", "pink-orange Ibiza sunset sky",
-                                 "soft teal-and-gold twilight", "lanterns and candles on a terrace at dusk",
-                                 "low sun glittering on the water"],
+    "Mediterranean Spa Lounge": ["golden hour sunset over the sea", "bright sunny Mediterranean afternoon", "pink-orange Ibiza sunset sky",
+                                 "warm amber dusk with lanterns", "low sun glittering on turquoise water",
+                                 "clear blue sky with white architecture"],
     "Slow Gym Beats": ["cold moonlight through high windows", "teal neon haze", "harsh single spotlight", "rain and streetlight",
                        "fog with a single warm lamp", "blue hour", "distant city glow"],
-    "Dark Ambient Spa": ["candlelight in darkness", "warm ember glow", "steam with teal backlight", "moonlight on water",
-                         "single warm lamp in fog", "blue hour"],
+    "Dark Ambient Spa": ["warm golden candlelight", "golden hour through large windows", "lanterns at dusk",
+                         "warm amber glow with green plants", "soft morning sun and steam"],
     "Night Drive Deep Bass": ["rain and streetlight", "tunnel sodium lights", "teal neon haze", "distant city glow",
                               "cold moonlight", "dashboard glow"],
-    "Chillout Sleep": ["cold moonlight", "candlelight in darkness", "warm ember glow", "fog with a single warm lamp",
-                       "blue hour", "starlight"],
+    "Chillout Sleep": ["deep blue dusk with warm window lights", "candlelight", "moonlight with warm lamps",
+                       "starry sky with a warm glow", "warm reading lamp at blue hour"],
 }
 
 
@@ -130,13 +132,7 @@ def genre_scores(mem: dict, analytics_rows: list[dict] | None) -> dict[str, dict
 # Textmodell trotz Vorgabe einen fremden Begriff wählen – genau das ist beim Sleep-Mix „Starlight Slumber“
 # (06.10.2026) passiert: Titel begann mit „Slow Beat“ statt „Sleep Music“, was Klicks mit falscher Erwartung
 # (energiegeladener Beat statt ruhiger Ambient-Sound) und dadurch frühe Abbrüche begünstigt.
-GENRE_TITLE_PREFIX = {
-    "Chillout Sleep": ("sleep music", "sleep"),
-    "Dark Ambient Spa": ("spa music", "spa"),
-    "Slow Gym Beats": ("slow gym beats", "gym"),
-    "Night Drive Deep Bass": ("night drive", "night ride"),
-    "Mediterranean Spa Lounge": ("spa music", "chillout lounge", "spa"),
-}
+GENRE_TITLE_PREFIX = {g: (k.lower(),) for g, k in config.THUMB_KEYWORD.items()}   # = Begriff auf dem Thumbnail
 
 # Suchbegriffe aus den Analytics stammen auch von alten Videos (Drohne, Walks). Nur Begriffe, die zum Genre passen, dürfen
 # in Titel/Tags einfließen – sonst entstehen Titel wie „Slow Beat“ für einen Sleep-Mix (Fehler vom 06.10.2026).
@@ -218,12 +214,12 @@ def brief_text(b: dict) -> str:
             f"Visual motif family: {b['motif_family']}\nLight: {b['light']}\n"
             f"Why this genre now: last mix was {b['last_genre'] or '-'}; genre scores {json.dumps(b['scores'])}"
             + (f"\nReal viewer search terms that fit this genre (inspiration for 1–2 keywords in hook and tags; right after the album "
-               f"name the title must continue with the genre's core keyword, e.g. 'Sleep Music', 'Spa Music', 'Slow Gym Beats', "
-               f"'Chillout Lounge'): {', '.join(b['search_terms'])}"
+               f"name the title must continue with exactly '{config.THUMB_KEYWORD.get(b['genre'], b['genre'])}'): "
+               f"{', '.join(b['search_terms'])}"
                if b.get("search_terms") else
                "\nKeyword angle: pick ONE specific search phrase for this mix (e.g. use case + duration) that differs "
                "from the titles in the history, and use it in title, hook and tags. Right after the album name the title must continue with "
-               "the genre's core keyword (e.g. 'Sleep Music', 'Spa Music', 'Slow Gym Beats', 'Chillout Lounge')."))
+               f"exactly '{config.THUMB_KEYWORD.get(b['genre'], b['genre'])}' (this word is also the big thumbnail text)."))
 
 
 # ---------------------------------------------------------------- Textmodell
@@ -252,16 +248,34 @@ def _words(s: str) -> int:
 TITLE_SEP = " · "
 
 
-def unify_title(title: str, album: str) -> str:
-    """Wiedererkennung (Rolf, 07.10.2026): Video-, Album-, Cover- und Thumbnail-Titel sind derselbe Name.
-    Der YouTube-Titel beginnt deshalb immer exakt mit dem Albumnamen; dahinter folgen die Suchbegriffe.
-    Kommt der Albumname schon irgendwo im Titel vor (z. B. „… – Azure Terrace Spa"), wird er dort entfernt."""
+def unify_title(title: str, album: str, keyword: str | None = None, max_len: int = 75) -> str:
+    """Wiedererkennung (Rolf, 07./08.10.2026): Video-, Album-, Cover- und Thumbnail-Titel gehören zusammen.
+    Der YouTube-Titel beginnt immer exakt mit dem Albumnamen, direkt dahinter steht der Genre-Begriff vom Thumbnail
+    (config.THUMB_KEYWORD), dann die übrigen Suchbegriffe. Steht der Albumname schon vorne/hinten, wird er nicht gedoppelt."""
     a = re.escape(album.strip())
     rest = title.strip()
     rest = re.sub(r"^" + a + r"\s*[–\-·|:]*\s*", "", rest, flags=re.I)      # schon vorne → nicht doppeln
     rest = re.sub(r"\s*[–\-·|:]+\s*" + a + r"$", "", rest, flags=re.I)      # „… – Album" am Ende → nach vorne
     rest = re.sub(r"\s{2,}", " ", rest).strip(" –-·|:")
-    return f"{album.strip()}{TITLE_SEP}{rest}" if rest else album.strip()
+    if keyword and not rest.lower().startswith(keyword.lower()):
+        parts = [p for p in rest.split(TITLE_SEP) if p.strip()]
+        # erstes Segment ist meist ein anderer Genre-Begriff („Spa Music") → durch den Thumbnail-Begriff ersetzen
+        if parts and not re.search(r"\{MIN\}|\{HOURS\}|\d", parts[0]):
+            parts = parts[1:]
+        rest = TITLE_SEP.join([keyword, *parts])
+    def ln(t):
+        return len(t.replace("{MIN}", "60").replace("{HOURS}", "2.5 Hours"))
+    full = f"{album.strip()}{TITLE_SEP}{rest}" if rest else album.strip()
+    while ln(full) > max_len and TITLE_SEP in rest and rest.count(TITLE_SEP) >= 2:
+        segs = rest.split(TITLE_SEP)
+        cand = [i for i in range(1, len(segs)) if not re.search(r"\{MIN\}|\{HOURS\}|BPM", segs[i])]
+        drop = max(cand, key=lambda i: len(segs[i])) if cand else None
+        if drop is None:
+            break
+        segs.pop(drop)
+        rest = TITLE_SEP.join(segs)
+        full = f"{album.strip()}{TITLE_SEP}{rest}"
+    return full
 
 
 def validate(c: dict, mem: dict, brief: dict) -> list[str]:
@@ -309,8 +323,9 @@ def validate(c: dict, mem: dict, brief: dict) -> list[str]:
     if _words(c["album"]) > 3:
         errs.append("Album-Name zu lang (max. 3 Wörter, er steht groß auf dem Thumbnail)")
     c["album"] = c["album"].strip()
-    c["yt_title"] = unify_title(c["yt_title"], c["album"])
-    c["ab_titles"] = [unify_title(t, c["album"]) for t in c.get("ab_titles") or []]
+    kw = config.THUMB_KEYWORD.get(brief["genre"])
+    c["yt_title"] = unify_title(c["yt_title"], c["album"], kw)
+    c["ab_titles"] = [unify_title(t, c["album"], kw) for t in c.get("ab_titles") or []]
     c["thumbnail_headline"] = c["album"]          # Thumbnail zeigt exakt den Albumnamen
     t_len = len(c["yt_title"].replace("{MIN}", "60").replace("{HOURS}", "2.5 Hours"))
     if t_len > 75:

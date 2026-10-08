@@ -106,7 +106,7 @@ def main() -> int:
     concept["album"] = album
     # Wiedererkennung: YouTube-Titel beginnt mit dem Albumnamen, Thumbnail zeigt exakt den Albumnamen
     from pipeline.planner import unify_title
-    concept["yt_title"] = unify_title(concept["yt_title"], album)
+    concept["yt_title"] = unify_title(concept["yt_title"], album, config.THUMB_KEYWORD.get(concept["genre"]), max_len=100)
     concept["thumbnail_headline"] = album
     concept["ab_thumbs"] = []
     genre = concept["genre"]
@@ -163,7 +163,7 @@ def main() -> int:
             f"{concept['art_prompt']} Variation: {t['variation']}."
         gi = (i - 1) // config.LONG_ART_GROUP if is_long else i - 1   # Lang-Format: ein Bild je Track-Gruppe
         if gi not in art_cache:
-            art_cache[gi] = images.generate_art(art_prompt, "1:1")
+            art_cache[gi] = images.generate_art(art_prompt, "1:1", style=images.style_for(genre))
         art = art_cache[gi]
         cover = images.make_track_cover(art, t["title"], i, album, out / "covers" / f"{i:02d}.png")
         covers.append(cover)
@@ -187,13 +187,14 @@ def main() -> int:
     log(f"Mix gesamt {metadata.fmt_ts(total_sec)}; Kapitel:\n{chapter_text}")
 
     # 3) Album-Cover, Thumbnail, Video
-    album_art = images.generate_art(concept["art_prompt"], "1:1", pro=True)
-    images.make_album_cover(album_art, album, f"{genre} · {bpm} BPM", out / "covers" / "album_3000.png")
-    thumb_art = images.generate_art(concept.get("thumbnail_prompt", concept["art_prompt"]), "16:9", pro=True)
-    thumbs = []
-    for k, headline in enumerate([concept["thumbnail_headline"], *concept.get("ab_thumbs", [])[:2]]):
-        thumbs.append(images.make_thumbnail(thumb_art, headline, concept.get("thumbnail_sub", f"{bpm} BPM · {total_min} MIN"),
-                                            out / "thumbnail" / f"thumb_{'ABC'[k]}.jpg"))
+    # Album-Cover und Thumbnail: dieselbe Szene, derselbe Stil, derselbe Text → Video und Album sehen gleich aus
+    keyword = config.THUMB_KEYWORD.get(genre, genre)
+    scene = concept.get("thumbnail_prompt") or concept["art_prompt"]
+    album_art = images.generate_art(scene, "1:1", pro=True, style=images.style_for(genre))
+    images.make_album_cover(album_art, keyword, album, out / "covers" / "album_3000.png")
+    thumb_art = images.generate_art(scene, "16:9", pro=True, style=images.style_for(genre))
+    thumbs = [images.make_thumbnail(thumb_art, keyword, album, out / "thumbnail" / "thumb_A.jpg",
+                                    duration=images.duration_label(total_min))]
     mp4_path = out / "video" / f"{concept['slug']}.mp4"
     if config.ANIMATED_VISUALS:
         try:

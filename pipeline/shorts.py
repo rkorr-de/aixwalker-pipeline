@@ -128,15 +128,15 @@ def make_short_frame(art: Image.Image, cover_png: Path, headline: str, track_tit
     bg = art.resize((int(aw * scale), int(ah * scale)), Image.LANCZOS)
     bg = bg.crop(((bg.width - w) // 2, (bg.height - h) // 2, (bg.width - w) // 2 + w, (bg.height - h) // 2 + h))
     bg = bg.filter(ImageFilter.GaussianBlur(18))
-    bg = Image.blend(bg, Image.new("RGB", (w, h), (0, 0, 0)), 0.55)
+    bg = Image.blend(bg, Image.new("RGB", (w, h), (0, 0, 0)), 0.30)   # neuer Look: hell und warm, nur leicht gedämpft
     ov = Image.new("L", (w, h), 0)
     od = ImageDraw.Draw(ov)
     for yy in range(h):
         a_ = 0
         if yy < h * 0.3:
-            a_ = int(190 * (1 - yy / (h * 0.3)) ** 1.5)
+            a_ = int(120 * (1 - yy / (h * 0.3)) ** 1.5)
         elif yy > h * 0.65:
-            a_ = int(210 * ((yy - h * 0.65) / (h * 0.35)) ** 1.3)
+            a_ = int(150 * ((yy - h * 0.65) / (h * 0.35)) ** 1.3)
         od.line([(0, yy), (w, yy)], fill=a_)
     bg = Image.composite(Image.new("RGB", (w, h), (3, 8, 10)), bg, ov)
     d = ImageDraw.Draw(bg)
@@ -154,19 +154,19 @@ def make_short_frame(art: Image.Image, cover_png: Path, headline: str, track_tit
         return bb[3]
 
     # 1) Hook-Überschrift (max. 3 Zeilen)
-    f = _fit_text(d, headline.upper(), config.FONT_DISPLAY, w - 2 * m, 150, 84)
+    f = _fit_text(d, headline.upper(), config.FONT_TITLE, w - 2 * m, 104, 64)
     lines = _wrap(d, headline.upper(), f, w - 2 * m)[:3]
     y, text_bottom = SAFE_TOP, SAFE_TOP
     for ln in lines:
         text_bottom = centered(ln, f, y, config.WHITE, shadow=True)
-        y += int(f.size * 0.92)
+        y += int(f.size * 1.08)
     bar_y = max(y, text_bottom) + 26                   # Strich immer unter der echten Text-Unterkante
-    d.rectangle([(w - 160) // 2, bar_y, (w + 160) // 2, bar_y + 9], fill=config.TEAL)
+    d.rectangle([(w - 160) // 2, bar_y, (w + 160) // 2, bar_y + 9], fill=config.CREAM)
     boxes.append(((w - 160) // 2, bar_y, (w + 160) // 2, bar_y + 9))
     # 2) Platz unter dem Cover vorab berechnen, dann Cover so groß wie möglich (max. 64 % Breite)
-    f_album = _fit_text(d, (album or "").upper() or "X", config.FONT_DISPLAY, w - 2 * m, 76, 52)
+    f_album = _fit_text(d, album or "X", config.FONT_SCRIPT, w - 2 * m, 96, 60)
     f_track = _font(config.FONT_BODY, 36)
-    f_cta = _font(config.FONT_BODY, 44)
+    f_cta = _font(config.FONT_TITLE, 42, "Bold")
     f_cta2 = _font(config.FONT_BODY, 32)
     below = (GAP + (f_album.size if album else 0) + 18 + f_track.size + GAP + f_cta.size + 22 + f_cta2.size + 10)
     cover_top = bar_y + 9 + GAP + 10
@@ -184,11 +184,11 @@ def make_short_frame(art: Image.Image, cover_png: Path, headline: str, track_tit
     # 3) Albumname (identisch zu Video-/Albumtitel), Track, Hinweis auf den ganzen Mix
     y = cover_box[3] + GAP
     if album:
-        y = centered(album.upper(), f_album, y, config.TEAL) + 18
-    y = centered(f"{config.ARTIST.upper()}  ·  {track_title.upper()}", f_track, y, config.GREY) + GAP
+        y = centered(album, f_album, y, config.CREAM, shadow=True) + 18
+    y = centered(f"{config.ARTIST.upper()}  ·  {track_title.upper()}", f_track, y, config.WHITE, shadow=True) + GAP
     t1 = f"FULL {total_min} MIN ON THE CHANNEL" if total_min else "FULL MIX ON THE CHANNEL"
-    y = centered(t1, f_cta, y, config.TEAL) + 22
-    centered("link in description  ·  no vocals  ·  no interruptions", f_cta2, y, config.GREY)
+    y = centered(t1, f_cta, y, config.WHITE, shadow=True) + 22
+    centered("link in description  ·  no vocals  ·  no interruptions", f_cta2, y, config.CREAM, shadow=True)
     _check_no_overlap(boxes + [cover_box])
     out.parent.mkdir(parents=True, exist_ok=True)
     bg.save(out, "PNG")

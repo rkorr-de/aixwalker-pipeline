@@ -77,6 +77,11 @@ Optionen:
   Lang-Format 10 Bilder/s). Fällt der Bau aus, nutzt `run_mix.py` automatisch das Standbild-Video.
   `MIX_ANIMATED_VISUALS=0` schaltet auf das Standbild zurück.
   Gemessen auf 2 CPU-Kernen: ca. 7 Min Renderzeit je 60 Min Mix (vorher mit Wellenform ca. 15 Min).
+- **Look ab 08.10.2026** (Thumbnail-Analyse von 38 erfolgreichen Nischen-Videos): Bilder hell, warm und farbig
+  (`config.IMAGE_STYLE` je Genre), Motiv = Sehnsuchtsort, kein dunkler Verlauf. Eine Vorlage für Thumbnail, Album-Cover,
+  Track-Cover und Short: groß der Genre-Begriff (`config.THUMB_KEYWORD`, Montserrat), darunter der Albumname in
+  Schreibschrift (Great Vibes), Dauer oben rechts, „AIX WALKER" unten links. Album-Cover und Thumbnail nutzen dieselbe
+  Szene. Vorschau mit echten Bildern: `python preview_look.py --out build/look_preview`.
 - **Einheitlicher Name** (Wiedererkennung): YouTube-Titel beginnt mit dem Albumnamen, Thumbnail-Überschrift = Albumname,
   Album- und Track-Cover zeigen ihn, Short-Bild und Short-Titel enthalten ihn (`planner.unify_title`).
 - **Short-Ausschnitt** (`shorts.find_passages`): startet je Track am Beginn des Hauptteils, auf dem ersten Schlag –

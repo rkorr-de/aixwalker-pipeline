@@ -6,6 +6,9 @@ ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets"
 FONT_DISPLAY = ASSETS / "fonts" / "BebasNeue-Regular.ttf"
 FONT_BODY = ASSETS / "fonts" / "Manrope.ttf"
+# Neuer Look (Thumbnail-Analyse 08.10.2026): kräftige, breite Groteske für den Genre-Begriff + Schreibschrift für den Albumnamen
+FONT_TITLE = ASSETS / "fonts" / "Montserrat.ttf"          # Variable Font, ExtraBold wird gesetzt (OFL)
+FONT_SCRIPT = ASSETS / "fonts" / "GreatVibes-Regular.ttf"  # Schreibschrift (OFL)
 
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
 YT_CLIENT_ID = os.environ.get("YT_CLIENT_ID", "")
@@ -42,6 +45,37 @@ TEAL = (95, 201, 187)
 TEAL_DIM = (77, 122, 128)
 WHITE = (242, 247, 246)
 GREY = (185, 207, 208)
+CREAM = (255, 238, 214)
+GLOW = (255, 206, 140)    # atmendes Licht im Video: warmes Gold passend zum hellen Look   # Albumname in Schreibschrift (warm, auf hellen wie dunklen Motiven lesbar)
+
+# Groß auf Thumbnail und Album-Cover: der Suchbegriff des Genres (76 % der erfolgreichen Nischen-Thumbnails zeigen so einen
+# Begriff). Derselbe Begriff steht im YouTube-Titel direkt hinter dem Albumnamen → Video und Album sehen gleich aus.
+THUMB_KEYWORD = {
+    "Mediterranean Spa Lounge": "Chillout Lounge",
+    "Dark Ambient Spa": "Luxury Spa",
+    "Chillout Sleep": "Sleep Music",
+    "Slow Gym Beats": "Slow Gym Beats",
+    "Night Drive Deep Bass": "Night Drive",
+}
+
+# Bildstil je Genre (wird an jeden Bild-Prompt angehängt). Analyse 08.10.2026: erfolgreiche Thumbnails sind doppelt so hell
+# und mehr als doppelt so farbig wie unsere alten dunkel-teal Bilder – daher hell, warm, farbig für Lounge/Spa/Sleep.
+_NO_TEXT = " Photorealistic, high detail, no text, no letters, no watermark, no logos."
+IMAGE_STYLE = {
+    "Mediterranean Spa Lounge": (" Bright, warm, vivid luxury resort photography: golden-hour sunset or sunny Mediterranean "
+                                 "daylight, rich saturated colors (turquoise water, white architecture, warm orange and pink "
+                                 "sky), inviting and aspirational, clean high-end travel-magazine look, wide composition." + _NO_TEXT),
+    "Dark Ambient Spa": (" Warm, inviting luxury spa photography: glowing candlelight and golden tones, rich warm colors with fresh "
+                         "green leaves or blossom accents, soft steam, polished stone and wood, bright enough to read well on a "
+                         "phone screen, high-end wellness-magazine look." + _NO_TEXT),
+    "Chillout Sleep": (" Calm, dreamy evening photography: soft warm lights against a deep blue dusk sky, gentle but colorful, "
+                       "cozy and safe, clear and not murky, high-end interior or nature photography." + _NO_TEXT),
+    "Slow Gym Beats": (" Cinematic, moody, dark teal and charcoal palette with a single warm highlight, high contrast, "
+                       "shallow depth of field." + _NO_TEXT),
+    "Night Drive Deep Bass": (" Cinematic night photography, deep blues with glowing city or neon lights, high contrast, "
+                              "rich colors." + _NO_TEXT),
+}
+DEFAULT_GENRE = "Mediterranean Spa Lounge"
 
 TARGET_LUFS = -14.0
 MIN_MIX_MINUTES = 60      # jeder Mix mindestens so lang

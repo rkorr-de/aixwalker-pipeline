@@ -2,13 +2,13 @@
 
 Warum kein Pegel-/Wellenform-Balken mehr (Rolf, 07.10.2026): Die Wellenform war zu unruhig und klobig und hat bei den
 Shorts (mit Zoom) den unteren Text verdeckt. Stattdessen:
-- ein weicher Teal-Schein um das Cover, dessen Helligkeit langsam der Lautstärke folgt (geglättet über 1–2 s,
+- ein weicher Gold-Schein um das Cover, dessen Helligkeit langsam der Lautstärke folgt (geglättet über 1–2 s,
   Spannweite gering) – Bewegung ja, Unruhe nein; passt zu Spa/Sleep/Lounge
 - das Cover selbst und alle Textflächen bleiben unberührt (Schein ist dort ausgespart, weich ausgeblendet)
 - kein Zoom im Short: Text steht ruhig, nichts schiebt sich übereinander
 
 Technik: Lautstärke-Hüllkurve je Videobild in numpy → winziges Graustufen-Video (16×9 px) → ffmpeg skaliert es und
-multipliziert es mit einer Glow-Maske (nur Bereich um das Cover) → Teal-Fläche mit dieser Deckkraft über das Standbild.
+multipliziert es mit einer Glow-Maske (nur Bereich um das Cover) → Gold-Fläche mit dieser Deckkraft über das Standbild.
 """
 import json
 import subprocess
@@ -68,7 +68,7 @@ def _write_env_video(env: np.ndarray, path: Path) -> Path:
 def make_glow(size: tuple[int, int], cover: tuple[int, int, int, int], out: Path,
               clear: list[tuple[int, int, int, int]] | None = None, spread: int | None = None,
               strength: float = 0.55) -> tuple[Path, tuple[int, int]]:
-    """Deckkraft-Maske (Graustufen) des weichen Teal-Scheins um das Cover (x0, y0, x1, y1), nur für den Bereich um das
+    """Deckkraft-Maske (Graustufen) des weichen Gold-Scheins um das Cover (x0, y0, x1, y1), nur für den Bereich um das
     Cover zugeschnitten. Das Cover selbst und `clear`-Flächen (Text) bleiben frei, mit weichem Übergang.
     Liefert (Pfad, (x, y)) – die Position der Maske im Bild."""
     w, h = size
@@ -99,9 +99,9 @@ def _hold(fps: float) -> str:
 
 
 def _glow_graph(w: int, h: int, fps: float, mask: Path, pos: tuple[int, int], still_bg: bool = False) -> str:
-    """Hintergrund [0:v] + Teal-Fläche, deren Deckkraft = Maske [2:v] × Hüllkurve [3:v]."""
+    """Hintergrund [0:v] + Gold-Fläche, deren Deckkraft = Maske [2:v] × Hüllkurve [3:v]."""
     mw, mh = Image.open(mask).size
-    hexcol = "0x%02x%02x%02x" % config.TEAL
+    hexcol = "0x%02x%02x%02x" % config.GLOW
     bg = f"[0:v]{_hold(fps)},scale={w}:{h},format=yuv420p[bg];" if still_bg else \
         f"[0:v]scale={w}:{h},fps={fps},format=yuv420p[bg];"
     return (f"[3:v]scale={mw}:{mh}:flags=bilinear,format=gray[env];"
@@ -124,7 +124,7 @@ def make_animated_frame(cover_png: Path, out: Path, w: int = 1920, h: int = 1080
     cover = Image.open(cover_png).convert("RGB")
     bg = cover.resize((w, w), Image.LANCZOS).crop((0, (w - h) // 2, w, (w - h) // 2 + h))
     bg = bg.filter(ImageFilter.GaussianBlur(40))
-    bg = Image.blend(bg, Image.new("RGB", (w, h), (0, 0, 0)), 0.55)
+    bg = Image.blend(bg, Image.new("RGB", (w, h), (0, 0, 0)), 0.38)
     x0, y0, x1, y1 = mix_cover_rect(w, h)
     side = x1 - x0
     c = cover.resize((side, side), Image.LANCZOS)

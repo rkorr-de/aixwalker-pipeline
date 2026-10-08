@@ -139,7 +139,7 @@ def produce(genre: str, month: str, pairs: list[tuple[dict, dict]], out: Path, m
         art = images.procedural_art("16:9", seed=1)
     else:
         try:
-            art = images.generate_art(monthly.hero_prompt(genre), "16:9", pro=True)
+            art = images.generate_art(monthly.hero_prompt(genre), "16:9", pro=True, style=images.style_for(genre))
             
         except Exception as e:  # noqa: BLE001
             log(f"Motiv-Erzeugung fehlgeschlagen ({e}) – Cover des letzten Mixes als Ersatz")

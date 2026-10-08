@@ -20,8 +20,9 @@ Zweimal pro Woche (Dienstag und Freitag) erscheint ein neuer Mix, der wie ein ku
   **Keine Reprisen, keine inhaltlich gleichen Tracks** – fehlt Länge, werden nur komplett neue Tracks erzeugt.
 - Track-Titel sind Eigenkreationen, alphabetisch sortiert, werden **nie wiederverwendet** (Gedächtnis prüft das).
 - Dauer im Titel/Hook erst nach dem Rendern: Platzhalter `{MIN}` / `{HOURS}` (ersetzt die Pipeline).
-- **Ein Name überall** (Rolf, 07.10.2026, zwingend): YouTube-Titel beginnt mit dem Albumnamen, Thumbnail-Überschrift,
-  Album-/Track-Cover und Short-Bild/-Titel zeigen exakt diesen Namen. Die Pipeline erzwingt das – nicht umgehen.
+- **Ein Name, ein Look** (Rolf, 07./08.10.2026, zwingend): YouTube-Titel = „Albumname · Genre-Begriff · …“. Thumbnail und
+  Album-Cover zeigen denselben Genre-Begriff groß und den Albumnamen in Schreibschrift, im hellen, warmen Bildstil.
+  Die Pipeline erzwingt das – nicht umgehen, nicht auf den alten dunklen Teal-Look zurückbauen.
 - Visuals: atmendes Licht um das Cover (keine Wellenform), Shorts ohne Zoom und ohne Überlagerungen; Short-Clips
   starten am Beat-Einsatz des Hauptteils. Bitte nicht auf die alte Wellenform zurückbauen.
 - KI-Label beim Upload immer gesetzt. **Mix und beide Shorts werden sofort ÖFFENTLICH veröffentlicht.**

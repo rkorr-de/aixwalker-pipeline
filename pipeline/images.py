@@ -10,10 +10,12 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from . import config, costs
 
-STYLE_SUFFIX = (
-    " Cinematic, moody, dark teal and charcoal palette with a single warm highlight, "
-    "high contrast, photorealistic, shallow depth of field, no text, no letters, no watermark, no logos."
-)
+STYLE_SUFFIX = config.IMAGE_STYLE[config.DEFAULT_GENRE]   # Standard: heller, warmer Lounge-Look
+
+
+def style_for(genre: str | None) -> str:
+    """Bildstil je Genre (siehe config.IMAGE_STYLE)."""
+    return config.IMAGE_STYLE.get(genre or "", STYLE_SUFFIX)
 
 
 def _find_inline_image(obj):
@@ -36,14 +38,15 @@ def _find_inline_image(obj):
     return None
 
 
-def generate_art(prompt: str, aspect: str = "1:1", pro: bool = False, timeout: int = 180) -> Image.Image:
+def generate_art(prompt: str, aspect: str = "1:1", pro: bool = False, timeout: int = 180,
+                 style: str | None = None) -> Image.Image:
     """Erzeugt ein Bildmotiv. Ohne API-Key wird ein prozedurales Fallback-Bild erzeugt."""
     if not config.GOOGLE_API_KEY:
         return procedural_art(aspect)
     model = config.IMAGE_MODEL_PRO if pro else config.IMAGE_MODEL
     url = f"{config.GEMINI_BASE}/models/{model}:generateContent"
     body = {
-        "contents": [{"parts": [{"text": prompt + STYLE_SUFFIX}]}],
+        "contents": [{"parts": [{"text": prompt + (style if style is not None else STYLE_SUFFIX)}]}],
         "generationConfig": {"responseModalities": ["IMAGE"],
                              "imageConfig": {"aspectRatio": aspect}},
     }
@@ -69,31 +72,36 @@ def generate_art(prompt: str, aspect: str = "1:1", pro: bool = False, timeout: i
 
 
 def procedural_art(aspect: str = "1:1", seed: int | None = None) -> Image.Image:
-    """Dunkles Verlaufsbild mit Lichtflecken, als Notfall-Motiv und für Dry-Runs."""
+    """Ersatzmotiv ohne API (Dry-Run, Notfall): warmer Sonnenuntergangs-Verlauf über Meer, damit der Look stimmt."""
     rnd = random.Random(seed)
     w, h = (1024, 1024) if aspect == "1:1" else (1344, 768)
-    img = Image.new("RGB", (w, h), config.BG)
+    img = Image.new("RGB", (w, h))
     d = ImageDraw.Draw(img)
-    for _ in range(6):
-        cx, cy = rnd.randint(0, w), rnd.randint(0, h)
-        r = rnd.randint(w // 4, w // 2)
-        col = rnd.choice([config.BG2, (20, 48, 52), (30, 70, 72), (90, 60, 40)])
-        d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=col)
-    img = img.filter(ImageFilter.GaussianBlur(w // 8))
-    d = ImageDraw.Draw(img)
-    for i in range(0, w, 64):
-        d.line([(i, 0), (i, h)], fill=(20, 40, 44), width=1)
-    for j in range(0, h, 64):
-        d.line([(0, j), (w, j)], fill=(20, 40, 44), width=1)
-    return img
+    horizon = int(h * rnd.uniform(0.52, 0.62))
+    sky = [(255, 196, 120), (246, 128, 92), (122, 92, 150)]
+    for y in range(horizon):
+        t = y / horizon
+        c = [int(sky[2][k] * (1 - t) + sky[1][k] * t) if t < 0.6 else int(sky[1][k] * (1 - (t - .6) / .4) + sky[0][k] * (t - .6) / .4) for k in range(3)]
+        d.line([(0, y), (w, y)], fill=tuple(c))
+    for y in range(horizon, h):
+        t = (y - horizon) / (h - horizon)
+        c = (int(40 + 30 * (1 - t)), int(150 - 60 * t), int(170 - 50 * t))
+        d.line([(0, y), (w, y)], fill=c)
+    sx = int(w * rnd.uniform(0.3, 0.7))
+    d.ellipse([sx - w // 14, horizon - w // 9, sx + w // 14, horizon + w // 60], fill=(255, 226, 160))
+    for i in range(40):
+        y = horizon + int((h - horizon) * (i / 40) ** 1.5)
+        d.line([(sx - 10 - i * 3, y), (sx + 10 + i * 3, y)], fill=(255, 210, 150), width=2)
+    return img.filter(ImageFilter.GaussianBlur(2))
 
 
-def _font(path: Path, size: int) -> ImageFont.FreeTypeFont:
-    f = ImageFont.truetype(str(path), size)
-    if "Manrope" in str(path):
+def _font(path: Path, size: int, weight: str | None = None) -> ImageFont.FreeTypeFont:
+    f = ImageFont.truetype(str(path), max(8, int(size)))
+    want = weight or ("Bold" if "Manrope" in str(path) else "ExtraBold" if "Montserrat" in str(path) else None)
+    if want:
         try:
-            f.set_variation_by_name("Bold")
-        except Exception:  # noqa: BLE001
+            f.set_variation_by_name(want)
+        except Exception:  # noqa: BLE001 – keine Variable Font
             pass
     return f
 
@@ -122,91 +130,156 @@ def _wrap(draw, text, font, max_w):
     return lines
 
 
-def _darken_bottom(img: Image.Image, strength: float = 0.75) -> Image.Image:
+# ---------------------------------------------------------------- Vorlage (Look ab 08.10.2026)
+# Gleich auf Thumbnail, Album-Cover, Track-Cover und Short: helles Motiv ohne dunklen Verlauf, mittig groß der
+# Genre-Begriff (Montserrat ExtraBold, gesperrt), darunter der Albumname in Schreibschrift, Lesbarkeit nur über weiche
+# Schatten direkt an der Schrift, oben rechts die Dauer, unten links klein „AIX WALKER".
+
+def duration_label(total_min: int | None) -> str:
+    if not total_min:
+        return ""
+    if total_min < 55:
+        return f"{total_min} MIN"
+    hours = round(total_min / 60 * 2) / 2
+    return f"{hours:g} HOUR" + ("" if hours == 1 else "S")
+
+
+def _tracked_width(draw, text, font, track):
+    return sum(draw.textlength(ch, font=font) for ch in text) + track * max(0, len(text) - 1)
+
+
+def _draw_tracked(draw, xy, text, font, fill, track):
+    x, y = xy
+    for ch in text:
+        draw.text((x, y), ch, font=font, fill=fill)
+        x += draw.textlength(ch, font=font) + track
+
+
+def _fit_tracked(draw, text, path, max_w, start, min_size, track_em, weight=None):
+    size = start
+    while size > min_size:
+        f = _font(path, size, weight)
+        if _tracked_width(draw, text, f, f.size * track_em) <= max_w:
+            return f
+        size -= 4
+    return _font(path, min_size, weight)
+
+
+def _soft_shadow(img: Image.Image, paint, radius: float, alpha: int, offset: tuple[int, int] = (0, 0)) -> None:
+    """Weicher Schatten: `paint(draw)` zeichnet die Form weiß auf eine Maske, die verwischt und dunkel aufgelegt wird."""
+    m = Image.new("L", img.size, 0)
+    paint(ImageDraw.Draw(m))
+    m = m.filter(ImageFilter.GaussianBlur(radius))
+    if offset != (0, 0):
+        m = _shift(m, offset)
+    shade = Image.new("RGB", img.size, (8, 10, 14))
+    img.paste(shade, (0, 0), m.point(lambda v: v * alpha // 255))
+
+
+def _shift(m: Image.Image, off: tuple[int, int]) -> Image.Image:
+    out = Image.new("L", m.size, 0)
+    out.paste(m, off)
+    return out
+
+
+def _title_block(img: Image.Image, keyword: str, album: str | None, cy: int, max_w: int, scale: float,
+                 kw_start: float = 0.16) -> tuple[int, int]:
+    """Zeichnet Genre-Begriff + Albumname zentriert um die Höhe `cy`. Liefert (oben, unten) des Blocks."""
     w, h = img.size
-    overlay = Image.new("L", (w, h), 0)
-    od = ImageDraw.Draw(overlay)
-    for y in range(h // 2, h):
-        a = int(255 * strength * ((y - h / 2) / (h / 2)) ** 1.3)
-        od.line([(0, y), (w, y)], fill=a)
-    black = Image.new("RGB", (w, h), (0, 0, 0))
-    return Image.composite(black, img, overlay)
-
-
-def make_track_cover(art: Image.Image, title: str, track_no: int, album: str, out: Path, size: int = 1400) -> Path:
-    img = art.resize((size, size), Image.LANCZOS)
-    img = _darken_bottom(img, 0.85)
     d = ImageDraw.Draw(img)
-    m = int(size * 0.07)
-    small = _font(config.FONT_BODY, int(size * 0.026))
-    d.text((m, m), f"{config.ARTIST.upper()}  ·  {album.upper()}", font=small, fill=config.TEAL)
-    d.text((m, m + int(size * 0.04)), f"TRACK {track_no:02d}", font=small, fill=config.GREY)
-    f = _fit_text(d, title.upper(), config.FONT_DISPLAY, size - 2 * m, int(size * 0.16), int(size * 0.08))
-    lines = _wrap(d, title.upper(), f, size - 2 * m)
-    lh = int(f.size * 0.95)
-    y = size - m - lh * len(lines)
-    for ln in lines:
-        d.text((m, y), ln, font=f, fill=config.WHITE)
-        y += lh
-    d.rectangle([m, size - m + int(size * 0.02), m + int(size * 0.08), size - m + int(size * 0.026)], fill=config.TEAL)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    img.save(out, "PNG", optimize=True)
-    return out
+    kw = keyword.upper()
+    fk = _fit_tracked(d, kw, config.FONT_TITLE, max_w, int(h * kw_start), int(h * 0.06), 0.06)
+    tk = fk.size * 0.06
+    kw_w = _tracked_width(d, kw, fk, tk)
+    kb = d.textbbox((0, 0), kw, font=fk)
+    kw_h = kb[3] - kb[1]
+    fa = None
+    if album:
+        fa = _fit_text(d, album, config.FONT_SCRIPT, int(max_w * 0.95), int(fk.size * 1.35), int(h * 0.06))
+        ab = d.textbbox((0, 0), album, font=fa)
+        al_w, al_h = ab[2] - ab[0], ab[3] - ab[1]
+    gap = int(fk.size * 0.10)
+    total = kw_h + (gap + al_h if album else 0)
+    top = cy - total // 2
+    kx, ky = (w - kw_w) / 2, top - kb[1]
+    if album:
+        ax, ay = (w - al_w) / 2 - ab[0], top + kw_h + gap - ab[1]
 
-
-def make_album_cover(art: Image.Image, album: str, subtitle: str, out: Path, size: int = 3000) -> Path:
-    img = art.resize((size, size), Image.LANCZOS)
-    img = _darken_bottom(img, 0.8)
+    def paint(md):
+        _draw_tracked(md, (kx, ky), kw, fk, 255, tk)
+        if album:
+            md.text((ax, ay), album, font=fa, fill=255)
+    # zwei Schattenlagen: breiter weicher Hof + enger Schatten → lesbar auf hellem wie dunklem Motiv, ohne Fläche
+    _soft_shadow(img, paint, radius=max(6, fk.size * 0.28), alpha=110)
+    _soft_shadow(img, paint, radius=max(2, fk.size * 0.05), alpha=150, offset=(0, int(3 * scale)))
     d = ImageDraw.Draw(img)
-    m = int(size * 0.07)
-    small = _font(config.FONT_BODY, int(size * 0.028))
-    d.text((m, m), config.ARTIST.upper(), font=small, fill=config.TEAL)
-    f = _fit_text(d, album.upper(), config.FONT_DISPLAY, size - 2 * m, int(size * 0.17), int(size * 0.08))
-    lines = _wrap(d, album.upper(), f, size - 2 * m)
-    lh = int(f.size * 0.95)
-    sub = _font(config.FONT_BODY, int(size * 0.03))
-    y = size - m - lh * len(lines) - int(size * 0.05)
-    for ln in lines:
-        d.text((m, y), ln, font=f, fill=config.WHITE)
-        y += lh
-    d.text((m, y + int(size * 0.01)), subtitle.upper(), font=sub, fill=config.GREY)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    img.save(out, "PNG", optimize=True)
-    return out
+    _draw_tracked(d, (kx, ky), kw, fk, config.WHITE, tk)
+    if album:
+        d.text((ax, ay), album, font=fa, fill=config.CREAM)
+    return top, top + total
 
 
-def make_thumbnail(art: Image.Image, headline: str, sub: str, out: Path, w: int = 1280, h: int = 720) -> Path:
-    """YouTube-Thumbnail: Motiv rechts, Textblock links, hoher Kontrast, max. 3 Wörter Headline."""
+def _corner_labels(img: Image.Image, scale: float, duration: str = "", mark: bool = True) -> None:
+    w, h = img.size
+    m = int(min(w, h) * 0.05)
+    d = ImageDraw.Draw(img)
+    items = []
+    if duration:
+        fd = _font(config.FONT_TITLE, h * 0.05, "Bold")
+        tw = _tracked_width(d, duration, fd, fd.size * 0.12)
+        items.append(((w - m - tw, m), duration, fd, fd.size * 0.12, config.WHITE))
+    if mark:
+        fm = _font(config.FONT_TITLE, min(w, h) * 0.028, "SemiBold")
+        bb = d.textbbox((0, 0), "AIX WALKER", font=fm)
+        items.append(((m, h - m - (bb[3] - bb[1]) - bb[1]), "AIX WALKER", fm, fm.size * 0.35, config.WHITE))
+
+    def paint(md):
+        for (x, y), t, f, tr, _ in items:
+            _draw_tracked(md, (x, y), t, f, 255, tr)
+    if items:
+        _soft_shadow(img, paint, radius=max(3, h * 0.012), alpha=150)
+        d = ImageDraw.Draw(img)
+        for (x, y), t, f, tr, col in items:
+            _draw_tracked(d, (x, y), t, f, col, tr)
+
+
+def _cover_crop(art: Image.Image, w: int, h: int) -> Image.Image:
     aw, ah = art.size
-    scale = max(w / aw, h / ah)
-    img = art.resize((int(aw * scale), int(ah * scale)), Image.LANCZOS)
-    img = img.crop(((img.width - w) // 2, (img.height - h) // 2, (img.width - w) // 2 + w, (img.height - h) // 2 + h))
-    # linke Seite abdunkeln
-    overlay = Image.new("L", (w, h), 0)
-    od = ImageDraw.Draw(overlay)
-    for x in range(int(w * 0.65)):
-        a = int(210 * (1 - x / (w * 0.65)) ** 1.2)
-        od.line([(x, 0), (x, h)], fill=a)
-    img = Image.composite(Image.new("RGB", (w, h), (5, 10, 12)), img, overlay)
-    d = ImageDraw.Draw(img)
-    m = 64
-    f = _fit_text(d, headline.upper(), config.FONT_DISPLAY, int(w * 0.6), 190, 90)
-    lines = _wrap(d, headline.upper(), f, int(w * 0.6))
-    lh = int(f.size * 0.92)
-    subf = _font(config.FONT_BODY, 44)
-    total = lh * len(lines) + 70
-    y = (h - total) // 2
-    for ln in lines:
-        # Schatten
-        d.text((m + 6, y + 6), ln, font=f, fill=(0, 0, 0))
-        d.text((m, y), ln, font=f, fill=config.WHITE)
-        y += lh
-    d.rectangle([m, y + 14, m + 120, y + 22], fill=config.TEAL)
-    d.text((m + 140, y + 2), sub.upper(), font=subf, fill=config.TEAL)
+    sc = max(w / aw, h / ah)
+    img = art.resize((int(aw * sc) + 1, int(ah * sc) + 1), Image.LANCZOS)
+    return img.crop(((img.width - w) // 2, (img.height - h) // 2, (img.width - w) // 2 + w, (img.height - h) // 2 + h))
+
+
+def make_thumbnail(art: Image.Image, keyword: str, album: str, out: Path, duration: str = "",
+                   w: int = 1280, h: int = 720) -> Path:
+    """YouTube-Thumbnail im neuen Look: helles Motiv, mittig Genre-Begriff + Albumname, Dauer oben rechts."""
+    img = _cover_crop(art, w, h).convert("RGB")
+    _title_block(img, keyword, album, cy=int(h * 0.47), max_w=int(w * 0.80), scale=h / 720)
+    _corner_labels(img, h / 720, duration)
     out.parent.mkdir(parents=True, exist_ok=True)
     img.save(out, "JPEG", quality=92)
     if out.stat().st_size > 2_000_000:
         img.save(out, "JPEG", quality=80)
+    return out
+
+
+def make_album_cover(art: Image.Image, keyword: str, album: str, out: Path, size: int = 3000) -> Path:
+    """Album-Cover (DistroKid, 3000×3000) – gleicher Look und gleicher Name wie das Thumbnail."""
+    img = _cover_crop(art, size, size).convert("RGB")
+    _title_block(img, keyword, album, cy=int(size * 0.5), max_w=int(size * 0.84), scale=size / 720, kw_start=0.11)
+    _corner_labels(img, size / 720, "")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    img.save(out, "PNG", optimize=True)
+    return out
+
+
+def make_track_cover(art: Image.Image, title: str, track_no: int, album: str, out: Path, size: int = 1400) -> Path:
+    """Track-Cover (MP3-Tag und Videobild): gleicher Look – Tracktitel groß, darunter der Albumname in Schreibschrift."""
+    img = _cover_crop(art, size, size).convert("RGB")
+    _title_block(img, title, album, cy=int(size * 0.5), max_w=int(size * 0.84), scale=size / 720, kw_start=0.10)
+    _corner_labels(img, size / 720, f"TRACK {track_no:02d}")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    img.save(out, "PNG", optimize=True)
     return out
 
 
