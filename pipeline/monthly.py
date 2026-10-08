@@ -223,6 +223,17 @@ def _track_cover(mp3: Path, dst: Path) -> Path | None:
         return None
 
 
+NO_LABEL_SINCE = "2026-10-09"   # ab diesem Tag erzeugte Track-Cover haben keine Tracknummer mehr
+
+
+def _has_track_label(mp3: Path) -> bool:
+    """Ältere Mixe (Ordner-/Dateidatum vor NO_LABEL_SINCE) haben „TRACK nn“ im Cover. Ordnername beginnt mit dem Datum."""
+    for part in mp3.parts[::-1]:
+        if len(part) >= 10 and part[:4].isdigit() and part[4] == "-" and part[7] == "-":
+            return part[:10] < NO_LABEL_SINCE
+    return True
+
+
 def build_animated_video(pairs: list[tuple[dict, dict]], audio_file: Path, starts: list[float], out: Path,
                          fps: int = 10) -> Path:
     """Video mit atmendem Licht + Fortschrittsstrich für Zusammenschnitte (Samstags-/Monats-Mix, Rolf 08.10.2026):
@@ -237,7 +248,9 @@ def build_animated_video(pairs: list[tuple[dict, dict]], audio_file: Path, start
     for i, (_, mx) in enumerate(pairs):
         for t in mx["tracks"]:
             own = _track_cover(Path(t), fdir / f"cover{n:03d}.png")
-            if own:
+            if own:   # ältere Cover tragen noch „TRACK nn“ → im Komplettvideo verwischen (neue Cover haben keine Nummer)
+                if _has_track_label(Path(t)):
+                    images.remove_track_label(Image.open(own)).save(own)
                 frames.append(visuals.make_animated_frame(own, fdir / f"t{n:03d}.png"))
             else:
                 if i not in album_frames:

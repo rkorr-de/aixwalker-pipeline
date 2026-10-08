@@ -5,6 +5,7 @@ import math
 import random
 from pathlib import Path
 
+import numpy as np
 import requests
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
@@ -340,10 +341,43 @@ def make_track_cover(art: Image.Image, title: str, track_no: int, album: str, ou
     """Track-Cover (MP3-Tag und Videobild): gleicher Look – Tracktitel groß, darunter der Albumname in Schreibschrift."""
     img = _cover_crop(art, size, size).convert("RGB")
     _title_block(img, title, album, cy=int(size * 0.5), max_w=int(size * 0.84), scale=size / 720, kw_start=0.10)
-    _corner_labels(img, size / 720, f"TRACK {track_no:02d}")
+    _corner_labels(img, size / 720, "")   # keine Tracknummer mehr im Cover (Rolf 08.10.2026: im Komplettvideo unnötig)
     out.parent.mkdir(parents=True, exist_ok=True)
     img.save(out, "PNG", optimize=True)
     return out
+
+
+def remove_track_label(img: Image.Image) -> Image.Image:
+    """Ältere Track-Cover (bis 08.10.2026) tragen „TRACK 10“ fest oben rechts. In Zusammenschnitten (Samstags-/Monats-Mix)
+    wird diese Nummer entfernt – keine Tracknummern im Komplettvideo (Rolf 08.10.2026). Retusche: die Schriftfläche wird
+    aus der Umgebung aufgefüllt (OpenCV-Inpainting) und weich eingeblendet; ohne OpenCV starkes Verwischen."""
+    img = img.convert("RGB").copy()
+    w, h = img.size
+    m = int(min(w, h) * 0.05)
+    d = ImageDraw.Draw(img)
+    fd = _font(config.FONT_TITLE, h * 0.05, "Bold")
+    tw = max(_tracked_width(d, f"TRACK {n}", fd, fd.size * 0.12) for n in ("00", "88", "99", "08", "10"))
+    grow = int(max(10, h * 0.02))
+    text_box = (int(max(0, w - m - tw - grow)), int(max(0, m - grow)), w, int(min(h, m + fd.size * 1.3 + grow)))
+    pad = int(max(14, h * 0.04))
+    box = (max(0, text_box[0] - pad), 0, w, min(h, text_box[3] + pad))
+    region = img.crop(box)
+    tmask = Image.new("L", region.size, 0)
+    ImageDraw.Draw(tmask).rectangle([text_box[0] - box[0], text_box[1] - box[1], region.size[0], text_box[3] - box[1]],
+                                    fill=255)
+    try:
+        import cv2
+        arr = cv2.cvtColor(np.asarray(region), cv2.COLOR_RGB2BGR)
+        fixed = cv2.inpaint(arr, np.asarray(tmask), int(max(6, fd.size * 0.25)), cv2.INPAINT_TELEA)
+        filled = Image.fromarray(cv2.cvtColor(fixed, cv2.COLOR_BGR2RGB)).filter(ImageFilter.GaussianBlur(fd.size * 0.45))
+    except Exception:  # noqa: BLE001 – Ersatz ohne OpenCV
+        filled = region.filter(ImageFilter.GaussianBlur(max(20, fd.size * 1.6)))
+    from PIL import ImageChops
+    soft = tmask.filter(ImageFilter.MaxFilter(9)).filter(ImageFilter.GaussianBlur(pad * 0.6))
+    core = tmask.filter(ImageFilter.MinFilter(2 * (grow // 2) + 1)).filter(ImageFilter.GaussianBlur(grow * 0.7))
+    soft = ImageChops.lighter(soft, core)           # Schrift voll deckend, Kanten weich (Rand = Puffer `grow`)
+    img.paste(filled, box[:2], soft)
+    return img
 
 
 def add_subscribe_badge(img: Image.Image) -> Image.Image:
