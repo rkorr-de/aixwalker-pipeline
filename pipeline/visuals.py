@@ -113,8 +113,7 @@ def _glow_graph(w: int, h: int, fps: float, mask: Path, pos: tuple[int, int], st
 
 # ---------------------------------------------------------------- Fortschrittsstrich (Rolf 08.10.2026)
 # Hauchdünner Verlaufsstrich ganz unten, der pro Song von links nach rechts mitläuft und beim nächsten Song neu beginnt.
-# Farben je Song aus dessen Cover gemessen; darunter eine kaum sichtbare Spur. Liegt UNTER dem Kanal-Logo (Logo endet
-# ca. 28 px über der Unterkante) – kein Überlappen.
+# Farben je Song aus dessen Cover gemessen; darunter eine kaum sichtbare Spur. Ganz unten am Bildrand.
 BAR_H = 3            # Strichstärke in px bei 1080p
 BAR_BOTTOM = 4       # Abstand zur Unterkante in px
 
@@ -179,7 +178,7 @@ def mix_cover_rect(w: int = 1920, h: int = 1080) -> tuple[int, int, int, int]:
 
 
 def make_animated_frame(cover_png: Path, out: Path, w: int = 1920, h: int = 1080) -> Path:
-    """Videobild pro Track: Cover mittig auf unscharfem, abgedunkeltem Hintergrund, Kanalname klein unten links."""
+    """Videobild pro Track: Cover mittig auf unscharfem, abgedunkeltem Hintergrund (ohne Kanal-Schriftzug)."""
     cover = Image.open(cover_png).convert("RGB")
     bg = cover.resize((w, w), Image.LANCZOS).crop((0, (w - h) // 2, w, (w - h) // 2 + h))
     bg = bg.filter(ImageFilter.GaussianBlur(40))
@@ -192,9 +191,7 @@ def make_animated_frame(cover_png: Path, out: Path, w: int = 1920, h: int = 1080
     shadow = shadow.filter(ImageFilter.GaussianBlur(30))
     bg.paste(shadow, (x0 - 40, y0 - 28), shadow)
     bg.paste(c, (x0, y0))
-    d = ImageDraw.Draw(bg, "RGBA")
-    d.text((60, h - 56), f"{config.ARTIST.upper()}  ·  {config.CHANNEL_HANDLE.upper()}",
-           font=_font(config.FONT_BODY, 26), fill=(255, 255, 255, 150))
+    # kein Kanal-Schriftzug unten links mehr (Rolf 08.10.2026: steht schon auf jedem Cover)
     out.parent.mkdir(parents=True, exist_ok=True)
     bg.save(out, "PNG")
     return out
@@ -212,8 +209,7 @@ def build_video_animated(frames: list[Path], starts: list[float], audio_wav: Pat
         lines.append(f"file '{f.resolve()}'\nduration {max(0.5, end - starts[i]):.3f}")
     lines.append(f"file '{frames[-1].resolve()}'")
     concat.write_text("\n".join(lines))
-    glow, pos = make_glow((w, h), mix_cover_rect(w, h), out.parent / "glow.png",
-                          clear=[(40, h - 70, 700, h - 20)])     # Kanalname unten links frei lassen
+    glow, pos = make_glow((w, h), mix_cover_rect(w, h), out.parent / "glow.png")
     env = _write_env_video(envelope(audio_wav, fps), out.parent / "glow_env.gray")
     # Fortschrittsstrich je Song (Farben aus dem jeweiligen Cover; gleiche Bilder → gleiche Streifen wiederverwenden)
     bdir = out.parent / "progress"
