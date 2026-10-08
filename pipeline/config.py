@@ -30,6 +30,7 @@ TEXT_MODEL_FALLBACK = os.environ.get("TEXT_MODEL_FALLBACK", "gemini-3.8-flash")
 ARTIST = "Aix Walker"
 CHANNEL_HANDLE = "@AIXWALKER"
 CHANNEL_URL = "https://www.youtube.com/@AIXWALKER"
+LOGO_PNG = ASSETS / "brand" / "aixwalker_logo.png"   # rundes Kanal-Logo, unten links im Mix-Video (Rolf 08.10.2026)
 
 PLAYLISTS = {
     "gym": "PLVJixyQyNYDc",       # nur noch für alte Videos – Gym-Mixe eingestellt (08.10.2026)
