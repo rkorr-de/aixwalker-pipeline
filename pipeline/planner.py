@@ -276,7 +276,8 @@ def choose_brief(mem: dict, analytics_rows: list[dict] | None = None, seed: int 
 
 
 def brief_text(b: dict) -> str:
-    fmt = (f"Format: LONG sleep/relax session of {config.LONG_MIN_MINUTES // 60} hours or more "
+    session = "evening dinner-lounge" if b.get("genre") in ROTATION_EXCLUDE else "sleep/relax"
+    fmt = (f"Format: LONG {session} session of {config.LONG_MIN_MINUTES // 60} hours or more "
            f"({config.LONG_PLANNED_TRACKS}+{config.LONG_EXTRA_TRACKS} track titles). Use {{HOURS}} in the title, never {{MIN}}. "
            f"Even more continuous, seamless and calm than a normal mix; tracks flow into each other.\n" if b.get("long") else "")
     if b.get("style"):
