@@ -51,11 +51,16 @@ Danach bekommt Rolf eine E-Mail mit Link und allen Infos.
 
 ## Schritt 2 – Produktion
 
-Führe aus (ein Befehl, läuft 10–20 Minuten):
+Der Lauf dauert 15–30 Minuten – **länger als das Zeitlimit eines einzelnen Befehls** (am 08.10.2026 deshalb
+abgebrochen). Darum **immer im Hintergrund starten und das Log abfragen**:
 
 ```bash
-python run_kids_short.py --publish-local 16:00 2>&1 | tee build/kids/run.log
+mkdir -p build/kids && nohup python run_kids_short.py --publish-local 16:00 > build/kids/run.log 2>&1 &
 ```
+
+Danach alle 2–5 Minuten `sleep 240; tail -5 build/kids/run.log` (jeder einzelne Befehl unter 10 Minuten), bis
+`pgrep -f run_kids_short.py` nichts mehr liefert. Nie den Lauf abbrechen oder parallel ein zweites Mal starten,
+solange er noch läuft. Dasselbe Muster (nohup … &, dann Log abfragen) gilt für Schritt 4b und 4c.
 
 Das Skript macht alles selbst: Tier + Lehrinhalt wählen, die laut Verlauf (`Giggle Meadow Shorts/_verlauf.json`
 in Drive) lange nicht dran waren, Story schreiben und von einem strengeren Modell prüfen lassen (Logik, Lerninhalt,
@@ -112,7 +117,7 @@ prüfen. Erst wenn `public` bestätigt ist, geht es zu Schritt 5.
 Sobald der Short öffentlich ist:
 
 ```bash
-python run_kids_compilation.py --upload 2>&1 | tee build/kids/compilation.log
+nohup python run_kids_compilation.py --upload > build/kids/compilation.log 2>&1 &   # dann Log abfragen wie in Schritt 2
 ```
 
 Das Skript wählt den Modus selbst (Sonntag = „weekly“, 1. des Monats = „monthly“, sonst „daily“), holt
@@ -131,7 +136,7 @@ ersten Tagen normal und nur ein Hinweis in der Mail.
 Direkt nach 4b:
 
 ```bash
-python run_kids_compilation.py --vertical --if-due --upload --publish-tomorrow 09:00 2>&1 | tee build/kids/longshort.log
+nohup python run_kids_compilation.py --vertical --if-due --upload --publish-tomorrow 09:00 > build/kids/longshort.log 2>&1 &   # dann Log abfragen
 ```
 
 An Bau-Tagen (Standard Mo/Mi/Fr, `KIDS_LONGSHORT_BUILD_DAYS`) baut das Skript einen langen Short (1080×1920,
@@ -159,6 +164,11 @@ kostenlosen Weg über den Metricool-MCP-Connector, verfügbar als `mcp__Metricoo
 (Marke/Blog-ID 7233482) – **falls in Schritt 1.0 noch nicht geladen, jetzt per `ToolSearch` nachladen, bevor du ihn
 als nicht verfügbar einstufst.** Danach zwei Fälle, siehe `result.json` unter `social`:
 
+- **Vorher gegen Doppel-Posts prüfen:** `mcp__Metricool_Social_Media_Management__getScheduledPosts` mit
+  `brandId` 7233482, `fromDate` = heute `T00:00:00.000Z`, `toDate` = morgen `T00:00:00.000Z`, `timezone`
+  Europe/Berlin. Gibt es für ein Netzwerk schon einen Post mit heutigem Short (gleiches Video/Text zur Story),
+  dieses Netzwerk **nicht** noch einmal anlegen. (Eine Absicherungs-Aufgabe „Social-Posts" um 16:50 holt fehlende
+  Posts nach – siehe unten.)
 - `social.status == "pending_mcp"` (Normalfall, kein `METRICOOL_TOKEN` gesetzt): Lies die Datei unter
   `social.plan_file` (`<out>/social_plan.json`) – sie enthält `posts`: eine Liste mit `network`, `date`, `blogId`,
   `info` je Netzwerk. Rufe für **jeden** Eintrag `mcp__Metricool_Social_Media_Management__createScheduledPost` auf
@@ -168,6 +178,11 @@ als nicht verfügbar einstufst.** Danach zwei Fälle, siehe `result.json` unter 
   Netzwerk fehl: trotzdem weitermachen, Fehlertext dort vermerken, in der Mail landet er automatisch.
 - Jeder andere Wert (z. B. mit `instagram`/`tiktok`-Schlüsseln direkt): `METRICOOL_TOKEN` war gesetzt, das Skript
   hat selbst schon direkt über die REST-API gepostet – hier nichts weiter zu tun.
+
+**Absicherung (seit 08.10.2026):** Eine eigene geplante Aufgabe „Giggle Meadow Social-Posts (Absicherung)“ läuft
+täglich um 16:50 in einer Sitzung mit Metricool- und Drive-Connector. Sie liest `social_plan.json` aus dem
+heutigen Drive-Ordner (legt `run_kids_short.py` dort ab) und legt fehlende Instagram-/TikTok-Posts an. Ist der
+Metricool-Connector hier also nicht verfügbar, ist das kein Fehler mehr – nur in der Mail vermerken.
 
 Nichts manuell in Metricool nachholen; das MCP-Tool veröffentlicht zur angegebenen Uhrzeit automatisch. Schlägt der
 Aufruf fehl, weil das Tool trotz `ToolSearch` nicht auftaucht: in der Mail klar vermerken ("Metricool-Connector in

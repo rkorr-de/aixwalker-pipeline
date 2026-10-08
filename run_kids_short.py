@@ -360,6 +360,13 @@ def main() -> int:
                                               "werden über den kostenlosen Metricool-Connector in dieser Sitzung "
                                               "veröffentlicht (Schritt 4d)")
                     log(f"Social-Plan geschrieben: {plan_path}")
+                    try:   # auch in den Drive-Ordner – dort liest ihn die Absicherungs-Aufgabe „Social-Posts“
+                        from pipeline import drive as base_drive
+                        folder_id = result["drive"]["_folder"].rstrip("/").rsplit("/", 1)[-1]
+                        base_drive._upload(base_drive.service(), plan_path, folder_id)
+                        log("Social-Plan auch in Drive abgelegt")
+                    except Exception as e:  # noqa: BLE001
+                        result["warnings"].append(f"Social-Plan nicht in Drive abgelegt: {str(e)[:120]}")
                 except Exception as e:  # noqa: BLE001
                     result["warnings"].append(f"Social-Plan fehlgeschlagen: {str(e)[:160]}")
         result["status"] = "ok"
