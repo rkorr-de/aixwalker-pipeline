@@ -245,7 +245,7 @@ def main() -> int:
             t_title = tracks[p["track_index"]]["title"]
             frame = shorts.make_short_frame(thumb_art, covers[p["track_index"]], overlays[k], t_title,
                                             out / "shorts" / f"short_{k + 1}_frame.png", total_min=total_min,
-                                            album=album)
+                                            album=album, keyword=config.THUMB_KEYWORD.get(genre))
             clip_path = out / "shorts" / f"short_{k + 1}.mp4"
             if config.ANIMATED_VISUALS:
                 try:

@@ -119,7 +119,8 @@ GAP = 44
 
 
 def make_short_frame(art: Image.Image, cover_png: Path, headline: str, track_title: str, out: Path,
-                     w: int = 1080, h: int = 1920, total_min: int | None = None, album: str | None = None) -> Path:
+                     w: int = 1080, h: int = 1920, total_min: int | None = None, album: str | None = None,
+                     keyword: str | None = None) -> Path:
     """9:16-Bild ohne Überlagerungen: Hook oben, Cover, Albumname (Wiedererkennung), Track, Hinweis auf den Mix.
     Die Elemente werden nacheinander von oben nach unten gesetzt; das Cover schrumpft, falls der Platz nicht reicht.
     Zusätzlich wird <out>.layout.json mit Cover- und Textflächen geschrieben (für das atmende Licht im Video)."""
@@ -154,7 +155,7 @@ def make_short_frame(art: Image.Image, cover_png: Path, headline: str, track_tit
         return bb[3]
 
     # 1) Hook-Überschrift (max. 3 Zeilen)
-    f = _fit_text(d, headline.upper(), config.FONT_TITLE, w - 2 * m, 104, 64)
+    f = _fit_text(d, headline.upper(), config.FONT_HEAD, w - 2 * m, 104, 64)
     lines = _wrap(d, headline.upper(), f, w - 2 * m)[:3]
     y, text_bottom = SAFE_TOP, SAFE_TOP
     for ln in lines:
@@ -163,6 +164,10 @@ def make_short_frame(art: Image.Image, cover_png: Path, headline: str, track_tit
     bar_y = max(y, text_bottom) + 26                   # Strich immer unter der echten Text-Unterkante
     d.rectangle([(w - 160) // 2, bar_y, (w + 160) // 2, bar_y + 9], fill=config.CREAM)
     boxes.append(((w - 160) // 2, bar_y, (w + 160) // 2, bar_y + 9))
+    if keyword:   # sofort klar: das ist MUSIK (Rolf 08.10.)
+        fk = _fit_text(d, keyword.upper(), config.FONT_HEAD, w - 2 * m, 58, 40)
+        kb = centered(keyword.upper(), fk, bar_y + 9 + 24, config.CREAM, shadow=True)
+        bar_y = kb + 6 - 9
     # 2) Platz unter dem Cover vorab berechnen, dann Cover so groß wie möglich (max. 64 % Breite)
     f_album = _fit_text(d, album or "X", config.FONT_SCRIPT, w - 2 * m, 96, 60)
     f_track = _font(config.FONT_BODY, 36)
@@ -228,6 +233,9 @@ def short_metadata(concept: dict, idx: int, passage: dict, track_title: str, ove
     title = title.replace("#Shorts", "").strip()
     if concept["album"].lower() not in title.lower():          # Wiedererkennung: Albumname steht im Short-Titel
         title = f"{title} – {concept['album']}"
+    kw = config.THUMB_KEYWORD.get(concept.get("genre", ""), "")
+    if kw and "music" not in title.lower():                     # sofort klar, dass es Musik ist (Rolf 08.10.)
+        title = f"{title} · {kw}"
     title = f"{title[:100 - len(' #Shorts')].rstrip()} #Shorts"
     desc = (f"{overlay}\n\n🎧 Full mix ({concept.get('total_min', 60)}+ min, no vocals, no interruptions): {full_url}\n"
             f"Track: {track_title} · {concept['genre']} · {concept['bpm']} BPM\n"

@@ -248,7 +248,7 @@ def _words(s: str) -> int:
 TITLE_SEP = " · "
 
 
-def unify_title(title: str, album: str, keyword: str | None = None, max_len: int = 75) -> str:
+def unify_title(title: str, album: str, keyword: str | None = None, max_len: int = 90) -> str:
     """Wiedererkennung (Rolf, 07./08.10.2026): Video-, Album-, Cover- und Thumbnail-Titel gehören zusammen.
     Der YouTube-Titel beginnt immer exakt mit dem Albumnamen, direkt dahinter steht der Genre-Begriff vom Thumbnail
     (config.THUMB_KEYWORD), dann die übrigen Suchbegriffe. Steht der Albumname schon vorne/hinten, wird er nicht gedoppelt."""
@@ -328,7 +328,7 @@ def validate(c: dict, mem: dict, brief: dict) -> list[str]:
     c["ab_titles"] = [unify_title(t, c["album"], kw) for t in c.get("ab_titles") or []]
     c["thumbnail_headline"] = c["album"]          # Thumbnail zeigt exakt den Albumnamen
     t_len = len(c["yt_title"].replace("{MIN}", "60").replace("{HOURS}", "2.5 Hours"))
-    if t_len > 75:
+    if t_len > 90:
         errs.append(f"yt_title zu lang ({t_len})")
     if "{MIN}" not in c["yt_title"] and "{HOURS}" not in c["yt_title"]:
         errs.append("yt_title ohne {MIN}/{HOURS}")
@@ -349,7 +349,7 @@ def validate(c: dict, mem: dict, brief: dict) -> list[str]:
     c["tags"] = tags[:15]
     if len(c["tags"]) < 10:
         errs.append("zu wenige Tags")
-    c["ab_titles"] = [t for t in c["ab_titles"] if len(t.replace("{MIN}", "60").replace("{HOURS}", "1 Hour")) <= 75][:3]
+    c["ab_titles"] = [t for t in c["ab_titles"] if len(t.replace("{MIN}", "60").replace("{HOURS}", "1 Hour")) <= 90][:3]
     # ab_titles sind nur Vorschläge für die Mail – zu wenige blockieren das Konzept nicht
     c["ab_thumbs"] = []   # kein Thumbnail mit abweichendem Text – Wiedererkennung über den Albumnamen
     c["short_overlays"] = [t for t in c["short_overlays"] if _words(t) <= 4][:2]

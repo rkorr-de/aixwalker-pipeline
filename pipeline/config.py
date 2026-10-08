@@ -7,7 +7,8 @@ ASSETS = ROOT / "assets"
 FONT_DISPLAY = ASSETS / "fonts" / "BebasNeue-Regular.ttf"
 FONT_BODY = ASSETS / "fonts" / "Manrope.ttf"
 # Neuer Look (Thumbnail-Analyse 08.10.2026): kräftige, breite Groteske für den Genre-Begriff + Schreibschrift für den Albumnamen
-FONT_TITLE = ASSETS / "fonts" / "Montserrat.ttf"          # Variable Font, ExtraBold wird gesetzt (OFL)
+FONT_TITLE = ASSETS / "fonts" / "Montserrat.ttf"          # Variable Font, für kleine Beschriftungen (Dauer, AIX WALKER)
+FONT_HEAD = ASSETS / "fonts" / "Cinzel.ttf"               # elegante Antiqua-Versalien für den Haupttitel (Rolf 08.10.)
 FONT_SCRIPT = ASSETS / "fonts" / "GreatVibes-Regular.ttf"  # Schreibschrift (OFL)
 
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
@@ -50,12 +51,12 @@ GLOW = (255, 206, 140)    # atmendes Licht im Video: warmes Gold passend zum hel
 
 # Groß auf Thumbnail und Album-Cover: der Suchbegriff des Genres (76 % der erfolgreichen Nischen-Thumbnails zeigen so einen
 # Begriff). Derselbe Begriff steht im YouTube-Titel direkt hinter dem Albumnamen → Video und Album sehen gleich aus.
-THUMB_KEYWORD = {
-    "Mediterranean Spa Lounge": "Chillout Lounge",
-    "Dark Ambient Spa": "Luxury Spa",
+THUMB_KEYWORD = {   # immer mit „Music", damit sofort klar ist: das ist Musik, kein Spa- oder Reisevideo (Rolf 08.10.)
+    "Mediterranean Spa Lounge": "Chillout Lounge Music",
+    "Dark Ambient Spa": "Luxury Spa Music",
     "Chillout Sleep": "Sleep Music",
-    "Slow Gym Beats": "Slow Gym Beats",
-    "Night Drive Deep Bass": "Night Drive",
+    "Slow Gym Beats": "Slow Gym Beats Music",
+    "Night Drive Deep Bass": "Night Drive Music",
 }
 
 # Bildstil je Genre (wird an jeden Bild-Prompt angehängt). Analyse 08.10.2026: erfolgreiche Thumbnails sind doppelt so hell

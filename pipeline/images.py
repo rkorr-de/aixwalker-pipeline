@@ -97,7 +97,8 @@ def procedural_art(aspect: str = "1:1", seed: int | None = None) -> Image.Image:
 
 def _font(path: Path, size: int, weight: str | None = None) -> ImageFont.FreeTypeFont:
     f = ImageFont.truetype(str(path), max(8, int(size)))
-    want = weight or ("Bold" if "Manrope" in str(path) else "ExtraBold" if "Montserrat" in str(path) else None)
+    want = weight or ("Bold" if "Manrope" in str(path) or "Cinzel" in str(path) else
+                      "ExtraBold" if "Montserrat" in str(path) else None)
     if want:
         try:
             f.set_variation_by_name(want)
@@ -182,38 +183,63 @@ def _shift(m: Image.Image, off: tuple[int, int]) -> Image.Image:
     return out
 
 
+def _title_lines(d, kw: str, max_w: int, start: int, min_size: int):
+    """Genre-Begriff in 1 oder 2 Zeilen: lange Begriffe („CHILLOUT LOUNGE MUSIC") werden zweizeilig und dafür groß."""
+    one = _fit_tracked(d, kw, config.FONT_HEAD, max_w, start, min_size, 0.03, "Bold")
+    words = kw.split()
+    if one.size >= start * 0.8 or len(words) < 2:
+        return [kw], one
+    best = None
+    for i in range(1, len(words)):
+        l1, l2 = " ".join(words[:i]), " ".join(words[i:])
+        longer = l1 if _tracked_width(d, l1, one, 0) >= _tracked_width(d, l2, one, 0) else l2
+        f = _fit_tracked(d, longer, config.FONT_HEAD, max_w, int(start * 0.92), min_size, 0.03, "Bold")
+        if best is None or f.size > best[1].size:
+            best = ([l1, l2], f)
+    return best if best[1].size > one.size * 1.15 else ([kw], one)
+
+
 def _title_block(img: Image.Image, keyword: str, album: str | None, cy: int, max_w: int, scale: float,
                  kw_start: float = 0.16) -> tuple[int, int]:
-    """Zeichnet Genre-Begriff + Albumname zentriert um die Höhe `cy`. Liefert (oben, unten) des Blocks."""
+    """Zeichnet Genre-Begriff (1–2 Zeilen, Cinzel) + Albumname (Schreibschrift) zentriert um `cy`. Liefert (oben, unten)."""
     w, h = img.size
     d = ImageDraw.Draw(img)
-    kw = keyword.upper()
-    fk = _fit_tracked(d, kw, config.FONT_TITLE, max_w, int(h * kw_start), int(h * 0.06), 0.06)
-    tk = fk.size * 0.06
-    kw_w = _tracked_width(d, kw, fk, tk)
-    kb = d.textbbox((0, 0), kw, font=fk)
-    kw_h = kb[3] - kb[1]
+    lines, fk = _title_lines(d, keyword.upper(), max_w, int(h * kw_start), int(h * 0.05))
+    tk = fk.size * 0.03
+    lh = int(fk.size * 1.02)
+    boxes = [d.textbbox((0, 0), ln, font=fk) for ln in lines]
+    kw_h = lh * (len(lines) - 1) + (boxes[-1][3] - boxes[0][1])
     fa = None
     if album:
-        fa = _fit_text(d, album, config.FONT_SCRIPT, int(max_w * 0.95), int(fk.size * 1.35), int(h * 0.06))
+        fa = _fit_text(d, album, config.FONT_SCRIPT, int(max_w * 0.95), int(fk.size * 1.45), int(h * 0.06))
         ab = d.textbbox((0, 0), album, font=fa)
         al_w, al_h = ab[2] - ab[0], ab[3] - ab[1]
     gap = int(fk.size * 0.10)
     total = kw_h + (gap + al_h if album else 0)
     top = cy - total // 2
-    kx, ky = (w - kw_w) / 2, top - kb[1]
+    pos = [((w - _tracked_width(d, ln, fk, tk)) / 2, top - boxes[0][1] + i * lh) for i, ln in enumerate(lines)]
     if album:
         ax, ay = (w - al_w) / 2 - ab[0], top + kw_h + gap - ab[1]
 
     def paint(md):
-        _draw_tracked(md, (kx, ky), kw, fk, 255, tk)
+        for (x, y), ln in zip(pos, lines):
+            _draw_tracked(md, (x, y), ln, fk, 255, tk)
         if album:
             md.text((ax, ay), album, font=fa, fill=255)
-    # zwei Schattenlagen: breiter weicher Hof + enger Schatten → lesbar auf hellem wie dunklem Motiv, ohne Fläche
-    _soft_shadow(img, paint, radius=max(6, fk.size * 0.28), alpha=110)
-    _soft_shadow(img, paint, radius=max(2, fk.size * 0.05), alpha=150, offset=(0, int(3 * scale)))
+    # Lesbarkeit auf hellem Himmel (Rolf 08.10.): weicher dunkler Hof + gestufter 3D-Tiefenschatten nach rechts unten
+    _soft_shadow(img, paint, radius=max(6, fk.size * 0.30), alpha=150)
+    _soft_shadow(img, paint, radius=max(3, fk.size * 0.08), alpha=170, offset=(int(5 * scale), int(6 * scale)))
     d = ImageDraw.Draw(img)
-    _draw_tracked(d, (kx, ky), kw, fk, config.WHITE, tk)
+    depth = max(3, int(fk.size * 0.06))
+    for i in range(depth, 0, -1):                       # Extrusion: dunkles Warmbraun, nach vorne heller
+        t = i / depth
+        col = (int(40 + 30 * (1 - t)), int(26 + 20 * (1 - t)), int(18 + 12 * (1 - t)))
+        for (x, y), ln in zip(pos, lines):
+            _draw_tracked(d, (x + i, y + i), ln, fk, col, tk)
+        if album:
+            d.text((ax + i * 0.7, ay + i * 0.7), album, font=fa, fill=col)
+    for (x, y), ln in zip(pos, lines):
+        _draw_tracked(d, (x, y), ln, fk, config.WHITE, tk)
     if album:
         d.text((ax, ay), album, font=fa, fill=config.CREAM)
     return top, top + total
@@ -237,9 +263,11 @@ def _corner_labels(img: Image.Image, scale: float, duration: str = "", mark: boo
         for (x, y), t, f, tr, _ in items:
             _draw_tracked(md, (x, y), t, f, 255, tr)
     if items:
-        _soft_shadow(img, paint, radius=max(3, h * 0.012), alpha=150)
+        _soft_shadow(img, paint, radius=max(3, h * 0.014), alpha=200)
         d = ImageDraw.Draw(img)
+        sh = max(1, int(min(w, h) * 0.003))
         for (x, y), t, f, tr, col in items:
+            _draw_tracked(d, (x + sh, y + sh), t, f, (30, 20, 14), tr)   # harter kleiner Schatten → auch auf Weiß lesbar
             _draw_tracked(d, (x, y), t, f, col, tr)
 
 

@@ -52,7 +52,7 @@ and new – never a rehash of an earlier release.
   "art_prompt": "base scene for the track covers (square), same place family and light as thumbnail_prompt, bright and colorful, no text",
   "thumbnail_prompt": "the release's key scene (used for BOTH thumbnail 16:9 and album cover 1:1): one aspirational place matching motif and light, centered composition with calm open sky or water in the middle for a big title, bright and colorful, no text",
   "thumbnail_headline": "exactly the album name",
-  "yt_title": "[Album] · [genre core keyword / search term] · {MIN} Min · [purpose] ([BPM] BPM)  — under 70 characters, album name first and spelled exactly like 'album'",
+  "yt_title": "[Album] · [genre core keyword / search term] · {MIN} Min · [purpose] ([BPM] BPM)  — under 85 characters, album name first and spelled exactly like 'album'",
   "hook": "one sentence, use {HOURS} or {MIN} for the duration",
   "intro": "2 sentences, what the listener hears and why it works",
   "use_line": "emoji + 'Perfect for: ' + 5–6 situations",

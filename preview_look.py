@@ -43,12 +43,14 @@ def main() -> int:
         art16 = images.generate_art(smp["scene"], "16:9", pro=True, style=style)
         art1 = images.generate_art(smp["scene"], "1:1", pro=True, style=style)
         track_art = images.generate_art(smp["scene"] + " Variation: closer detail of the same place.", "1:1", style=style)
+        for im, tag in ((art16, "raw16"), (art1, "raw1"), (track_art, "rawtrack")):   # Rohbilder für Text-Tests
+            im.convert("RGB").save(out / f"{slug}_{tag}.jpg", "JPEG", quality=90)
         t = images.make_thumbnail(art16, kw, smp["album"], out / f"{slug}_thumbnail.jpg",
                                   duration=images.duration_label(smp["min"]))
         a = images.make_album_cover(art1, kw, smp["album"], out / f"{slug}_album.png")
         c = images.make_track_cover(track_art, smp["track"], 1, smp["album"], out / f"{slug}_track01.png")
         s = shorts.make_short_frame(art16, c, smp["hook"], smp["track"], out / f"{slug}_short.png",
-                                    total_min=smp["min"], album=smp["album"])
+                                    total_min=smp["min"], album=smp["album"], keyword=kw)
         rows.append((t, a, c, s))
         print(f"{g}: {t.name}, {a.name}, {c.name}, {s.name}")
     # Übersicht: je Zeile Thumbnail | Album | Track | Short
