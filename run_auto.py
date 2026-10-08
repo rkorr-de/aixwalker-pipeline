@@ -46,8 +46,8 @@ def todays_concept(genre: str | None = None, long: bool = False) -> Path | None:
         except Exception:  # noqa: BLE001
             continue
         g = c.get("genre")
-        if genre:
-            ok = g == genre
+        if genre:   # eigene Linie: Genre UND Format müssen passen (z. B. Italien Standard Mo/Mi/Fr/So vs. Lang-Mix Sa)
+            ok = g == genre and (c.get("format") == "long") == long
         else:
             ok = g not in planner.ROTATION_EXCLUDE and (c.get("format") == "long") == long
         if ok:

@@ -107,6 +107,9 @@ def build_still_video(frame: Path, audio_file: Path, out: Path, fps: int = 2) ->
 # ---------- Thumbnail ----------
 
 HERO_PROMPTS = {   # Genre-Stichwort → Motiv (immer eine Frau, werbefreundlich, Kanal-Look: dunkel, Teal-Licht)
+    "italian": ("elegant, attractive woman in a fitted silk evening gown at a candlelit dinner table on a terrace above the "
+                "Amalfi Coast or Lake Como at sunset, real professional editorial travel photograph (full-frame camera, "
+                "natural skin texture, subtle film grain, not CGI), warm golden light"),
     "mediterranean": "elegant woman in a white dress on a luxury resort terrace at golden sunset over the Mediterranean, warm amber light with teal accents",
     "gym": "athletic woman in black sportswear gripping a barbell in a dark industrial gym, chalk dust, teal rim light",
     "spa": "calm woman in a spa robe by candles and hot stones, steam, dark moody spa, teal accent light",

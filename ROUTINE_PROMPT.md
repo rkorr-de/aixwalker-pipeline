@@ -92,3 +92,7 @@ Kostenvoranschlag, Bericht per E-Mail). Startbefehl statt `python run_auto.py`:
 - Italien-Mixe zählen nicht für die Genre-Rotation der Di/Fr/So-Mixe. Freitags und sonntags laufen zwei Linien am selben
   Tag – das Konzept des Tages wird je Linie getrennt wiederverwendet, nicht vermischen.
 - DistroKid-Angaben im Bericht: Hauptgenre Jazz, Nebengenre Easy Listening.
+- **Samstags: mehrstündiger Italien-Wochen-Mix** mit `python run_auto.py --genre "Italian Chillout" --long`
+  (≥ LONG_MIN_MINUTES = 3 Stunden, sonst wie der Sonntags-Lang-Mix: 2 Shorts, öffentlich, Drive, E-Mail, kein DistroKid).
+- Monats-Mix (am 1.): Italien ist ein eigenes Themengebiet und bekommt automatisch einen eigenen Monats-Mix mit
+  Italien-Motiv (pipeline/monthly.py, HERO_PROMPTS „italian“).
