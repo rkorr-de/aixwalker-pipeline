@@ -39,7 +39,7 @@ def _find_inline_image(obj):
 
 
 def generate_art(prompt: str, aspect: str = "1:1", pro: bool = False, timeout: int = 180,
-                 style: str | None = None) -> Image.Image:
+                 style: str | None = None, image_size: str | None = None) -> Image.Image:
     """Erzeugt ein Bildmotiv. Ohne API-Key wird ein prozedurales Fallback-Bild erzeugt."""
     if not config.GOOGLE_API_KEY:
         return procedural_art(aspect)
@@ -50,18 +50,27 @@ def generate_art(prompt: str, aspect: str = "1:1", pro: bool = False, timeout: i
         "generationConfig": {"responseModalities": ["IMAGE"],
                              "imageConfig": {"aspectRatio": aspect}},
     }
+    if image_size and pro:   # hohe Auflösung fürs Hauptbild (Album-Cover 3000×3000 und Thumbnail aus einem Bild)
+        body["generationConfig"]["imageConfig"]["imageSize"] = image_size
     last = None
     for attempt in range(3):
         try:
             r = requests.post(url, headers={"x-goog-api-key": config.GOOGLE_API_KEY,
                                             "Content-Type": "application/json"},
                               json=body, timeout=timeout)
+            if r.status_code == 400 and "imageSize" in body["generationConfig"]["imageConfig"]:
+                print(f"[images] Auflösung {image_size} abgelehnt, ohne Größenangabe neu: {r.text[:160]}")
+                body["generationConfig"]["imageConfig"].pop("imageSize")
+                r = requests.post(url, headers={"x-goog-api-key": config.GOOGLE_API_KEY,
+                                                "Content-Type": "application/json"},
+                                  json=body, timeout=timeout)
             if r.status_code != 200:
                 raise RuntimeError(f"HTTP {r.status_code}: {r.text[:300]}")
             data = _find_inline_image(r.json())
             if not data:
                 raise RuntimeError(f"kein Bild in Antwort: {r.text[:300]}")
-            costs.count("image_pro" if pro else "image_flash")
+            sized = "imageSize" in body["generationConfig"]["imageConfig"]
+            costs.count(("image_pro_4k" if sized and image_size == "4K" else "image_pro") if pro else "image_flash")
             return Image.open(io.BytesIO(base64.b64decode(data))).convert("RGB")
         except Exception as e:  # noqa: BLE001
             last = e
@@ -269,6 +278,28 @@ def _corner_labels(img: Image.Image, scale: float, duration: str = "", mark: boo
         for (x, y), t, f, tr, col in items:
             _draw_tracked(d, (x + sh, y + sh), t, f, (30, 20, 14), tr)   # harter kleiner Schatten → auch auf Weiß lesbar
             _draw_tracked(d, (x, y), t, f, col, tr)
+
+
+def crop_aspect(img: Image.Image, aw: int, ah: int, bias_y: float = 0.5) -> Image.Image:
+    """Größtmöglicher Ausschnitt im Seitenverhältnis aw:ah aus `img`, ohne Skalierung. Damit entstehen
+    Album-Cover (1:1) und Thumbnail (16:9) aus DEMSELBEN Hauptbild (Wiedererkennung Video ↔ Stores, Rolf 08.10.)."""
+    w, h = img.size
+    if w / h > aw / ah:
+        nw = int(h * aw / ah)
+        x = (w - nw) // 2
+        return img.crop((x, 0, x + nw, h))
+    nh = int(w * ah / aw)
+    y = int((h - nh) * bias_y)
+    return img.crop((0, y, w, y + nh))
+
+
+def master_art(scene: str, genre: str | None) -> Image.Image:
+    """Ein Hauptbild je Mix: quadratisch und hoch aufgelöst; Cover nutzt es ganz, Thumbnail einen 16:9-Ausschnitt."""
+    img = generate_art(scene + " Square master image: keep the main subject and the calm open area for the title in "
+                       "the central horizontal band, so a wide 16:9 crop from the middle shows the same scene.",
+                       "1:1", pro=True, style=style_for(genre), image_size="4K")
+    print(f"[images] Hauptbild {img.size[0]}×{img.size[1]}")
+    return img
 
 
 def _cover_crop(art: Image.Image, w: int, h: int) -> Image.Image:

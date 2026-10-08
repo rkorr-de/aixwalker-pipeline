@@ -190,9 +190,10 @@ def main() -> int:
     # Album-Cover und Thumbnail: dieselbe Szene, derselbe Stil, derselbe Text → Video und Album sehen gleich aus
     keyword = config.THUMB_KEYWORD.get(genre, genre)
     scene = concept.get("thumbnail_prompt") or concept["art_prompt"]
-    album_art = images.generate_art(scene, "1:1", pro=True, style=images.style_for(genre))
-    images.make_album_cover(album_art, keyword, album, out / "covers" / "album_3000.png")
-    thumb_art = images.generate_art(scene, "16:9", pro=True, style=images.style_for(genre))
+    master = images.master_art(scene, genre)          # EIN Hauptbild: Cover = ganz, Thumbnail = 16:9-Ausschnitt
+    master.save(out / "covers" / "master.jpg", "JPEG", quality=92)
+    images.make_album_cover(master, keyword, album, out / "covers" / "album_3000.png")
+    thumb_art = images.crop_aspect(master, 16, 9)
     thumbs = [images.make_thumbnail(thumb_art, keyword, album, out / "thumbnail" / "thumb_A.jpg",
                                     duration=images.duration_label(total_min))]
     mp4_path = out / "video" / f"{concept['slug']}.mp4"

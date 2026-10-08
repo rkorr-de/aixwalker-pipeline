@@ -4,7 +4,7 @@
     python preview_look.py --out build/look_preview
 
 Erzeugt je Genre (Lounge, Spa, Sleep): Thumbnail, Album-Cover, Track-Cover und Short-Bild sowie eine Übersicht
-`overview.jpg`. Kosten: je Genre 2 Pro-Bilder + 1 Flash-Bild (ca. 0,30 $ je Genre).
+`overview.jpg`. Kosten: je Genre 1 Pro-Hauptbild (4K) + 1 Flash-Bild.
 """
 import argparse
 from pathlib import Path
@@ -40,8 +40,8 @@ def main() -> int:
         g, slug = smp["genre"], smp["album"].lower().replace(" ", "-")
         style = images.style_for(g)
         kw = config.THUMB_KEYWORD[g]
-        art16 = images.generate_art(smp["scene"], "16:9", pro=True, style=style)
-        art1 = images.generate_art(smp["scene"], "1:1", pro=True, style=style)
+        art1 = images.master_art(smp["scene"], g)          # ein Hauptbild für Cover und Thumbnail
+        art16 = images.crop_aspect(art1, 16, 9)
         track_art = images.generate_art(smp["scene"] + " Variation: closer detail of the same place.", "1:1", style=style)
         for im, tag in ((art16, "raw16"), (art1, "raw1"), (track_art, "rawtrack")):   # Rohbilder für Text-Tests
             im.convert("RGB").save(out / f"{slug}_{tag}.jpg", "JPEG", quality=90)

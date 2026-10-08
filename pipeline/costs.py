@@ -13,7 +13,7 @@ from . import config
 
 _lock = threading.Lock()
 _ledger_path: Path | None = None
-_ledger: dict = {"lyria_tracks": 0, "lyria_retries": 0, "image_flash": 0, "image_pro": 0, "image_failed": 0}
+_ledger: dict = {"lyria_tracks": 0, "lyria_retries": 0, "image_flash": 0, "image_pro": 0, "image_pro_4k": 0, "image_failed": 0}
 
 
 def start(ledger_path: Path) -> None:
@@ -49,7 +49,8 @@ def total_usd(ledger: dict | None = None) -> float:
     p = config.PRICES_USD
     # lyria_tracks zählt jede erfolgreiche Erzeugung (Neuversuche eingeschlossen); lyria_retries ist nur Information
     return round(led.get("lyria_tracks", 0) * p["lyria_track"]
-                 + led.get("image_flash", 0) * p["image_flash"] + led.get("image_pro", 0) * p["image_pro"], 3)
+                 + led.get("image_flash", 0) * p["image_flash"] + led.get("image_pro", 0) * p["image_pro"]
+                 + led.get("image_pro_4k", 0) * p.get("image_pro_4k", p["image_pro"]), 3)
 
 
 def estimate(concept: dict) -> dict:
@@ -63,12 +64,12 @@ def estimate(concept: dict) -> dict:
     tracks_usd = (needed + retries) * p["lyria_track"]
     group = config.LONG_ART_GROUP if concept.get("format") == "long" else 1
     needed_art = -(-needed // group)
-    images_usd = needed_art * p["image_flash"] + 2 * p["image_pro"]  # Cover je Track(-Gruppe) (Flash) + Album + Thumbnail (Pro)
+    images_usd = needed_art * p["image_flash"] + p["image_pro_4k"]  # Cover je Track(-Gruppe) (Flash) + 1 Hauptbild 4K (Album + Thumbnail)
     usd = round(tracks_usd + images_usd, 2)
     return {"tracks_planned": planned, "tracks_expected": needed, "retries_reserved": retries,
             "usd": usd, "eur": usd_to_eur(usd),
             "lines": [f"{needed + retries} Lyria-Tracks (inkl. {retries} Reserve/Neuversuche) à {p['lyria_track']:.3f} $ = {tracks_usd:.2f} $",
-                      f"{needed_art} Track-Cover à {p['image_flash']:.3f} $ + Album-Cover + Thumbnail (Pro) à {p['image_pro']:.3f} $ = {images_usd:.2f} $"]}
+                      f"{needed_art} Track-Cover à {p['image_flash']:.3f} $ + 1 Hauptbild 4K für Album-Cover und Thumbnail à {p['image_pro_4k']:.3f} $ = {images_usd:.2f} $"]}
 
 
 def report() -> str:
@@ -76,7 +77,7 @@ def report() -> str:
     led = _ledger
     return (f"Tatsächlicher API-Verbrauch: {usd:.2f} $ ≈ {usd_to_eur(usd):.2f} € "
             f"({led['lyria_tracks']} Lyria-Erzeugungen, davon {led['lyria_retries']} Neuversuche nach QC, "
-            f"{led['image_flash']} Flash-Bilder, {led['image_pro']} Pro-Bilder, {led['image_failed']} Bild-Fallbacks ohne Kosten)")
+            f"{led['image_flash']} Flash-Bilder, {led['image_pro']} Pro-Bilder, {led.get('image_pro_4k', 0)} Pro-4K-Bilder, {led['image_failed']} Bild-Fallbacks ohne Kosten)")
 
 
 def budget_hint(usd: float) -> str:

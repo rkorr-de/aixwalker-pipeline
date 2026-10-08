@@ -21,7 +21,8 @@ Zweimal pro Woche (Dienstag und Freitag) erscheint ein neuer Mix, der wie ein ku
 - Track-Titel sind Eigenkreationen, alphabetisch sortiert, werden **nie wiederverwendet** (Gedächtnis prüft das).
 - Dauer im Titel/Hook erst nach dem Rendern: Platzhalter `{MIN}` / `{HOURS}` (ersetzt die Pipeline).
 - **Ein Name, ein Look** (Rolf, 07./08.10.2026, zwingend): YouTube-Titel = „Albumname · Genre-Begriff · …“. Thumbnail und
-  Album-Cover zeigen denselben Genre-Begriff groß und den Albumnamen in Schreibschrift, im hellen, warmen Bildstil.
+  Album-Cover zeigen denselben Genre-Begriff groß und den Albumnamen in Schreibschrift, im hellen, warmen Bildstil –
+  aus EINEM Hauptbild (Cover = ganz, Thumbnail = 16:9-Ausschnitt), damit man den Mix in den Stores wiedererkennt.
   Die Pipeline erzwingt das – nicht umgehen, nicht auf den alten dunklen Teal-Look zurückbauen.
 - Visuals: atmendes Licht um das Cover (keine Wellenform), Shorts ohne Zoom und ohne Überlagerungen; Short-Clips
   starten am Beat-Einsatz des Hauptteils. Bitte nicht auf die alte Wellenform zurückbauen.
