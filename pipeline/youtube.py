@@ -79,6 +79,33 @@ def add_to_playlist(video_id: str, playlist_id: str) -> None:
     }).execute()
 
 
+def ensure_playlist(title: str, description: str = "", privacy: str = "public") -> str:
+    """Liefert die ID der eigenen Playlist mit genau diesem Titel; gibt es sie nicht, wird sie angelegt."""
+    yt = service()
+    req = yt.playlists().list(part="snippet", mine=True, maxResults=50)
+    while req is not None:
+        resp = req.execute()
+        for it in resp.get("items", []):
+            if it["snippet"]["title"].strip().lower() == title.strip().lower():
+                return it["id"]
+        req = yt.playlists().list_next(req, resp)
+    r = yt.playlists().insert(part="snippet,status", body={
+        "snippet": {"title": title, "description": description[:5000], "defaultLanguage": "en"},
+        "status": {"privacyStatus": privacy}}).execute()
+    print(f"[youtube] Playlist angelegt: {title} ({r['id']})")
+    return r["id"]
+
+
+def playlist_for(key: str) -> str:
+    """Playlist-ID für einen Schlüssel aus config.PLAYLISTS; fehlt sie (z. B. „italian“), wird sie über den Titel
+    gefunden bzw. angelegt und für diesen Lauf gemerkt."""
+    pid = config.PLAYLISTS.get(key, "")
+    if not pid and key in config.PLAYLIST_TITLES:
+        pid = ensure_playlist(*config.PLAYLIST_TITLES[key])
+        config.PLAYLISTS[key] = pid
+    return pid or config.PLAYLISTS["chillout"]
+
+
 def post_comment(video_id: str, text: str) -> str:
     """Postet einen Top-Level-Kommentar (Scope youtube.force-ssl nötig). Anpinnen geht nur in Studio."""
     r = service().commentThreads().insert(part="snippet", body={"snippet": {

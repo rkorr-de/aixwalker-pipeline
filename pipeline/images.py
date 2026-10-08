@@ -310,10 +310,12 @@ def _cover_crop(art: Image.Image, w: int, h: int) -> Image.Image:
 
 
 def make_thumbnail(art: Image.Image, keyword: str, album: str, out: Path, duration: str = "",
-                   w: int = 1280, h: int = 720) -> Path:
-    """YouTube-Thumbnail im neuen Look: helles Motiv, mittig Genre-Begriff + Albumname, Dauer oben rechts."""
+                   w: int = 1280, h: int = 720, text_scale: float = 1.0) -> Path:
+    """YouTube-Thumbnail im neuen Look: helles Motiv, mittig Genre-Begriff + Albumname, Dauer oben rechts.
+    text_scale > 1 macht Genre-Begriff und Albumname größer (config.THUMB_TEXT_SCALE, z. B. Italien-Linie)."""
     img = _cover_crop(art, w, h).convert("RGB")
-    _title_block(img, keyword, album, cy=int(h * 0.47), max_w=int(w * 0.80), scale=h / 720)
+    _title_block(img, keyword, album, cy=int(h * 0.47), max_w=int(w * min(0.94, 0.80 * text_scale)), scale=h / 720,
+                 kw_start=0.16 * text_scale)
     _corner_labels(img, h / 720, duration)
     out.parent.mkdir(parents=True, exist_ok=True)
     img.save(out, "JPEG", quality=92)
@@ -322,10 +324,12 @@ def make_thumbnail(art: Image.Image, keyword: str, album: str, out: Path, durati
     return out
 
 
-def make_album_cover(art: Image.Image, keyword: str, album: str, out: Path, size: int = 3000) -> Path:
+def make_album_cover(art: Image.Image, keyword: str, album: str, out: Path, size: int = 3000,
+                     text_scale: float = 1.0) -> Path:
     """Album-Cover (DistroKid, 3000×3000) – gleicher Look und gleicher Name wie das Thumbnail."""
     img = _cover_crop(art, size, size).convert("RGB")
-    _title_block(img, keyword, album, cy=int(size * 0.5), max_w=int(size * 0.84), scale=size / 720, kw_start=0.11)
+    _title_block(img, keyword, album, cy=int(size * 0.5), max_w=int(size * min(0.94, 0.84 * text_scale)),
+                 scale=size / 720, kw_start=0.11 * text_scale)
     _corner_labels(img, size / 720, "")
     out.parent.mkdir(parents=True, exist_ok=True)
     img.save(out, "PNG", optimize=True)

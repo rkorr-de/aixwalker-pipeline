@@ -73,7 +73,63 @@ GENRES = {
                    "starry sky over a calm bay with village lights", "hammock on a terrace at dusk"],
         "moods": ["warm, soft, weightless", "hazy, slow, tender", "cool, misty, quiet", "deep, dreamy, slow"],
     },
+    # Eigene Linie (Rolf, 08.10.2026): „Italian Chillout Music“, Alben-Reihe „Italian Amalfi Coast & Lake Como Ambience“,
+    # Mo/Mi/Fr/So mit `run_auto.py --genre "Italian Chillout"`. Nicht Teil der Di/Fr-Rotation (ROTATION_EXCLUDE).
+    # Stichwörter aus YouTube-Recherche: Italian lounge/café/instrumental, Amalfi Coast music, candlelight dinner,
+    # lounge dinner party, smooth & piano jazz lounge, Italian bossa nova, aperitivo, dolce vita, sunset/coastal music.
+    "Italian Chillout": {
+        "playlist": "italian", "bpm": (68, 100),
+        "style": ("Italian Riviera Chillout Lounge. Calm, romantic Italian dinner music with an elegant 1960s dolce vita "
+                  "jet-set feeling. Soft bossa nova groove with brushed drums and light shaker, warm nylon-string guitar and "
+                  "gentle mandolin melodies, mellow Rhodes and grand piano, round upright bass, lush string pads like a "
+                  "classic Italian film score, a subtle touch of accordion. Distant sea waves and evening cicadas in the "
+                  "background. Sunset aperitivo on the Amalfi Coast, candlelit terrace dinner on Lake Como, Mediterranean "
+                  "warmth, relaxed, sophisticated, nostalgic and romantic. Intimate high-end lounge production, warm analog "
+                  "tape character, clean mix, no vocals, {BPM} BPM."),
+        # Unterstil = Zweck: (BPM-Bereich, Zusatz für den Lyria-Stil)
+        "substyles": {
+            "Sunset Aperitivo (Amalfi bossa lounge)": ((84, 90), "Focus: Amalfi bossa lounge – bossa groove, nylon guitar lead, "
+                                                       "flute accents, sunlit and breezy."),
+            "Romantic Dinner (Lake Como piano lounge)": ((68, 74), "Focus: Lake Como piano lounge – solo grand piano with soft "
+                                                         "strings and upright bass, candlelit and intimate."),
+            "Italian Café (Riviera café jazz)": ((88, 96), "Focus: Riviera café jazz – light swing, muted trumpet, vibraphone, "
+                                                 "espresso bar on the piazza."),
+            "Evening Relax (dolce vita cinematic)": ((70, 78), "Focus: dolce vita cinematic – sweeping vintage film-score "
+                                                     "strings, harp, mandolin tremolo, golden-hour nostalgia."),
+            "Terrace Lounge (Mediterranean deep chill)": ((96, 100), "Focus: Mediterranean deep chill – soft Italian deep "
+                                                          "house pulse, warm pads, guitar plucks, slow build, still calm."),
+        },
+        "purposes": [],   # wird aus substyles gefüllt
+        # Immer: attraktive Frau in passender Abendgarderobe, Sunset- und Dinnerstimmung, Ort groß im Bild (Rolf 08.10.)
+        "motifs": [
+            "elegant woman in a fitted emerald-green silk evening gown at a candlelit dinner table on a lemon-tree terrace above Positano",
+            "elegant woman in a fitted deep red silk evening gown leaning on a white stone balustrade above the sea at Amalfi",
+            "elegant woman in a fitted champagne satin evening gown at a candlelit dinner on a villa terrace in Bellagio, Lake Como",
+            "elegant woman in a fitted midnight-blue velvet evening gown on a lakeside terrace with string lights in Varenna, Lake Como",
+            "elegant woman in a fitted ivory silk evening gown with a glass of prosecco on a garden terrace in Ravello above the coast",
+            "elegant woman in a fitted black evening gown at a candlelit table by the water, classic wooden motorboat on Lake Como",
+            "elegant woman in a fitted bronze satin evening gown with an Aperol spritz on a cliffside terrace in Praiano",
+        ],
+        "moods": ["warm, romantic, golden", "elegant, nostalgic, candlelit", "breezy, sunlit, relaxed",
+                  "intimate, sophisticated, calm"],
+        "visual_rule": ("For THIS line the general rule 'people only small or seen from behind' does NOT apply. Every "
+                        "art_prompt and thumbnail_prompt shows ONE attractive, elegant woman with a feminine silhouette in a "
+                        "fitted evening gown that matches the scene (use the motif's gown), clearly visible from knee or "
+                        "waist up, face visible and beautiful, standing in the right half of the frame with her FACE about ONE THIRD "
+                        "FROM THE TOP (above the vertical centre, but not near the top edge – the square image is also "
+                        "cropped to 16:9 from the middle), because the big title is set across the middle "
+                        "and must cover only her dress, never her face. Always sunset light and dinner mood (candles, wine or aperitivo glasses, "
+                        "white linen). The famous place (Amalfi Coast / Lake Como as named in the motif) fills the left side "
+                        "and the background, with sunset sky over sea or lake. Write it as a "
+                        "real professional editorial photo shoot (camera, lens, natural light, skin texture, film grain) – "
+                        "never 'illustration', 'render' or 'digital art'. Classy and advertiser-friendly: no lingerie, no "
+                        "cleavage focus, no suggestive pose."),
+    },
 }
+ROTATION_EXCLUDE = {"Italian Chillout"}   # eigene Linie mit eigenem Zeitplan → nicht in der automatischen Genre-Wahl
+for _g in GENRES.values():
+    if _g.get("substyles"):
+        _g["purposes"] = list(_g["substyles"])
 # Strategie 05.10.2026: Sleep/Spa haben den höchsten RPM (ca. 4–8 $) und die längsten Sitzungen → häufiger;
 # Gym/Night Drive bleiben als Abwechslung, kommen aber seltener dran.
 GENRE_WEIGHT = {"Mediterranean Spa Lounge": 1.6, "Chillout Sleep": 1.35, "Dark Ambient Spa": 1.25, "Slow Gym Beats": 0.8, "Night Drive Deep Bass": 0.75}
@@ -89,6 +145,9 @@ LIGHTS = {
                               "cold moonlight", "dashboard glow"],
     "Chillout Sleep": ["deep blue dusk with warm window lights", "candlelight", "moonlight with warm lamps",
                        "starry sky with a warm glow", "warm reading lamp at blue hour"],
+    "Italian Chillout": ["golden hour with the low sun over the water", "orange and pink sunset sky with first candles lit",
+                         "blue hour with candlelight and village lights", "warm amber sunset glow reflected on the water",
+                         "last warm sunlight on the old Italian buildings"],   # ortsneutral: passt zu Küste UND See
 }
 
 
@@ -142,6 +201,7 @@ GENRE_KEYWORDS = {
     "Slow Gym Beats": ("gym", "workout", "lift", "training", "cardio", "fitness", "pump"),
     "Night Drive Deep Bass": ("drive", "driving", "car", "road", "night ride", "highway"),
     "Mediterranean Spa Lounge": ("lounge", "chill", "sunset", "ibiza", "beach", "balearic", "spa", "mediterr", "cafe"),
+    "Italian Chillout": ("ital", "amalfi", "como", "positano", "dinner", "lounge", "jazz", "bossa", "cafe", "sunset", "mediterr"),
 }
 
 
@@ -170,7 +230,13 @@ LONG_GENRES = ("Chillout Sleep", "Dark Ambient Spa", "Mediterranean Spa Lounge")
 def choose_brief(mem: dict, analytics_rows: list[dict] | None = None, seed: int | None = None,
                  force_genre: str | None = None, long: bool = False) -> dict:
     rnd = random.Random(seed if seed is not None else int(date.today().strftime("%Y%m%d")))
-    scores = genre_scores(mem, analytics_rows)
+    # Eigene Linien (Italien) laufen getrennt: ihre Mixe zählen nicht für Rotation, Fokus-Quote und „letztes Genre“
+    # der Di/Fr/So-Mixe – und umgekehrt sieht die Italien-Linie bei Motiv/Licht nur ihre eigenen Mixe.
+    own_line = force_genre in ROTATION_EXCLUDE
+    all_mixes = mem.get("mixes") or []
+    view = dict(mem, mixes=[m for m in all_mixes if (m.get("genre") in ROTATION_EXCLUDE) == own_line])
+    mem = view
+    scores = {g: s for g, s in genre_scores(mem, analytics_rows).items() if own_line or g not in ROTATION_EXCLUDE}
     last_genre = (mem.get("mixes") or [{}])[-1].get("genre")
     if force_genre:
         genre = force_genre
@@ -189,14 +255,21 @@ def choose_brief(mem: dict, analytics_rows: list[dict] | None = None, seed: int 
     avoid_light = _recent(mem, lambda m: (m.get("visual") or {}).get("light"), 3)
     avoid_mood = {str(m.get("mood", "")).lower() for m in same[-2:]}
     used_bpm = [m["bpm"] for m in same[-3:]]
+    purpose = _pick(g["purposes"], avoid_purpose, rnd)
+    style = g.get("style", "")
     lo, hi = g["bpm"]
+    sub = (g.get("substyles") or {}).get(purpose)
+    if sub:                                    # Unterstil bestimmt Tempo und den Zusatz zum Lyria-Stil
+        (lo, hi), extra = sub
+        style = f"{style} {extra}"
     candidates = [b for b in range(lo, hi + 1, 2) if all(abs(b - u) >= 4 for u in used_bpm)] or list(range(lo, hi + 1, 2))
+    bpm = rnd.choice(candidates)
     brief = {
-        "date": date.today().isoformat(), "genre": genre, "playlist": g["playlist"], "bpm": rnd.choice(candidates),
-        "purpose": _pick(g["purposes"], avoid_purpose, rnd), "mood_hint": _pick(g["moods"], avoid_mood, rnd),
+        "date": date.today().isoformat(), "genre": genre, "playlist": g["playlist"], "bpm": bpm,
+        "purpose": purpose, "mood_hint": _pick(g["moods"], avoid_mood, rnd),
         "motif_family": _pick(g["motifs"], avoid_motif, rnd), "light": _pick(LIGHTS[genre], avoid_light, rnd),
         "scores": scores, "last_genre": last_genre,
-        "long": long, "style": g.get("style", ""),
+        "long": long, "style": style.replace("{BPM}", str(bpm)), "visual_rule": g.get("visual_rule", ""),
         "search_terms": relevant_terms(mem, genre),
     }
     return brief
@@ -209,6 +282,8 @@ def brief_text(b: dict) -> str:
     if b.get("style"):
         fmt += (f"MANDATORY SOUND STYLE for all tracks (stay faithful to it, vary only melody, instruments and "
                 f"arrangement per track): {b['style']}\n")
+    if b.get("visual_rule"):
+        fmt += f"MANDATORY VISUAL RULE (overrides the general image rules): {b['visual_rule']}\n"
     return (fmt + f"Date: {b['date']}\nGenre: {b['genre']} (playlist: {b['playlist']})\nBPM: {b['bpm']}\n"
             f"Purpose / listening situation: {b['purpose']}\nMood direction: {b['mood_hint']}\n"
             f"Visual motif family: {b['motif_family']}\nLight: {b['light']}\n"

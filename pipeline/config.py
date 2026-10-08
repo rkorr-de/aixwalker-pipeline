@@ -37,6 +37,13 @@ PLAYLISTS = {
     "songs": "PLZUHXQMXYvmo",
     "aachen": "PLAPYXyJDsfd4",
     "mallorca": "PLCl2AgQDWKzk",
+    # Italien-Linie (Rolf, 08.10.2026): leer = Playlist wird beim ersten Upload über den Titel gesucht bzw. angelegt
+    "italian": os.environ.get("YT_PLAYLIST_ITALIAN", ""),
+}
+PLAYLIST_TITLES = {   # für Playlists, die die Pipeline selbst findet/anlegt (youtube.ensure_playlist)
+    "italian": ("Italian Chillout Music",
+                "Calm Italian chillout and lounge music for sunset dinners on the Amalfi Coast and Lake Como – "
+                "Italian Amalfi Coast & Lake Como Ambience by Aix Walker. A new mix every few days."),
 }
 
 # Kanalfarben
@@ -57,7 +64,10 @@ THUMB_KEYWORD = {   # immer mit „Music", damit sofort klar ist: das ist Musik,
     "Chillout Sleep": "Sleep Music",
     "Slow Gym Beats": "Slow Gym Beats Music",
     "Night Drive Deep Bass": "Night Drive Music",
+    "Italian Chillout": "Italian Chillout Music",
 }
+# Schriftgröße von Genre-Begriff und Albumname auf Thumbnail/Cover je Genre (1.0 = Standard). Italien: größer (Rolf 08.10.)
+THUMB_TEXT_SCALE = {"Italian Chillout": 1.2}
 
 # Bildstil je Genre (wird an jeden Bild-Prompt angehängt). Analyse 08.10.2026: erfolgreiche Thumbnails sind doppelt so hell
 # und mehr als doppelt so farbig wie unsere alten dunkel-teal Bilder – daher hell, warm, farbig für Lounge/Spa/Sleep.
@@ -75,6 +85,13 @@ IMAGE_STYLE = {
                        "shallow depth of field." + _NO_TEXT),
     "Night Drive Deep Bass": (" Cinematic night photography, deep blues with glowing city or neon lights, high contrast, "
                               "rich colors." + _NO_TEXT),
+    # Italien-Linie: super-realistisch wie ein echtes Magazin-Shooting, ausdrücklich nicht künstlich (Rolf 08.10.2026)
+    "Italian Chillout": (" Professional editorial travel photograph, real photo taken on a full-frame camera (Canon EOS R5 or "
+                         "Sony A7R V, 35–85 mm prime lens), not CGI, not a render, not an illustration, not airbrushed. "
+                         "Natural golden-hour or sunset light mixed with warm candlelight, natural skin texture, real fabric "
+                         "folds and sheen, subtle film grain, true-to-life colors, realistic shallow depth of field with natural "
+                         "bokeh, classy luxury travel-magazine look (Condé Nast Traveller style), tasteful and "
+                         "advertiser-friendly." + _NO_TEXT),
 }
 DEFAULT_GENRE = "Mediterranean Spa Lounge"
 

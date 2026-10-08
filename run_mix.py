@@ -192,10 +192,11 @@ def main() -> int:
     scene = concept.get("thumbnail_prompt") or concept["art_prompt"]
     master = images.master_art(scene, genre)          # EIN Hauptbild: Cover = ganz, Thumbnail = 16:9-Ausschnitt
     master.save(out / "covers" / "master.jpg", "JPEG", quality=92)
-    images.make_album_cover(master, keyword, album, out / "covers" / "album_3000.png")
+    text_scale = config.THUMB_TEXT_SCALE.get(genre, 1.0)
+    images.make_album_cover(master, keyword, album, out / "covers" / "album_3000.png", text_scale=text_scale)
     thumb_art = images.crop_aspect(master, 16, 9)
     thumbs = [images.make_thumbnail(thumb_art, keyword, album, out / "thumbnail" / "thumb_A.jpg",
-                                    duration=images.duration_label(total_min))]
+                                    duration=images.duration_label(total_min), text_scale=text_scale)]
     mp4_path = out / "video" / f"{concept['slug']}.mp4"
     if config.ANIMATED_VISUALS:
         try:
@@ -210,7 +211,13 @@ def main() -> int:
     log(f"Video: {mp4.name} {json.dumps(info['format'])}")
 
     # 4) Metadaten
-    playlist_id = config.PLAYLISTS.get(concept.get("playlist", "gym"), config.PLAYLISTS["gym"])
+    pl_key = concept.get("playlist", "gym")
+    playlist_id = config.PLAYLISTS.get(pl_key, config.PLAYLISTS["gym"])
+    if not playlist_id and pl_key in config.PLAYLIST_TITLES and args.upload:
+        from pipeline import youtube
+        playlist_id = youtube.playlist_for(pl_key)   # findet oder legt die Playlist an
+        log(f"Playlist „{config.PLAYLIST_TITLES[pl_key][0]}“: {playlist_id}")
+    playlist_id = playlist_id or config.PLAYLISTS["chillout"]   # Dry-Run ohne Upload: Platzhalter für die Beschreibung
     yt_title = concept["yt_title"]
     assert len(yt_title) <= 100, "Titel zu lang"
     desc = metadata.description(concept, chapter_text, playlist_id, total_min)

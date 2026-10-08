@@ -36,9 +36,23 @@ def check_env(dry_run: bool) -> list[str]:
     return missing
 
 
-def todays_concept() -> Path | None:
+def todays_concept(genre: str | None = None, long: bool = False) -> Path | None:
+    """Konzept des Tages für DIESE Linie (Neustart nach Abbruch). Seit 08.10.2026 laufen an manchen Tagen zwei Linien
+    (z. B. Freitag: Italien-Mix + Di/Fr-Mix) – deshalb nur ein Konzept mit passendem Genre bzw. Format übernehmen."""
     hits = sorted((config.ROOT / "concepts").glob(f"{date.today().isoformat()}-*.json"))
-    return hits[-1] if hits else None
+    for p in reversed(hits):
+        try:
+            c = json.loads(p.read_text(encoding="utf-8"))
+        except Exception:  # noqa: BLE001
+            continue
+        g = c.get("genre")
+        if genre:
+            ok = g == genre
+        else:
+            ok = g not in planner.ROTATION_EXCLUDE and (c.get("format") == "long") == long
+        if ok:
+            return p
+    return None
 
 
 def main() -> int:
@@ -76,7 +90,7 @@ def main() -> int:
             rows = (mem.get("analytics") or [{}])[-1].get("videos", [])
 
     # 2) Konzept: vorgegeben, vom heutigen Tag (Neustart) oder neu geplant
-    concept_path = Path(args.concept) if args.concept else todays_concept()
+    concept_path = Path(args.concept) if args.concept else todays_concept(args.genre, args.long)
     if concept_path:
         log(f"Konzept wird verwendet: {concept_path}")
         concept = json.loads(concept_path.read_text(encoding="utf-8"))

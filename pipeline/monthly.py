@@ -13,6 +13,8 @@ MONTHS = ["January", "February", "March", "April", "May", "June", "July", "Augus
           "November", "December"]
 
 GENRE_TEXT = {   # Stichwort im Genre-Namen → (Titelteil, Zweck, Tags, Playlist); „mediterranean“ vor „spa“ (Reihenfolge zählt)
+    "italian": ("Italian Chillout Music", "Amalfi Coast & Lake Como Dinner Lounge", ["italian chillout", "italian lounge music",
+                "amalfi coast music", "italian dinner music", "lake como", "italian cafe music", "bossa lounge"], "italian"),
     "mediterranean": ("Mediterranean Spa Lounge", "Balearic Chillout for Relaxing Sunsets", ["balearic chillout",
                       "spa lounge", "ibiza chillout", "luxury spa music", "beach lounge", "chillout lounge", "sunset music"], "chillout"),
     "gym": ("Slow Gym Beats", "Dark Workout Music for Heavy Lifting", ["gym music", "workout music", "slow gym beats",
@@ -165,6 +167,13 @@ def make_monthly_thumbnail(art: Image.Image, hours_text: str, genre_line: str, m
 def make_texts(genre: str, month_label: str, year: int, total_min: int, albums: list[dict], chapter_text: str,
                bpm_range: str) -> dict:
     head, purpose, tags, playlist = genre_info(genre)
+    playlist_id = config.PLAYLISTS.get(playlist, "")
+    if not playlist_id:
+        try:
+            from . import youtube
+            playlist_id = youtube.playlist_for(playlist)
+        except Exception:  # noqa: BLE001 – ohne YouTube-Zugang (Dry-Run) Sammel-Playlist verlinken
+            playlist_id = config.PLAYLISTS["chillout"]
     hrs = hours_label(total_min)
     title = f"{head} · {hrs} · {purpose} (Monthly Mix {month_label} {year})"
     if len(title) > 100:
@@ -183,7 +192,7 @@ def make_texts(genre: str, month_label: str, year: int, total_min: int, albums: 
 
 🔊 {bpm_range} BPM · no vocals · mastered for headphones and speakers
 🎵 All tracks produced by {config.ARTIST} (AI-assisted, original music)
-▶️ Full playlist: https://www.youtube.com/playlist?list={config.PLAYLISTS[playlist]}
+▶️ Full playlist: https://www.youtube.com/playlist?list={playlist_id}
 🔔 New mixes every Tuesday and Friday, a monthly mix on the 1st – subscribe and hit the bell!
 
 👇 Which track was your favourite this month? Drop it in the comments.

@@ -185,7 +185,7 @@ def produce(genre: str, month: str, pairs: list[tuple[dict, dict]], out: Path, m
     except Exception as e:  # noqa: BLE001
         log(f"Thumbnail fehlgeschlagen: {e}")
     try:
-        youtube.add_to_playlist(vid, config.PLAYLISTS[texts["playlist"]])
+        youtube.add_to_playlist(vid, youtube.playlist_for(texts["playlist"]))
     except Exception as e:  # noqa: BLE001
         log(f"Playlist fehlgeschlagen: {e}")
     if not args.private:
