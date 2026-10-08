@@ -77,7 +77,7 @@ def fetch_mix(svc, folder: dict, dst: Path) -> dict:
     return {"tracks": tracks, "titles": titles, "cover": cp, "minutes": minutes}
 
 
-RETIRED_GENRES = ("gym",)   # Gym-Mixe eingestellt (Rolf, 08.10.2026)
+RETIRED_GENRES = ("gym", "drive")   # Gym- und Night-Drive-Mixe eingestellt (Rolf, 08.10.2026)
 
 
 def pick_groups(folders: list[dict], month: str, done: set[str]) -> dict[str, list[dict]]:

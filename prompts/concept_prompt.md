@@ -11,7 +11,7 @@ maximum watch time (long sessions), YouTube Partner Program, revenue. Each mix m
 and new – never a rehash of an earlier release.
 
 ## Fixed channel rules
-- Themes: Mediterranean Spa Lounge · Dark Ambient Spa (luxury spa) · Chillout Sleep · Night Drive Deep Bass · Italian Chillout (own line: Italian dinner & sunset lounge, Amalfi Coast & Lake Como – follow the MANDATORY VISUAL RULE in the brief).
+- Themes: Mediterranean Spa Lounge · Dark Ambient Spa (luxury spa) · Chillout Sleep · Italian Chillout (own line: Italian dinner & sunset lounge, Amalfi Coast & Lake Como – follow the MANDATORY VISUAL RULE in the brief).
 - Instrumental only, no vocals. English for YouTube metadata, German for community texts.
 - Track titles are original inventions, **never reused** across releases, and the final tracklist is sorted
   alphabetically – so choose titles whose alphabetical order equals the intended energy arc of the mix

@@ -63,7 +63,6 @@ THUMB_KEYWORD = {   # immer mit „Music", damit sofort klar ist: das ist Musik,
     "Mediterranean Spa Lounge": "Chillout Lounge Music",
     "Dark Ambient Spa": "Luxury Spa Music",
     "Chillout Sleep": "Sleep Music",
-    "Night Drive Deep Bass": "Night Drive Music",
     "Italian Chillout": "Italian Chillout Music",
 }
 # Schriftgröße von Genre-Begriff und Albumname auf Thumbnail/Cover je Genre (1.0 = Standard). Italien: größer (Rolf 08.10.)
@@ -81,8 +80,6 @@ IMAGE_STYLE = {
                          "phone screen, high-end wellness-magazine look." + _NO_TEXT),
     "Chillout Sleep": (" Calm, dreamy evening photography: soft warm lights against a deep blue dusk sky, gentle but colorful, "
                        "cozy and safe, clear and not murky, high-end interior or nature photography." + _NO_TEXT),
-    "Night Drive Deep Bass": (" Cinematic night photography, deep blues with glowing city or neon lights, high contrast, "
-                              "rich colors." + _NO_TEXT),
     # Italien-Linie: super-realistisch wie ein echtes Magazin-Shooting, ausdrücklich nicht künstlich (Rolf 08.10.2026)
     "Italian Chillout": (" Professional editorial travel photograph, real photo taken on a full-frame camera (Canon EOS R5 or "
                          "Sony A7R V, 35–85 mm prime lens), not CGI, not a render, not an illustration, not airbrushed. "

@@ -46,15 +46,6 @@ GENRES = {
                    "spa bath with rose petals and candlelight", "zen spa courtyard with lanterns and bamboo"],
         "moods": ["deep, warm, weightless", "dark, slow, healing", "humid, soft, timeless", "still, glowing, serene"],
     },
-    "Night Drive Deep Bass": {
-        "playlist": "chillout", "bpm": (85, 105),
-        "purposes": ["late night driving", "city lights cruise", "highway at 3 a.m.", "rain drive", "coastal night road",
-                     "underground parking / tunnel", "night train", "after-hours focus"],
-        "motifs": ["car on wet night road", "tunnel lights", "rain on windshield", "city skyline from the road",
-                   "coastal road under moon", "woman at the wheel at night (advertiser-friendly)"],
-        "moods": ["dark, deep, nocturnal", "nostalgic, smooth, bass-heavy", "cold, cinematic, driving",
-                  "moody, hypnotic, late"],
-    },
     "Chillout Sleep": {
         "playlist": "chillout", "bpm": (45, 65),
         "purposes": ["fall asleep fast", "study & deep focus", "night forest rest", "rainy night reading",
@@ -123,16 +114,14 @@ for _g in GENRES.values():
     if _g.get("substyles"):
         _g["purposes"] = list(_g["substyles"])
 # Strategie 05.10.2026: Sleep/Spa haben den höchsten RPM (ca. 4–8 $) und die längsten Sitzungen → häufiger;
-# Night Drive bleibt als Abwechslung, kommt aber seltener dran. Gym-Mixe eingestellt (Rolf, 08.10.2026).
-GENRE_WEIGHT = {"Mediterranean Spa Lounge": 1.6, "Chillout Sleep": 1.35, "Dark Ambient Spa": 1.25, "Night Drive Deep Bass": 0.75}
+# Gym- und Night-Drive-Mixe eingestellt (Rolf, 08.10.2026).
+GENRE_WEIGHT = {"Mediterranean Spa Lounge": 1.6, "Chillout Sleep": 1.35, "Dark Ambient Spa": 1.25}
 LIGHTS = {
     "Mediterranean Spa Lounge": ["golden hour sunset over the sea", "bright sunny Mediterranean afternoon", "pink-orange Ibiza sunset sky",
                                  "warm amber dusk with lanterns", "low sun glittering on turquoise water",
                                  "clear blue sky with white architecture"],
     "Dark Ambient Spa": ["warm golden candlelight", "golden hour through large windows", "lanterns at dusk",
                          "warm amber glow with green plants", "soft morning sun and steam"],
-    "Night Drive Deep Bass": ["rain and streetlight", "tunnel sodium lights", "teal neon haze", "distant city glow",
-                              "cold moonlight", "dashboard glow"],
     "Chillout Sleep": ["deep blue dusk with warm window lights", "candlelight", "moonlight with warm lamps",
                        "starry sky with a warm glow", "warm reading lamp at blue hour"],
     "Italian Chillout": ["golden hour with the low sun over the water", "orange and pink sunset sky with first candles lit",
@@ -188,7 +177,6 @@ GENRE_TITLE_PREFIX = {g: (k.lower(),) for g, k in config.THUMB_KEYWORD.items()} 
 GENRE_KEYWORDS = {
     "Chillout Sleep": ("sleep", "nap", "insomnia", "rain", "calm", "relax", "dream", "lullaby", "bed"),
     "Dark Ambient Spa": ("spa", "massage", "sauna", "wellness", "yoga", "stone", "ambient", "relax", "meditat"),
-    "Night Drive Deep Bass": ("drive", "driving", "car", "road", "night ride", "highway"),
     "Mediterranean Spa Lounge": ("lounge", "chill", "sunset", "ibiza", "beach", "balearic", "spa", "mediterr", "cafe"),
     "Italian Chillout": ("ital", "amalfi", "como", "positano", "dinner", "lounge", "jazz", "bossa", "cafe", "sunset", "mediterr"),
 }

@@ -21,8 +21,6 @@ GENRE_TEXT = {   # Stichwort im Genre-Namen → (Titelteil, Zweck, Tags, Playlis
             "massage music", "relaxing music", "wellness music"], "chillout"),
     "sleep": ("Sleep Music", "Fall Asleep Fast", ["sleep music", "deep sleep", "relaxing music", "fall asleep fast",
               "insomnia music"], "chillout"),
-    "drive": ("Night Drive Deep Bass", "Late Night Driving Music", ["night drive", "deep bass", "dark ambient",
-              "driving music", "night music"], "chillout"),
 }
 
 
@@ -111,7 +109,6 @@ HERO_PROMPTS = {   # Genre-Stichwort → Motiv (immer eine Frau, werbefreundlich
     "mediterranean": "elegant woman in a white dress on a luxury resort terrace at golden sunset over the Mediterranean, warm amber light with teal accents",
     "spa": "calm woman in a spa robe by candles and hot stones, steam, dark moody spa, teal accent light",
     "sleep": "serene woman asleep in a soft bed by a starry window, moonlight, floor mist, teal accent glow",
-    "drive": "woman at the wheel of a car at night, city lights bokeh, dark moody, teal accent light",
 }
 
 
