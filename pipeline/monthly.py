@@ -207,24 +207,46 @@ def make_texts(genre: str, month_label: str, year: int, total_min: int, albums: 
             "playlist": playlist}
 
 
+def _track_cover(mp3: Path, dst: Path) -> Path | None:
+    """Eingebettetes Track-Cover (APIC) einer MP3 als PNG – jeder Titel hat sein eigenes Cover."""
+    try:
+        from mutagen.id3 import ID3
+        tags = ID3(str(mp3))
+        pics = tags.getall("APIC")
+        if not pics:
+            return None
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        from io import BytesIO
+        Image.open(BytesIO(pics[0].data)).convert("RGB").save(dst, "PNG")
+        return dst
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def build_animated_video(pairs: list[tuple[dict, dict]], audio_file: Path, starts: list[float], out: Path,
                          fps: int = 10) -> Path:
-    """Video mit atmendem Licht für Zusammenschnitte (Samstags-/Monats-Mix, Rolf 08.10.2026): je Track das Album-Cover
-    des Tages-Mixes, aus dem er stammt – wie bei den normalen Mixen, aber ohne neue Bilder/Kosten. Fallback Standbild."""
+    """Video mit atmendem Licht + Fortschrittsstrich für Zusammenschnitte (Samstags-/Monats-Mix, Rolf 08.10.2026):
+    je Titel sein EIGENES Track-Cover (aus der MP3 gelesen) wie bei den Tages-Mixen – so wechselt das Bild mit jedem
+    Titel (kein stundenlanges Standbild, schont Fernseher vor Einbrennen). Fehlt ein Track-Cover: Album-Cover des
+    Tages-Mixes, sonst ein Ersatzbild. Keine neuen Bilder, keine Kosten. Fallback Standbild macht der Aufrufer."""
     from . import visuals
     fdir = out.parent / "frames"
     fdir.mkdir(parents=True, exist_ok=True)
-    frames, cache = [], {}
+    frames, album_frames = [], {}
+    n = 0
     for i, (_, mx) in enumerate(pairs):
-        cover = mx.get("cover")
-        for _ in mx["tracks"]:
-            if i not in cache:
-                if cover and Path(cover).exists():
-                    cache[i] = visuals.make_animated_frame(Path(cover), fdir / f"mix{i:02d}.png")
-                else:
-                    p = fdir / f"mix{i:02d}_src.png"
-                    images.procedural_art("1:1", seed=i).save(p)
-                    cache[i] = visuals.make_animated_frame(p, fdir / f"mix{i:02d}.png")
-            frames.append(cache[i])
+        for t in mx["tracks"]:
+            own = _track_cover(Path(t), fdir / f"cover{n:03d}.png")
+            if own:
+                frames.append(visuals.make_animated_frame(own, fdir / f"t{n:03d}.png"))
+            else:
+                if i not in album_frames:
+                    cover = mx.get("cover")
+                    if not (cover and Path(cover).exists()):
+                        cover = fdir / f"mix{i:02d}_src.png"
+                        images.procedural_art("1:1", seed=i).save(cover)
+                    album_frames[i] = visuals.make_animated_frame(Path(cover), fdir / f"mix{i:02d}.png")
+                frames.append(album_frames[i])
+            n += 1
     total = audio.probe_duration(audio_file)
     return visuals.build_video_animated(frames, starts[:len(frames)], audio_file, total, out, fps=fps)
