@@ -37,15 +37,6 @@ GENRES = {
         "moods": ["warm, sunlit, luxurious, relaxed", "positive, smooth, sunset-golden", "airy, organic, deeply relaxing",
                   "cinematic, balmy, elegant"],
     },
-    "Slow Gym Beats": {
-        "playlist": "gym", "bpm": (70, 90),
-        "purposes": ["heavy lifting", "leg day", "push/pull sessions", "late-night gym", "cardio & stairmaster",
-                     "warm-up & mobility", "cooldown after the set", "home workout focus"],
-        "motifs": ["athletic woman", "athletic man", "gym object close-up (barbell, chalk, chains)",
-                   "empty industrial gym", "rain-soaked street run", "boxing gym"],
-        "moods": ["dark, heavy, hypnotic", "cold, industrial, focused", "slow, menacing, powerful",
-                  "gritty, determined, minimal"],
-    },
     "Dark Ambient Spa": {
         "playlist": "chillout", "bpm": (50, 62),
         "purposes": ["massage & wellness", "hot stone ritual", "sauna & steam", "evening bath", "yin yoga & stretching",
@@ -131,14 +122,12 @@ for _g in GENRES.values():
     if _g.get("substyles"):
         _g["purposes"] = list(_g["substyles"])
 # Strategie 05.10.2026: Sleep/Spa haben den höchsten RPM (ca. 4–8 $) und die längsten Sitzungen → häufiger;
-# Gym/Night Drive bleiben als Abwechslung, kommen aber seltener dran.
-GENRE_WEIGHT = {"Mediterranean Spa Lounge": 1.6, "Chillout Sleep": 1.35, "Dark Ambient Spa": 1.25, "Slow Gym Beats": 0.8, "Night Drive Deep Bass": 0.75}
+# Night Drive bleibt als Abwechslung, kommt aber seltener dran. Gym-Mixe eingestellt (Rolf, 08.10.2026).
+GENRE_WEIGHT = {"Mediterranean Spa Lounge": 1.6, "Chillout Sleep": 1.35, "Dark Ambient Spa": 1.25, "Night Drive Deep Bass": 0.75}
 LIGHTS = {
     "Mediterranean Spa Lounge": ["golden hour sunset over the sea", "bright sunny Mediterranean afternoon", "pink-orange Ibiza sunset sky",
                                  "warm amber dusk with lanterns", "low sun glittering on turquoise water",
                                  "clear blue sky with white architecture"],
-    "Slow Gym Beats": ["cold moonlight through high windows", "teal neon haze", "harsh single spotlight", "rain and streetlight",
-                       "fog with a single warm lamp", "blue hour", "distant city glow"],
     "Dark Ambient Spa": ["warm golden candlelight", "golden hour through large windows", "lanterns at dusk",
                          "warm amber glow with green plants", "soft morning sun and steam"],
     "Night Drive Deep Bass": ["rain and streetlight", "tunnel sodium lights", "teal neon haze", "distant city glow",
@@ -198,7 +187,6 @@ GENRE_TITLE_PREFIX = {g: (k.lower(),) for g, k in config.THUMB_KEYWORD.items()} 
 GENRE_KEYWORDS = {
     "Chillout Sleep": ("sleep", "nap", "insomnia", "rain", "calm", "relax", "dream", "lullaby", "bed"),
     "Dark Ambient Spa": ("spa", "massage", "sauna", "wellness", "yoga", "stone", "ambient", "relax", "meditat"),
-    "Slow Gym Beats": ("gym", "workout", "lift", "training", "cardio", "fitness", "pump"),
     "Night Drive Deep Bass": ("drive", "driving", "car", "road", "night ride", "highway"),
     "Mediterranean Spa Lounge": ("lounge", "chill", "sunset", "ibiza", "beach", "balearic", "spa", "mediterr", "cafe"),
     "Italian Chillout": ("ital", "amalfi", "como", "positano", "dinner", "lounge", "jazz", "bossa", "cafe", "sunset", "mediterr"),

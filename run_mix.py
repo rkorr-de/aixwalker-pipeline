@@ -11,10 +11,10 @@ Konzept-JSON (Beispiel in concepts/example.json):
 {
   "slug": "iron-focus-vol1",
   "album": "Iron Focus Vol. 1",
-  "genre": "Slow Gym Beats",
+  "genre": "Mediterranean Spa Lounge",
   "bpm": 80,
   "mood": "dark, heavy, hypnotic",
-  "playlist": "gym",
+  "playlist": "chillout",
   "minutes_per_track": 5,            # Wunschlänge je Track (Lyria liefert ca. 3–6 Min)
   "min_minutes": 60,                 # Mix wird so lange mit Zusatz-Tracks verlängert, bis erreicht
   "tracks": [ {"title": "Beneath the Bar", "variation": "deep 808, sparse hats"}, ... ],
@@ -211,8 +211,8 @@ def main() -> int:
     log(f"Video: {mp4.name} {json.dumps(info['format'])}")
 
     # 4) Metadaten
-    pl_key = concept.get("playlist", "gym")
-    playlist_id = config.PLAYLISTS.get(pl_key, config.PLAYLISTS["gym"])
+    pl_key = concept.get("playlist", "chillout")
+    playlist_id = config.PLAYLISTS.get(pl_key, config.PLAYLISTS["chillout"])
     if not playlist_id and pl_key in config.PLAYLIST_TITLES and args.upload:
         from pipeline import youtube
         playlist_id = youtube.playlist_for(pl_key)   # findet oder legt die Playlist an

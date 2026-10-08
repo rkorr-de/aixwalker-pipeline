@@ -17,8 +17,6 @@ GENRE_TEXT = {   # Stichwort im Genre-Namen → (Titelteil, Zweck, Tags, Playlis
                 "amalfi coast music", "italian dinner music", "lake como", "italian cafe music", "bossa lounge"], "italian"),
     "mediterranean": ("Mediterranean Spa Lounge", "Balearic Chillout for Relaxing Sunsets", ["balearic chillout",
                       "spa lounge", "ibiza chillout", "luxury spa music", "beach lounge", "chillout lounge", "sunset music"], "chillout"),
-    "gym": ("Slow Gym Beats", "Dark Workout Music for Heavy Lifting", ["gym music", "workout music", "slow gym beats",
-            "heavy lifting music", "dark workout"], "gym"),
     "spa": ("Dark Ambient Spa Music", "Deep Relaxing Music for Massage & Wellness", ["spa music", "dark ambient",
             "massage music", "relaxing music", "wellness music"], "chillout"),
     "sleep": ("Sleep Music", "Fall Asleep Fast", ["sleep music", "deep sleep", "relaxing music", "fall asleep fast",
@@ -111,7 +109,6 @@ HERO_PROMPTS = {   # Genre-Stichwort → Motiv (immer eine Frau, werbefreundlich
                 "Amalfi Coast or Lake Como at sunset, real professional editorial travel photograph (full-frame camera, "
                 "natural skin texture, subtle film grain, not CGI), warm golden light"),
     "mediterranean": "elegant woman in a white dress on a luxury resort terrace at golden sunset over the Mediterranean, warm amber light with teal accents",
-    "gym": "athletic woman in black sportswear gripping a barbell in a dark industrial gym, chalk dust, teal rim light",
     "spa": "calm woman in a spa robe by candles and hot stones, steam, dark moody spa, teal accent light",
     "sleep": "serene woman asleep in a soft bed by a starry window, moonlight, floor mist, teal accent glow",
     "drive": "woman at the wheel of a car at night, city lights bokeh, dark moody, teal accent light",

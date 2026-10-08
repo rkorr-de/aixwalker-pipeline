@@ -6,7 +6,7 @@
   python run_auto.py --dry-run            # synthetisches Audio, prozedurale Bilder, kein Upload, kein Drive, keine Kosten
   python run_auto.py --private            # wie normal, aber Uploads privat
   python run_auto.py --concept concepts/x.json   # fertiges Konzept statt Planer
-  python run_auto.py --genre "Slow Gym Beats"    # Genre erzwingen, Rest automatisch
+  python run_auto.py --genre "Chillout Sleep"    # Genre erzwingen, Rest automatisch
 
 Bricht ein Lauf ab, einfach denselben Befehl erneut starten: das Konzept des Tages (concepts/<datum>-*.json) und
 fertige Tracks in build/<slug>/raw werden wiederverwendet.

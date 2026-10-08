@@ -14,8 +14,10 @@ Zweimal pro Woche (Dienstag und Freitag) erscheint ein neuer Mix, der wie ein ku
 - Artist „Aix Walker“. Stil: dunkel, Teal-Akzent (#5fc9bb), Bebas Neue/Manrope, fotorealistische Motive,
   werbefreundlich, kein Text im generierten Bildmotiv. Cover und Thumbnails bleiben so wiedererkennbar, das Motiv
   und die Lichtstimmung wechseln aber bei jedem Mix (steuert der Planer über das Gedächtnis).
-- Nur diese vier Themen, im Wechsel: Slow Gym Beats · Dark Ambient Spa · Night Drive Deep Bass · Chillout Sleep.
-  Nie zweimal hintereinander dasselbe Genre; innerhalb eines Genres wechseln Zweck, BPM, Stimmung und Motiv.
+- Themen: Mediterranean Spa Lounge (Fokus) · Dark Ambient Spa (Luxury Spa) · Chillout Sleep · Night Drive Deep Bass ·
+  Italian Chillout (eigene Linie). **Keine Gym-Mixe mehr** (Rolf, 08.10.2026) – auch nicht per `--genre` erzwingen.
+  Der Planer verteilt die Genres (Lounge-Quote, nie mehr als zwei gleiche in Folge); innerhalb eines Genres wechseln
+  Zweck, BPM, Stimmung und Motiv.
 - **Jeder Mix mindestens 60 Minuten.** Lyria liefert ca. 3 Min je Track → 20 Tracks + 8 Reserve-Tracks.
   **Keine Reprisen, keine inhaltlich gleichen Tracks** – fehlt Länge, werden nur komplett neue Tracks erzeugt.
 - Track-Titel sind Eigenkreationen, alphabetisch sortiert, werden **nie wiederverwendet** (Gedächtnis prüft das).

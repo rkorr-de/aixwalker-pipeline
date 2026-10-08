@@ -35,7 +35,7 @@ def _track_list(result: dict) -> list[tuple[str, str]]:
 def distrokid_block(concept: dict, result: dict) -> str:
     tracks = _track_list(result)
     drive = result.get("drive") or {}
-    genre_map = {"gym": ("Electronic", "Trap / Beats"), "chillout": ("Electronic", "Ambient")}
+    genre_map = {"chillout": ("Electronic", "Ambient")}
     primary, secondary = genre_map.get(concept.get("playlist", "chillout"), ("Electronic", "Ambient"))
     if "mediterranean" in concept.get("genre", "").lower():
         primary, secondary = "Electronic", "Chill Out"

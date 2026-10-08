@@ -77,6 +77,9 @@ def fetch_mix(svc, folder: dict, dst: Path) -> dict:
     return {"tracks": tracks, "titles": titles, "cover": cp, "minutes": minutes}
 
 
+RETIRED_GENRES = ("gym",)   # Gym-Mixe eingestellt (Rolf, 08.10.2026)
+
+
 def pick_groups(folders: list[dict], month: str, done: set[str]) -> dict[str, list[dict]]:
     """Genre → Mixe. Basis: Mixe des Monats; zu wenig Material → gleiche Genre-Mixe der 2 Vormonate ergänzen."""
     by_genre = defaultdict(list)
@@ -84,6 +87,9 @@ def pick_groups(folders: list[dict], month: str, done: set[str]) -> dict[str, li
         by_genre[f["genre"]].append(f)
     groups = {}
     for g, items in by_genre.items():
+        if any(x in g.lower() for x in RETIRED_GENRES):
+            log(f"{g}: Genre eingestellt – kein Monats-Mix")
+            continue
         if f"{month}|{g}" in done:
             log(f"{g}: Monats-Mix {month} existiert schon – übersprungen")
             continue

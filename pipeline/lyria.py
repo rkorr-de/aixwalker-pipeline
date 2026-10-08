@@ -108,6 +108,6 @@ def build_prompt(genre: str, bpm: int, mood: str, variation: str, minutes: float
 
 if __name__ == "__main__":
     import sys
-    p = build_prompt("slow gym beat, dark trap", 80, "dark, heavy, focused", "deep 808 sub bass, sparse hi-hats", 2)
+    p = build_prompt("balearic chillout lounge", 92, "warm, sunlit, relaxed", "gentle guitar, soft downtempo beat", 2)
     out = Path(sys.argv[1] if len(sys.argv) > 1 else "lyria_test.mp3")
     print(generate_track(p, out), out.stat().st_size, "bytes", "mode:", _working_mode)

@@ -51,7 +51,7 @@ def description(concept: dict, chapter_text: str, playlist_id: str, total_min: i
 {chapter_text}
 
 {c['use_line']}
-🔊 {c['bpm']} BPM · no vocals · no interruptions · {'mastered for headphones and gym speakers' if c.get('playlist') == 'gym' else 'mastered for headphones and speakers'}
+🔊 {c['bpm']} BPM · no vocals · no interruptions · mastered for headphones and speakers
 
 🎵 All tracks produced by {config.ARTIST} (AI-assisted, original music)
 ▶️ Full playlist: https://www.youtube.com/playlist?list={playlist_id}
@@ -75,7 +75,7 @@ def checklist(concept: dict, public: bool = False) -> str:
     return f"""UPLOAD-CHECKLISTE
 [ ] {state}
 [ ] Thumbnail gesetzt (automatisch) – bei Bedarf Variante B/C aus thumbnail/ tauschen
-[ ] Playlist: {concept.get('playlist', 'gym')} (automatisch)
+[ ] Playlist: {concept.get('playlist', 'chillout')} (automatisch)
 [ ] KI-Label gesetzt (automatisch, containsSyntheticMedia)
 [ ] Endscreen: letzten 20 s → Playlist + „Abonnieren“ (in Studio → Editor)
 [ ] Pinned Comment: „{concept['pinned_comment']}“
