@@ -7,3 +7,5 @@ __pycache__/
 *.zip
 !assets/**
 build.log
+# Tageskonzepte der Läufe (liegen im Drive-Gedächtnis, nicht im Repo)
+concepts/20[0-9][0-9]-*.json
