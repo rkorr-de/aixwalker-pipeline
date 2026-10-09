@@ -120,7 +120,7 @@ GAP = 44
 
 def make_short_frame(art: Image.Image, cover_png: Path, headline: str, track_title: str, out: Path,
                      w: int = 1080, h: int = 1920, total_min: int | None = None, album: str | None = None,
-                     keyword: str | None = None) -> Path:
+                     keyword: str | None = None, note: str = "no vocals") -> Path:
     """9:16-Bild ohne Überlagerungen: Hook oben, Cover, Albumname (Wiedererkennung), Track, Hinweis auf den Mix.
     Die Elemente werden nacheinander von oben nach unten gesetzt; das Cover schrumpft, falls der Platz nicht reicht.
     Zusätzlich wird <out>.layout.json mit Cover- und Textflächen geschrieben (für das atmende Licht im Video)."""
@@ -193,7 +193,7 @@ def make_short_frame(art: Image.Image, cover_png: Path, headline: str, track_tit
     y = centered(f"{config.ARTIST.upper()}  ·  {track_title.upper()}", f_track, y, config.WHITE, shadow=True) + GAP
     t1 = f"FULL {total_min} MIN ON THE CHANNEL" if total_min else "FULL MIX ON THE CHANNEL"
     y = centered(t1, f_cta, y, config.WHITE, shadow=True) + 22
-    centered("link in description  ·  no vocals  ·  no interruptions", f_cta2, y, config.CREAM, shadow=True)
+    centered(f"link in description  ·  {note}  ·  no interruptions", f_cta2, y, config.CREAM, shadow=True)
     _check_no_overlap(boxes + [cover_box])
     out.parent.mkdir(parents=True, exist_ok=True)
     bg.save(out, "PNG")
@@ -237,7 +237,7 @@ def short_metadata(concept: dict, idx: int, passage: dict, track_title: str, ove
     if kw and "music" not in title.lower():                     # sofort klar, dass es Musik ist (Rolf 08.10.)
         title = f"{title} · {kw}"
     title = f"{title[:100 - len(' #Shorts')].rstrip()} #Shorts"
-    desc = (f"{overlay}\n\n🎧 Full mix ({concept.get('total_min', 60)}+ min, no vocals, no interruptions): {full_url}\n"
+    desc = (f"{overlay}\n\n🎧 Full mix ({concept.get('total_min', 60)}+ min, {config.vocal_note(concept.get('genre'))}, no interruptions): {full_url}\n"
             f"Track: {track_title} · {concept['genre']} · {concept['bpm']} BPM\n"
             f"From the mix „{concept['album']}“ by {config.ARTIST} (AI-assisted, original music)\n\n"
             f"{' '.join(concept['hashtags'][:4])} #Shorts")

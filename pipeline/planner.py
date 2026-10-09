@@ -108,8 +108,48 @@ GENRES = {
                         "never 'illustration', 'render' or 'digital art'. Classy and advertiser-friendly: no lingerie, no "
                         "cleavage focus, no suggestive pose."),
     },
+    # Eigene Linie (Rolf, 09.10.2026, nach drei Testrunden freigegeben): „Ibiza Sunset Lounge“ – klassischer Balearic
+    # Sunset Chillout (Café-del-Mar-Gefühl, Markenname bewusst NICHT im Prompt), 88–96 BPM, fast instrumental mit seltenem
+    # wortlosem Summen (config.VOCAL_STYLE). Bilder: Beach Club mit Gästen bei tiefem, rotem Sonnenuntergang, dunklere
+    # Umgebung, Orange-&-Teal-Filter (config.COLOR_GRADE), Titel oben im Himmel (config.THUMB_TITLE_TOP).
+    # Start: `run_auto.py --genre "Ibiza Sunset Lounge"`. Nicht Teil der Di/Fr-Rotation (ROTATION_EXCLUDE).
+    "Ibiza Sunset Lounge": {
+        "playlist": "ibiza", "bpm": (88, 96),
+        "style": ("Classic Balearic sunset chillout, the timeless music of an Ibiza sunset bar as the sun sinks into the "
+                  "sea: slow, laid-back downtempo groove with a soft, round, low-key kick and gentle brushed percussion "
+                  "and light shakers, no driving four-on-the-floor, warm deep mellow bass, lush slowly evolving pads, "
+                  "soft Rhodes and felt piano chords, warm nylon-string Spanish guitar melodies, subtle ambient textures "
+                  "and distant waves; spacious, dreamy, slightly melancholic yet warm, unhurried and deeply relaxing. "
+                  "Mostly instrumental: at most a rare, wordless, breathy hum far in the background, never lyrics. "
+                  "Warm high-end lounge production, clean mix, {BPM} BPM."),
+        "purposes": ["sunset at the beach club", "sundowner drinks with friends", "relaxed summer evening on the terrace",
+                     "unwind after work with sunset vibes", "slow Sunday chill", "dinner and drinks by the sea",
+                     "reading and daydreaming at golden hour"],
+        "motifs": [
+            "upscale Ibiza beach club on the sand with thatched parasols, white canopy daybeds, relaxed guests and an outdoor DJ booth",
+            "luxury beach club seen from a raised wooden terrace, rows of white daybeds along the shoreline, guests chatting and swaying barefoot",
+            "cliffside sunset bar terrace above a small Ibiza cove with pine trees, lounge cushions and guests holding drinks",
+            "bohemian beach club with rattan lounges, pampas grass, candle lanterns and elegant guests with cocktails",
+            "white canopy daybed with cocktails and a candle lantern in the foreground, beach club guests further back",
+            "rocky sunset point with a chill-out bar, guests on cushions watching the sun sink into the sea",
+            "wooden beach club deck with a thatched DJ booth, string lights and guests softly dancing on the sand",
+        ],
+        "moods": ["warm, dreamy, laid-back", "melancholic, golden, floating", "sensual, hypnotic, unhurried",
+                  "warm, nostalgic, glowing"],
+        "visual_rule": ("For THIS line the general image rules 'BRIGHT' and 'people only small or seen from behind' do NOT "
+                        "apply. Every art_prompt and thumbnail_prompt shows a luxury Ibiza beach club or sunset bar at a "
+                        "LATE, DEEP sunset: the sun low on or touching the horizon, a dramatic sky in deep red, crimson, "
+                        "burnt orange and dark amber, fiery red reflections on the darkening sea. The surroundings are "
+                        "already dim, moody and warm, lit only by the afterglow, string lights, lanterns and candles. "
+                        "Natural wood, thatch, white canopy drapes, pampas grass, palm silhouettes. Relaxed, elegant guests "
+                        "in light summer outfits are clearly part of the scene (chatting with drinks, lounging, softly "
+                        "dancing barefoot) – classy and advertiser-friendly. thumbnail_prompt: the calm sky with the sun "
+                        "fills the UPPER 40 % of the square image (the big title sits at the top), the beach-club scene "
+                        "fills the lower part. Write it as a real professional editorial photo (camera, lens, film grain), "
+                        "dark, warm and cinematic – never 'illustration', 'render' or 'digital art'."),
+    },
 }
-ROTATION_EXCLUDE = {"Italian Chillout"}   # eigene Linie mit eigenem Zeitplan → nicht in der automatischen Genre-Wahl
+ROTATION_EXCLUDE = {"Italian Chillout", "Ibiza Sunset Lounge"}   # eigene Linien mit eigenem Zeitplan → nicht in der Genre-Wahl
 for _g in GENRES.values():
     if _g.get("substyles"):
         _g["purposes"] = list(_g["substyles"])
@@ -127,6 +167,9 @@ LIGHTS = {
     "Italian Chillout": ["golden hour with the low sun over the water", "orange and pink sunset sky with first candles lit",
                          "blue hour with candlelight and village lights", "warm amber sunset glow reflected on the water",
                          "last warm sunlight on the old Italian buildings"],   # ortsneutral: passt zu Küste UND See
+    "Ibiza Sunset Lounge": ["deep red sun touching the horizon", "sun half below the horizon under a crimson sky",
+                            "last minutes of sunset with a burnt-orange afterglow", "fiery red sky reflected on the darkening sea",
+                            "dark amber afterglow just after sunset with the first lanterns glowing"],
 }
 
 
@@ -179,6 +222,7 @@ GENRE_KEYWORDS = {
     "Dark Ambient Spa": ("spa", "massage", "sauna", "wellness", "yoga", "stone", "ambient", "relax", "meditat"),
     "Mediterranean Spa Lounge": ("lounge", "chill", "sunset", "ibiza", "beach", "balearic", "spa", "mediterr", "cafe"),
     "Italian Chillout": ("ital", "amalfi", "como", "positano", "dinner", "lounge", "jazz", "bossa", "cafe", "sunset", "mediterr"),
+    "Ibiza Sunset Lounge": ("ibiza", "balearic", "sunset", "lounge", "chill", "beach", "cafe del mar", "sundowner", "summer"),
 }
 
 
@@ -253,7 +297,7 @@ def choose_brief(mem: dict, analytics_rows: list[dict] | None = None, seed: int 
 
 
 def brief_text(b: dict) -> str:
-    session = "evening dinner-lounge" if b.get("genre") in ROTATION_EXCLUDE else "sleep/relax"
+    session = "evening lounge" if b.get("genre") in ROTATION_EXCLUDE else "sleep/relax"
     fmt = (f"Format: LONG {session} session of {config.LONG_MIN_MINUTES // 60} hours or more "
            f"({config.LONG_PLANNED_TRACKS}+{config.LONG_EXTRA_TRACKS} track titles). Use {{HOURS}} in the title, never {{MIN}}. "
            f"Even more continuous, seamless and calm than a normal mix; tracks flow into each other.\n" if b.get("long") else "")

@@ -41,6 +41,8 @@ def distrokid_block(concept: dict, result: dict) -> str:
         primary, secondary = "Electronic", "Chill Out"
     if "italian" in concept.get("genre", "").lower():
         primary, secondary = "Jazz", "Easy Listening"
+    if "ibiza" in concept.get("genre", "").lower():   # Balearic Chillout, Rolf 09.10.2026
+        primary, secondary = "Electronic", "Chill Out"
     short1 = (result.get("shorts") or [{}])[0]
     lines = [
         "DISTROKID – FORMULARANGABEN",

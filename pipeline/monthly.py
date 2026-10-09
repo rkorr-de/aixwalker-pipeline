@@ -13,6 +13,8 @@ MONTHS = ["January", "February", "March", "April", "May", "June", "July", "Augus
           "November", "December"]
 
 GENRE_TEXT = {   # Stichwort im Genre-Namen → (Titelteil, Zweck, Tags, Playlist); „mediterranean“ vor „spa“ (Reihenfolge zählt)
+    "ibiza": ("Ibiza Sunset Lounge", "Balearic Chillout for Sunset Evenings", ["ibiza sunset lounge", "balearic chillout",
+              "ibiza chillout", "sunset lounge music", "beach club music", "chillout lounge", "cafe del mar style"], "ibiza"),
     "italian": ("Italian Chillout Music", "Amalfi Coast & Lake Como Dinner Lounge", ["italian chillout", "italian lounge music",
                 "amalfi coast music", "italian dinner music", "lake como", "italian cafe music", "bossa lounge"], "italian"),
     "mediterranean": ("Mediterranean Spa Lounge", "Balearic Chillout for Relaxing Sunsets", ["balearic chillout",
@@ -103,6 +105,9 @@ def build_still_video(frame: Path, audio_file: Path, out: Path, fps: int = 2) ->
 # ---------- Thumbnail ----------
 
 HERO_PROMPTS = {   # Genre-Stichwort → Motiv (immer eine Frau, werbefreundlich, Kanal-Look: dunkel, Teal-Licht)
+    "ibiza": ("elegant woman in a light summer dress with a cocktail at a luxury Ibiza beach club at a late, deep red "
+              "sunset, white canopy daybeds, string lights and lanterns, real professional editorial travel photograph, "
+              "cinematic orange and teal colour grading"),
     "italian": ("elegant, attractive woman in a fitted silk evening gown at a candlelit dinner table on a terrace above the "
                 "Amalfi Coast or Lake Como at sunset, real professional editorial travel photograph (full-frame camera, "
                 "natural skin texture, subtle film grain, not CGI), warm golden light"),

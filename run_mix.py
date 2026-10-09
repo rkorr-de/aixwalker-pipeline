@@ -69,8 +69,9 @@ def produce_track(i: int, t: dict, concept: dict, out: Path, args, bpm: int) -> 
         elif args.dry_run:
             synthetic_track(raw, int(minutes * 60 * (0.9 + 0.05 * (i % 3))), bpm, i)
         else:
-            prompt = lyria.build_prompt(concept["genre"], bpm, concept["mood"], t["variation"], minutes,
-                                        concept.get("sound_design", ""))
+            g = concept["genre"]
+            prompt = lyria.build_prompt(config.LYRIA_GENRE_TAGS.get(g, g), bpm, concept["mood"], t["variation"], minutes,
+                                        concept.get("sound_design", ""), vocals=config.VOCAL_STYLE.get(g, ""))
             lyria.generate_track(prompt, raw)
         qc = audio.quality_check(raw, target_bpm=None if args.dry_run else bpm)
         log(f"Track {i:02d} „{t['title']}“: {qc.duration:.0f}s, Tempo {qc.tempo:.0f}, Stille {qc.silence_ratio:.0%}, "
@@ -163,7 +164,8 @@ def main() -> int:
             f"{concept['art_prompt']} Variation: {t['variation']}."
         gi = (i - 1) // config.LONG_ART_GROUP if is_long else i - 1   # Lang-Format: ein Bild je Track-Gruppe
         if gi not in art_cache:
-            art_cache[gi] = images.generate_art(art_prompt, "1:1", style=images.style_for(genre))
+            art_cache[gi] = images.color_grade(images.generate_art(art_prompt, "1:1", style=images.style_for(genre)),
+                                               genre)   # z. B. Orange-&-Teal-Filter der Ibiza-Linie
         art = art_cache[gi]
         cover = images.make_track_cover(art, t["title"], i, album, out / "covers" / f"{i:02d}.png")
         covers.append(cover)
@@ -193,10 +195,12 @@ def main() -> int:
     master = images.master_art(scene, genre)          # EIN Hauptbild: Cover = ganz, Thumbnail = 16:9-Ausschnitt
     master.save(out / "covers" / "master.jpg", "JPEG", quality=92)
     text_scale = config.THUMB_TEXT_SCALE.get(genre, 1.0)
-    images.make_album_cover(master, keyword, album, out / "covers" / "album_3000.png", text_scale=text_scale)
+    look = {"subline": config.THUMB_SUBLINE.get(genre), "one_line": genre in config.THUMB_ONE_LINE,
+            "title_top": genre in config.THUMB_TITLE_TOP}   # Ibiza: Unterzeile, einzeilig, Titel oben im Himmel
+    images.make_album_cover(master, keyword, album, out / "covers" / "album_3000.png", text_scale=text_scale, **look)
     thumb_art = images.crop_aspect(master, 16, 9)
     thumbs = [images.make_thumbnail(thumb_art, keyword, album, out / "thumbnail" / "thumb_A.jpg",
-                                    duration=images.duration_label(total_min), text_scale=text_scale)]
+                                    duration=images.duration_label(total_min), text_scale=text_scale, **look)]
     mp4_path = out / "video" / f"{concept['slug']}.mp4"
     if config.ANIMATED_VISUALS:
         try:
@@ -253,7 +257,8 @@ def main() -> int:
             t_title = tracks[p["track_index"]]["title"]
             frame = shorts.make_short_frame(thumb_art, covers[p["track_index"]], overlays[k], t_title,
                                             out / "shorts" / f"short_{k + 1}_frame.png", total_min=total_min,
-                                            album=album, keyword=config.THUMB_KEYWORD.get(genre))
+                                            album=album, keyword=config.THUMB_KEYWORD.get(genre),
+                                            note=config.vocal_note(genre))
             clip_path = out / "shorts" / f"short_{k + 1}.mp4"
             if config.ANIMATED_VISUALS:
                 try:

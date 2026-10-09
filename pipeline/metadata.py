@@ -51,7 +51,7 @@ def description(concept: dict, chapter_text: str, playlist_id: str, total_min: i
 {chapter_text}
 
 {c['use_line']}
-🔊 {c['bpm']} BPM · no vocals · no interruptions · mastered for headphones and speakers
+🔊 {c['bpm']} BPM · {config.vocal_note(c.get('genre'))} · no interruptions · mastered for headphones and speakers
 
 🎵 All tracks produced by {config.ARTIST} (AI-assisted, original music)
 ▶️ Full playlist: https://www.youtube.com/playlist?list={playlist_id}

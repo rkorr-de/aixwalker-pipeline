@@ -27,7 +27,7 @@ from PIL import Image
 from pipeline import audio, config, drive, images, memory, metadata, monthly, youtube
 
 MIN_MIN, TARGET_MIN, MAX_MIN, MAX_RUNS = 100, 150, 240, 4
-OWN_LINES = ("Italian Chillout",)   # eigene Linien zuerst – sie fallen nie wegen MAX_RUNS weg (Rolf 08.10.2026)
+OWN_LINES = ("Italian Chillout", "Ibiza Sunset Lounge")   # eigene Linien zuerst – sie fallen nie wegen MAX_RUNS weg (Rolf 08.10.2026)
 
 
 def log(msg: str) -> None:

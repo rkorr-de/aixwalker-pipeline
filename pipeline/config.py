@@ -79,8 +79,22 @@ THUMB_TITLE_TOP = {"Ibiza Sunset Lounge"}
 # Kinematografischer Orange-&-Teal-Filter auf alle Bilder des Genres (Rolf 09.10.: warme Lichter/Sonne kräftig
 # orange-gold, Himmel, Meer und Schatten in Türkis/Teal) – images.color_grade
 COLOR_GRADE = {"Ibiza Sunset Lounge"}
-# Genres MIT Gesang (alle anderen: instrumental, „no vocals“ in Texten)
-VOCAL_GENRES = {"Ibiza Sunset Lounge"}
+# Genres mit Stimme (alle anderen: instrumental, „no vocals“ in Texten). Ibiza (Rolf 09.10. nach 3 Testrunden): KEIN
+# Liedtext, nur selten ein gehauchtes, wortloses Summen weit im Hintergrund – geht als `vocals` in jeden Lyria-Prompt
+VOCAL_STYLE = {
+    "Ibiza Sunset Lounge": ("almost none, the track is mostly instrumental. Only now and then a soft, breathy, wordless "
+                            "female humming (gentle 'mmm' and airy 'ooh'), placed far in the background, very low in the "
+                            "mix, drenched in reverb and delay like a distant whisper, never in the foreground and never "
+                            "carrying the melody. No lyrics, no words, no singing of text, no vocal chops, no spoken words."),
+}
+VOCAL_GENRES = set(VOCAL_STYLE)
+# Genre-Angabe am Anfang des Lyria-Prompts (Standard: der Genre-Name). Ibiza: so in Testrunde 3 freigegeben (Rolf 09.10.)
+LYRIA_GENRE_TAGS = {"Ibiza Sunset Lounge": "Balearic Chillout, Ibiza Sunset Chillout, Downtempo Lounge"}
+
+
+def vocal_note(genre: str | None) -> str:
+    """Kurzangabe für Beschreibungen/Shorts: „no vocals“ bzw. bei wortlosem Summen „no lyrics“."""
+    return "no lyrics" if genre in VOCAL_GENRES else "no vocals"
 # Schriftgröße von Genre-Begriff und Albumname auf Thumbnail/Cover je Genre (1.0 = Standard). Italien: größer (Rolf 08.10.)
 THUMB_TEXT_SCALE = {"Italian Chillout": 1.2, "Ibiza Sunset Lounge": 1.2}
 

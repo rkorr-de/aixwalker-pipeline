@@ -15,7 +15,7 @@ Zweimal pro Woche (Dienstag und Freitag) erscheint ein neuer Mix, der wie ein ku
   werbefreundlich, kein Text im generierten Bildmotiv. Cover und Thumbnails bleiben so wiedererkennbar, das Motiv
   und die Lichtstimmung wechseln aber bei jedem Mix (steuert der Planer über das Gedächtnis).
 - Themen: Mediterranean Spa Lounge (Fokus) · Dark Ambient Spa (Luxury Spa) · Chillout Sleep ·
-  Italian Chillout (eigene Linie). **Keine Gym- und keine Night-Drive-/Driving-Mixe mehr** (Rolf, 08.10.2026) – auch
+  Italian Chillout (eigene Linie) · Ibiza Sunset Lounge (eigene Linie). **Keine Gym- und keine Night-Drive-/Driving-Mixe mehr** (Rolf, 08.10.2026) – auch
   nicht per `--genre` erzwingen.
   Der Planer verteilt die Genres (Lounge-Quote, nie mehr als zwei gleiche in Folge); innerhalb eines Genres wechseln
   Zweck, BPM, Stimmung und Motiv.
@@ -79,6 +79,23 @@ Die Sonntags-Routine startet statt `python run_auto.py` den Befehl **`python run
 - Der Lauf dauert deutlich länger (Lyria-Erzeugung der Tracks ca. 1–2 Stunden); bei Abbruch denselben Befehl erneut
   starten – fertige Tracks (build/<slug>/raw) und das Konzept des Tages werden wiederverwendet.
 - Kein DistroKid-Release für Lang-Mixe (steht so im Bericht).
+
+## Ibiza-Linie „Ibiza Sunset Lounge“ (seit 09.10.2026)
+
+Eigene Linie neben den Di/Fr-Mixen, gleicher Ablauf wie oben (≥ 60 Min, 2 Shorts, sofort öffentlich, Drive, Gedächtnis,
+Kostenvoranschlag, Bericht per E-Mail). Startbefehl: **`python run_auto.py --genre "Ibiza Sunset Lounge"`**
+(im Hintergrund, Log `build/auto_ibiza.log`). Von Rolf nach drei Testrunden freigegeben (`test_ibiza.py`).
+- Musik: klassischer Balearic Sunset Chillout (Café-del-Mar-Gefühl), 88–96 BPM, ruhiger Downtempo-Groove, Nylongitarre,
+  Rhodes/Piano, Flächen, Meeresrauschen. Fast instrumental: nur selten ein wortloses, gehauchtes Summen weit im
+  Hintergrund (`config.VOCAL_STYLE`), **nie Liedtext**. Den Markennamen „Café del Mar“ nie in Lyria-Prompts schreiben
+  (Lyria filtert Anlehnungen an bestehende Werke).
+- Bilder: Beach Club bzw. Sunset-Bar auf Ibiza mit Gästen, tiefer roter Sonnenuntergang, dunklere Umgebung;
+  kinematografischer Orange-&-Teal-Filter auf ALLEN Bildern (`config.COLOR_GRADE`).
+- Thumbnail und Album-Cover: „IBIZA SUNSET LOUNGE“ einzeilig, Unterzeile „BALEARIC CHILLOUT“, Albumname in Schreibschrift –
+  Titelblock oben im Himmel; auf dem Thumbnail steht die Dauer unten rechts auf Höhe von „AIX WALKER“.
+- Playlist „Ibiza Sunset Lounge“: wird beim ersten Upload über den Titel gefunden bzw. angelegt.
+- Ibiza-Mixe zählen nicht für die Genre-Rotation der Di/Fr/So-Mixe; eigener Monats-Mix am 1. (wie Italien).
+- DistroKid-Angaben im Bericht: Hauptgenre Electronic, Nebengenre Chill Out, Sprache Instrumental.
 
 ## Italien-Linie „Italian Chillout Music“ (Mo/Mi/Fr/So, seit 08.10.2026)
 

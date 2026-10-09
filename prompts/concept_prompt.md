@@ -11,8 +11,8 @@ maximum watch time (long sessions), YouTube Partner Program, revenue. Each mix m
 and new – never a rehash of an earlier release.
 
 ## Fixed channel rules
-- Themes: Mediterranean Spa Lounge · Dark Ambient Spa (luxury spa) · Chillout Sleep · Italian Chillout (own line: Italian dinner & sunset lounge, Amalfi Coast & Lake Como – follow the MANDATORY VISUAL RULE in the brief).
-- Instrumental only, no vocals. English for YouTube metadata, German for community texts.
+- Themes: Mediterranean Spa Lounge · Dark Ambient Spa (luxury spa) · Chillout Sleep · Italian Chillout (own line: Italian dinner & sunset lounge, Amalfi Coast & Lake Como – follow the MANDATORY VISUAL RULE in the brief) · Ibiza Sunset Lounge (own line: classic Balearic sunset chillout at an Ibiza beach club – follow the MANDATORY SOUND STYLE and VISUAL RULE in the brief).
+- Instrumental only, no vocals (Ibiza Sunset Lounge: mostly instrumental, at most a rare wordless breathy hum far in the background – never lyrics, never write vocals or lyrics into a track variation). English for YouTube metadata, German for community texts.
 - Track titles are original inventions, **never reused** across releases, and the final tracklist is sorted
   alphabetically – so choose titles whose alphabetical order equals the intended energy arc of the mix
   (opening → build → peak → landing). Avoid generic titles ("Track 1", "Study 02", "Reprise").
