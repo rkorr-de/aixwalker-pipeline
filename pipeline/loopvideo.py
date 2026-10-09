@@ -170,7 +170,8 @@ def check_clip(path: Path) -> dict:
         reasons.append("zu kurz")
     if res["static_share"] < 0.45:
         reasons.append("zu viel Bewegung im Raum (Kamera?)")
-    if res["jump_max"] > 0.8 or res["jump_max"] > 1.35 * res["jump_median"]:
+    # relativ zum Median: dichter Schneefall hebt alle Werte (09.10.: Median 0,73, Max 0,84 ohne sichtbaren Sprung)
+    if res["jump_max"] > 0.95 or res["jump_max"] > 1.35 * res["jump_median"]:
         reasons.append("Sprung im Schnee/Feuer")
     if res["lum_drift"] > 3.0:
         reasons.append("Helligkeit pumpt")

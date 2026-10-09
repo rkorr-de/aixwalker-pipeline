@@ -15,7 +15,7 @@ Zweimal pro Woche (Dienstag und Freitag) erscheint ein neuer Mix, der wie ein ku
   werbefreundlich, kein Text im generierten Bildmotiv. Cover und Thumbnails bleiben so wiedererkennbar, das Motiv
   und die Lichtstimmung wechseln aber bei jedem Mix (steuert der Planer über das Gedächtnis).
 - Themen: Mediterranean Spa Lounge (Fokus) · Dark Ambient Spa (Luxury Spa) · Chillout Sleep ·
-  Italian Chillout (eigene Linie) · Ibiza Sunset Lounge (eigene Linie). **Keine Gym- und keine Night-Drive-/Driving-Mixe mehr** (Rolf, 08.10.2026) – auch
+  Italian Chillout (eigene Linie) · Ibiza Sunset Lounge (eigene Linie) · Cozy Winter Cabin (eigene Linie, 4K-Kaminfilm). **Keine Gym- und keine Night-Drive-/Driving-Mixe mehr** (Rolf, 08.10.2026) – auch
   nicht per `--genre` erzwingen.
   Der Planer verteilt die Genres (Lounge-Quote, nie mehr als zwei gleiche in Folge); innerhalb eines Genres wechseln
   Zweck, BPM, Stimmung und Motiv.
@@ -79,6 +79,24 @@ Die Sonntags-Routine startet statt `python run_auto.py` den Befehl **`python run
 - Der Lauf dauert deutlich länger (Lyria-Erzeugung der Tracks ca. 1–2 Stunden); bei Abbruch denselben Befehl erneut
   starten – fertige Tracks (build/<slug>/raw) und das Konzept des Tages werden wiederverwendet.
 - Kein DistroKid-Release für Lang-Mixe (steht so im Bericht).
+
+## Winter-Cabin-Linie „Cozy Winter Cabin“ (seit 09.10.2026) – 4K-Kaminfilm
+
+Eigene Linie, alles **echtes 4K**, kein DistroKid. Konzept und Testergebnisse: `KONZEPT_WINTER_CABIN.md`.
+- **Freitag 08:45** – Freitags-Mix (≥ 120 Min): **`python run_auto.py --genre "Cozy Winter Cabin"`** (im Hintergrund,
+  Log `build/auto_cabin.log`). run_auto leitet an `run_cabin.py` weiter: Lyria-Tracks (Cozy Lofi Ambient / Smooth Jazz
+  Fireplace, 58–64 BPM, −16 LUFS, keine Tempoprüfung), EIN Hauptbild 4K, 3 Veo-Clips 4K (Start = Ende = Hauptbild,
+  automatisch geprüft), nahtloser Kaminfilm mit gemeinfreiem Kaminknistern, **Streaming-Upload** (das Video liegt nie
+  komplett auf der Platte), Thumbnail C, 2 Shorts S1 v2 (15-s-Loops mit Frage), Playlist „Cozy Winter Cabin · Relaxing
+  Fireplace Chillout 4K“, Drive (MP3s, Hauptbild, Loop-Clips, Thumbnail, Metadaten, Shorts – nicht das lange Video),
+  Gedächtnis, E-Mail. Dauer ca. 1–1,5 Std. Kosten ca. 11 $ (Grenze 15 $).
+- **Sonntag 09:45 (alle 2 Wochen)** – **`python run_cabin_compilation.py --period biweekly --if-due`**: die beiden
+  letzten Freitags-Mixe (ca. 4 Std.) mit neuem Bild + neuen Clips; nicht fällig → beendet sich sofort ohne Kosten.
+- **Am 1. um 07:45** – **`python run_cabin_compilation.py --period monthly`**: alle Freitags-Mixe des Vormonats
+  (ca. 8–10 Std., max. 11:50 Std.), neues Bild + neue Clips, Upload ca. 1 Std.
+- Bei Abbruch denselben Befehl erneut starten (fertige Tracks, Hauptbild und geprüfte Clips werden wiederverwendet).
+  Fällt ein Veo-Clip zweimal durch die Prüfung, reichen 2 Clips; mit weniger bricht der Lauf ab (Fehler nennen).
+- Nicht umbauen: Endbild-Vorgabe für Veo (ohne fährt die Kamera), Überblendung an den Nähten, `mbtree=0`, Streaming-Upload.
 
 ## Ibiza-Linie „Ibiza Sunset Lounge“ (seit 09.10.2026)
 

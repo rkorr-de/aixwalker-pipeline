@@ -21,7 +21,6 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 from pathlib import Path
 
-import numpy as np
 from PIL import Image
 
 from pipeline import audio, cabin_art, config, costs, images, loopvideo, lyria, metadata, monthly, shorts
@@ -92,7 +91,7 @@ def master_frame(concept: dict, out: Path, dry: bool) -> Image.Image:
     else:
         art = images.generate_art(concept["thumbnail_prompt"], "16:9", pro=True,
                                   style=images.style_for(concept["genre"]), image_size="4K")
-    frame = loopvideo.frame_16x9(art)
+    frame = cabin_art.fire_right(loopvideo.frame_16x9(art))   # Kamin immer rechts → Thumbnail-Text immer oben links
     frame.save(p)
     frame.save(out / "img" / "master.jpg", "JPEG", quality=92)
     return frame
@@ -139,15 +138,6 @@ def make_clips(frame: Image.Image, out: Path, n: int, dry: bool) -> list[Path]:
     return clips
 
 
-def fire_center_x(frame: Image.Image) -> float:
-    """Horizontale Lage des Kaminfeuers (0–1) – dort sitzt der senkrechte Ausschnitt der Shorts."""
-    a = np.asarray(frame.convert("RGB").resize((480, 270))).astype(np.float32)
-    warm = np.clip((a[..., 0] - 190) / 65, 0, 1) * np.clip((a[..., 0] - a[..., 2] - 70) / 80, 0, 1)
-    if warm.sum() < 5:
-        return 0.5
-    return float((warm.sum(axis=0) * np.arange(480)).sum() / warm.sum() / 480)
-
-
 def make_short(clips: list[Path], k: int, frame: Image.Image, final_wav: Path, start: float, question: str,
                out: Path) -> Path:
     """15-s-Short S1 v2: zwei Segmente (X→Y→X) ergeben eine nahtlose Schleife; senkrechter Ausschnitt um das Feuer."""
@@ -156,7 +146,7 @@ def make_short(clips: list[Path], k: int, frame: Image.Image, final_wav: Path, s
     loopvideo.build_segment([(x, y), (y, x)], loop4k)
     overlay = cabin_art.short_overlay(question, out / "shorts" / f"overlay_{k + 1}.png")
     cw = round(loopvideo.H * 9 / 16)
-    cx = int(min(max(fire_center_x(frame) * loopvideo.W - cw / 2, 0), loopvideo.W - cw))
+    cx = int(min(max(cabin_art.fire_x(frame) * loopvideo.W - cw / 2, 0), loopvideo.W - cw))
     dst = out / "shorts" / f"short_{k + 1}.mp4"
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(loop4k), "-i", str(overlay), "-ss", f"{start:.2f}",
                     "-t", str(SHORT_SEC), "-i", str(final_wav), "-filter_complex",

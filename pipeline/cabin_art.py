@@ -4,7 +4,7 @@ Kein Album-Cover, keine Track-Cover (kein DistroKid für diese Linie)."""
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageOps
 
 from . import config
 
@@ -77,24 +77,48 @@ def _chip(img, x, y, text, s):
     _draw(ImageDraw.Draw(img), (x + 35 * s, y + 20 * s), text, f, (255, 255, 255), tr)
 
 
-def make_thumbnail(frame: Image.Image, duration: str, out: Path) -> Path:
-    """Thumbnail C (Rolf 09.10.): Textblock oben links über den Fenstern, großes „4K UHD“ + Dauer, 1280×720 JPEG."""
+def fire_x(frame: Image.Image) -> float:
+    """Horizontale Lage des Kaminfeuers (0–1): helle, stark orange Bereiche."""
+    a = np.asarray(frame.convert("RGB").resize((480, 270))).astype(np.float32)
+    warm = np.clip((a[..., 0] - 190) / 65, 0, 1) * np.clip((a[..., 0] - a[..., 2] - 70) / 80, 0, 1)
+    return 0.5 if warm.sum() < 5 else float((warm.sum(axis=0) * np.arange(480)).sum() / warm.sum() / 480)
+
+
+def fire_right(frame: Image.Image) -> Image.Image:
+    """Rolf 09.10.: Steht der Kamin links, wird das Hauptbild gespiegelt (vor den Veo-Clips, also kostenlos) – so ist
+    der Kamin immer rechts und der Thumbnail-Text immer oben links. Das Grundbild enthält keine Schrift."""
+    return ImageOps.mirror(frame) if fire_x(frame) < 0.5 else frame
+
+
+def make_thumbnail(frame: Image.Image, duration: str, out: Path, side: str = "left") -> Path:
+    """Thumbnail C (Rolf 09.10.): Textblock oben links über den Fenstern (Kamin rechts, siehe fire_right), großes
+    „4K UHD“ + Dauer, 1280×720 JPEG. side="right" nur als Ausnahme."""
     W, H = 3840, 2160
     C = grade(frame.convert("RGB").resize((W, H), Image.LANCZOS))
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
-    m = np.clip(1.15 - yy / (H * 0.62), 0, 1) ** 1.3 * np.clip(1.25 - xx / (W * 0.62), 0, 1) ** 1.1
+    xr = xx if side == "left" else (W - 1 - xx)
+    m = np.clip(1.15 - yy / (H * 0.62), 0, 1) ** 1.3 * np.clip(1.25 - xr / (W * 0.62), 0, 1) ** 1.1
     C.paste(Image.new("RGB", C.size, (6, 5, 4)), (0, 0), Image.fromarray((m * 175).astype(np.uint8)))
-    x0, y = 150, 140
-    f4 = font(118, "Black")
+    f4, f1, fs = font(118, "Black"), font(270), font(84, "Bold")
     cw = _tw("4K UHD", f4, 6) + 100
-    ImageDraw.Draw(C).rounded_rectangle([x0, y, x0 + cw, y + 185], 26, fill=GOLD)
-    _draw(ImageDraw.Draw(C), (x0 + 50, y + 26), "4K UHD", f4, INK, 6)
+    chip_w = (_tw(duration, font(64 * 1.18, "Bold"), 8 * 1.18) + 70 * 1.18 + 50) if duration else 0
+    block_w = max(cw + chip_w, _tw(TITLE_1, f1, 4), _tw(SUBLINE, fs, 18) + 10)
+
+    def x_of(w):   # linksbündig bzw. rechtsbündig im Block
+        return 150 if side == "left" else W - 150 - w
+
+    y = 140
+    xc = x_of(cw + chip_w)
+    ImageDraw.Draw(C).rounded_rectangle([xc, y, xc + cw, y + 185], 26, fill=GOLD)
+    _draw(ImageDraw.Draw(C), (xc + 50, y + 26), "4K UHD", f4, INK, 6)
     if duration:
-        _chip(C, x0 + cw + 50, y + 28, duration, 1.18)
+        _chip(C, xc + cw + 50, y + 28, duration, 1.18)
     y += 250
-    _shadow_text(C, (x0, y), TITLE_1, font(270), (255, 255, 255), blur=30, track=4)
-    _shadow_text(C, (x0, y + 290), TITLE_2, font(270), CABIN_GOLD, blur=30, track=4, glow=(255, 130, 40))
-    _shadow_text(C, (x0 + 10, y + 620), SUBLINE, font(84, "Bold"), (240, 240, 240), blur=16, track=18)
+    _shadow_text(C, (x_of(_tw(TITLE_1, f1, 4)), y), TITLE_1, f1, (255, 255, 255), blur=30, track=4)
+    _shadow_text(C, (x_of(_tw(TITLE_2, f1, 4)), y + 290), TITLE_2, f1, CABIN_GOLD, blur=30, track=4, glow=(255, 130, 40))
+    _shadow_text(C, (x_of(_tw(SUBLINE, fs, 18)) + (10 if side == "left" else 0), y + 620), SUBLINE, fs,
+                 (240, 240, 240), blur=16, track=18)
+    del block_w
     out.parent.mkdir(parents=True, exist_ok=True)
     C.resize((1280, 720), Image.LANCZOS).save(out, "JPEG", quality=92)
     if out.stat().st_size > 2_000_000:
