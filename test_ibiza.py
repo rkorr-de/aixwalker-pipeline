@@ -14,6 +14,7 @@ und lädt alles nach Google Drive: AIX WALKER Mixe/_TEST Ibiza Sunset Lounge <Ve
 
 Aufruf:  python test_ibiza.py            (echter Lauf, braucht GOOGLE_API_KEY + DRIVE_REFRESH_TOKEN)
          python test_ibiza.py --dry      (ohne API: Platzhalterbilder, keine Musik, kein Upload – nur Layout)
+         python test_ibiza.py --audio-von v3   (nur neue Bilder; Songs aus build/ibiza_test_v3 wiederverwenden)
 """
 import argparse
 import json
@@ -25,7 +26,7 @@ from pipeline import audio, config, costs, images, lyria
 
 GENRE = "Ibiza Sunset Lounge"
 ALBUM = "Saffron Horizon"
-VERSION = "v3"   # je Entwurfsrunde neu: eigener Build-Ordner, eigene Kostenzählung, eigener Drive-Ordner
+VERSION = "v3.1"   # v3.1: nur Bilder neu (Filter-Korrektur), Songs aus v3   # je Entwurfsrunde neu: eigener Build-Ordner, eigene Kostenzählung, eigener Drive-Ordner
 MIX_MIN = 64   # nur für die Dauer-Angabe auf dem Test-Thumbnail (echter Mix ≥ 60 Min)
 
 # Klangidentität: klassischer Balearic Sunset Chillout wie in den legendären Ibiza-Sunset-Bars (Café-del-Mar-Gefühl).
@@ -87,16 +88,19 @@ def log(msg: str) -> None:
     print(f"[ibiza-test] {msg}", flush=True)
 
 
-def estimate_usd() -> float:
+def estimate_usd(songs: bool = True) -> float:
     p = config.PRICES_USD
-    return round(len(TRACKS) * p["lyria_track"] * 1.15 + len(MASTERS) * p["image_pro_4k"]
+    return round(len(TRACKS) * p["lyria_track"] * 1.15 * songs + len(MASTERS) * p["image_pro_4k"]
                  + len(TRACKS) * p["image_pro"], 2)
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry", action="store_true", help="ohne API: nur Layout mit Platzhalterbildern")
+    ap.add_argument("--audio-von", metavar="VERSION",
+                    help="keine neuen Songs: gemasterte WAVs aus build/ibiza_test_<VERSION>/wav wiederverwenden")
     args = ap.parse_args()
+    audio_src = config.ROOT / "build" / f"ibiza_test_{args.audio_von}" / "wav" if args.audio_von else None
     out = config.ROOT / "build" / f"ibiza_test_{VERSION}"
     out.mkdir(parents=True, exist_ok=True)
     if args.dry:
@@ -105,9 +109,9 @@ def main() -> int:
         config.require("GOOGLE_API_KEY")
         config.require("DRIVE_REFRESH_TOKEN")
     costs.start(out / "costs.json")
-    est = estimate_usd()
+    est = estimate_usd(songs=audio_src is None)
     log(f"Kostenvoranschlag: ca. {est:.2f} USD = {costs.usd_to_eur(est):.2f} EUR "
-        f"({len(TRACKS)} Lyria-Tracks, {len(MASTERS)} Hauptbilder 4K, {len(TRACKS)} Song-Cover)")
+        f"({0 if audio_src else len(TRACKS)} Lyria-Tracks, {len(MASTERS)} Hauptbilder 4K, {len(TRACKS)} Song-Cover)")
 
     kw = config.THUMB_KEYWORD[GENRE]
     sub = config.THUMB_SUBLINE[GENRE]
@@ -143,9 +147,13 @@ def main() -> int:
         (out / "prompts" / f"{i:02d} {t['title']}.txt").write_text(prompt, encoding="utf-8")
         entry = {"title": t["title"], "bpm": t["bpm"], "cover": str(cover), "prompt": prompt}
         if not args.dry:
-            log(f"Lyria-Track {i}: {t['title']} ({t['bpm']} BPM, Balearic Chillout, Summen im Hintergrund) …")
-            raw = lyria.generate_track(prompt, out / "raw" / f"{i:02d}.mp3")
-            wav = audio.master(raw, out / "wav" / f"{i:02d}.wav")
+            if audio_src:
+                wav = audio_src / f"{i:02d}.wav"
+                log(f"Song {i}: {t['title']} aus {wav.parent.parent.name} wiederverwendet (neues Cover) …")
+            else:
+                log(f"Lyria-Track {i}: {t['title']} ({t['bpm']} BPM, Balearic Chillout, Summen im Hintergrund) …")
+                raw = lyria.generate_track(prompt, out / "raw" / f"{i:02d}.mp3")
+                wav = audio.master(raw, out / "wav" / f"{i:02d}.wav")
             mp3 = audio.export_mp3(wav, out / "mp3" / f"{i:02d} {t['title']}.mp3", t["title"], ALBUM, i, len(TRACKS),
                                    cover, "Chillout", date.today().year)
             entry.update({"mp3": str(mp3), "seconds": round(audio.probe_duration(mp3))})

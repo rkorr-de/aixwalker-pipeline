@@ -341,14 +341,39 @@ def orange_teal(img: Image.Image, strength: float = 1.0) -> Image.Image:
     orange = lum[..., None] + (a - lum[..., None]) * 1.25                       # Sättigung hoch
     orange = orange * np.array([1.06, 1.0, 0.82], np.float32) + np.array([0.0, 0.05, 0.0], np.float32) * warm
     graded = warm * orange + (1 - warm) * (0.25 * a + 0.75 * teal)
+    # Spitzlichter (Sonnenkern, Lampen) bleiben warmweiß statt türkis zu kippen
+    hi = _smoothstep(lum, 0.78, 0.94)[..., None]
+    graded = (1 - hi) * graded + hi * np.clip(a * np.array([1.0, 0.96, 0.84], np.float32), 0, 1)
     out = np.clip(a + (graded - a) * strength, 0, 1)
     out = out + 0.18 * (out - 0.5) * (1 - np.abs(2 * out - 1))                  # filmische S-Kurve
     return Image.fromarray((np.clip(out, 0, 1) * 255 + 0.5).astype(np.uint8))
 
 
+def trim_borders(img: Image.Image, tol: float = 0.035) -> Image.Image:
+    """Schneidet einfarbige Ränder ab, die das Bildmodell manchmal mitliefert (z. B. weiße Balken links/rechts)."""
+    a = np.asarray(img.convert("RGB"), dtype=np.float32) / 255.0
+    h, w, _ = a.shape
+
+    def flat(line):   # Zeile/Spalte praktisch einfarbig und sehr hell oder sehr dunkel
+        return line.std(0).max() < tol and (line.mean() > 0.9 or line.mean() < 0.06)
+    x0, x1, y0, y1 = 0, w, 0, h
+    while x0 < w // 4 and flat(a[:, x0]):
+        x0 += 1
+    while x1 > w * 3 // 4 and flat(a[:, x1 - 1]):
+        x1 -= 1
+    while y0 < h // 4 and flat(a[y0]):
+        y0 += 1
+    while y1 > h * 3 // 4 and flat(a[y1 - 1]):
+        y1 -= 1
+    if (x0, y0, x1, y1) == (0, 0, w, h):
+        return img
+    print(f"[images] einfarbigen Rand abgeschnitten: {w}×{h} → {x1 - x0}×{y1 - y0}")
+    return img.crop((x0, y0, x1, y1))
+
+
 def color_grade(img: Image.Image, genre: str | None) -> Image.Image:
     """Farblook je Genre (config.COLOR_GRADE); ohne Eintrag bleibt das Bild unverändert."""
-    return orange_teal(img) if genre in config.COLOR_GRADE else img
+    return orange_teal(trim_borders(img)) if genre in config.COLOR_GRADE else img
 
 
 def master_art(scene: str, genre: str | None) -> Image.Image:
