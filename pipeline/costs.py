@@ -57,6 +57,18 @@ def total_usd(ledger: dict | None = None) -> float:
 def estimate(concept: dict) -> dict:
     """Voranschlag aus dem Konzept: Tracks (+ Reserve bis Mindestlänge, + 15 % Neuversuche), Cover, Album, Thumbnail."""
     p = config.PRICES_USD
+    lf = config.LINE_FORMAT.get(concept.get("genre", ""))
+    if lf:   # Winter-Cabin: ca. 2,8 Min je Lyria-Track, 1 Hauptbild 4K, Veo-Clips in 4K, keine Cover
+        needed = int(-(-lf["min_minutes"] // 2.75))
+        retries = max(1, round(needed * 0.1))
+        tracks_usd = (needed + retries) * p["lyria_track"]
+        veo_usd = lf["veo_clips"] * 8 * p["veo_sec_4k_fast"]
+        usd = round(tracks_usd + p["image_pro_4k"] + veo_usd, 2)
+        return {"tracks_planned": len(concept["tracks"]), "tracks_expected": needed, "retries_reserved": retries,
+                "usd": usd, "eur": usd_to_eur(usd),
+                "lines": [f"{needed + retries} Lyria-Tracks à {p['lyria_track']:.3f} $ = {tracks_usd:.2f} $",
+                          f"1 Hauptbild 4K = {p['image_pro_4k']:.2f} $",
+                          f"{lf['veo_clips']} Veo-Clips 4K à 8 s × {p['veo_sec_4k_fast']:.2f} $ = {veo_usd:.2f} $"]}
     minutes = float(concept.get("minutes_per_track", config.DEFAULT_MINUTES_PER_TRACK))
     min_minutes = float(concept.get("min_minutes", config.MIN_MIX_MINUTES))
     planned = len(concept["tracks"])
@@ -78,7 +90,8 @@ def report() -> str:
     led = _ledger
     return (f"Tatsächlicher API-Verbrauch: {usd:.2f} $ ≈ {usd_to_eur(usd):.2f} € "
             f"({led['lyria_tracks']} Lyria-Erzeugungen, davon {led['lyria_retries']} Neuversuche nach QC, "
-            f"{led['image_flash']} Flash-Bilder, {led['image_pro']} Pro-Bilder, {led.get('image_pro_4k', 0)} Pro-4K-Bilder, {led['image_failed']} Bild-Fallbacks ohne Kosten)")
+            f"{led['image_flash']} Flash-Bilder, {led['image_pro']} Pro-Bilder, {led.get('image_pro_4k', 0)} Pro-4K-Bilder, {led['image_failed']} Bild-Fallbacks ohne Kosten"
+            + (f", {led['veo_sec_4k_fast']} s Veo-4K-Video" if led.get("veo_sec_4k_fast") else "") + ")")
 
 
 def budget_hint(usd: float) -> str:

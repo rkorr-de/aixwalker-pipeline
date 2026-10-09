@@ -112,14 +112,16 @@ def main() -> int:
 
     # 3) Kosten-Obergrenze (kein Mensch zum Freigeben → harte Grenze)
     est = costs.estimate(concept)
-    limit = float(os.environ.get("BUDGET_MAX_USD", config.BUDGET_MAX_USD))
+    lf = config.LINE_FORMAT.get(concept["genre"])
+    limit = float(lf["budget_usd"]) if lf else float(os.environ.get("BUDGET_MAX_USD", config.BUDGET_MAX_USD))
     log(f"Kostenvoranschlag {est['usd']:.2f} $ ≈ {est['eur']:.2f} € (Obergrenze {limit:.2f} $)")
     if est["usd"] > limit and not args.dry_run:
         log("ABBRUCH: Voranschlag über BUDGET_MAX_USD")
         return 2
 
     # 4) Produktion (Unterprozess, damit Neustart/Resume sauber funktioniert); ein automatischer Neuversuch
-    cmd = [sys.executable, str(config.ROOT / "run_mix.py"), str(concept_path), "--out", str(out)]
+    runner = "run_cabin.py" if lf else "run_mix.py"   # Winter-Cabin: 4K-Kaminfilm statt Standbild-Video
+    cmd = [sys.executable, str(config.ROOT / runner), str(concept_path), "--out", str(out)]
     if args.dry_run:
         cmd.append("--dry-run")
     else:
@@ -130,7 +132,7 @@ def main() -> int:
         if use_drive:
             cmd.append("--drive")
     for attempt in (1, 2):
-        log(f"Start run_mix (Versuch {attempt}): {' '.join(cmd[1:])}")
+        log(f"Start {runner} (Versuch {attempt}): {' '.join(cmd[1:])}")
         rc = subprocess.call(cmd, cwd=config.ROOT)
         if rc == 0:
             break
@@ -143,8 +145,9 @@ def main() -> int:
     # 5) Prüfen
     result = json.loads((out / "result.json").read_text(encoding="utf-8"))
     problems = []
-    if result.get("duration_min", 0) < config.MIN_MIX_MINUTES:
-        problems.append(f"Dauer {result.get('duration_min')} Min < {config.MIN_MIX_MINUTES}")
+    min_req = lf["min_minutes"] if lf and not args.dry_run else (0 if args.dry_run else config.MIN_MIX_MINUTES)
+    if result.get("duration_min", 0) < min_req:
+        problems.append(f"Dauer {result.get('duration_min')} Min < {min_req}")
     if not args.dry_run and not args.no_upload:
         if not result.get("video_id"):
             problems.append("kein Video hochgeladen")

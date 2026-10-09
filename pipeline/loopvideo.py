@@ -16,6 +16,7 @@ import io
 import json
 import random
 import subprocess
+import threading
 import time
 from pathlib import Path
 
@@ -120,30 +121,49 @@ def _read(path: Path, scale: int = 1):
         p.kill()
 
 
+_CHECK_LOCK = threading.Lock()
+
+
+def _read_gray(path: Path, w: int = 960, h: int = 540) -> np.ndarray:
+    p = subprocess.Popen(["ffmpeg", "-v", "error", "-i", str(path), "-vf", f"scale={w}:{h}:flags=area", "-f", "rawvideo",
+                          "-pix_fmt", "gray", "-"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    frames = []
+    while True:
+        b = p.stdout.read(w * h)
+        if len(b) < w * h:
+            break
+        frames.append(np.frombuffer(b, np.uint8).reshape(h, w))
+    p.wait()
+    return np.stack(frames).astype(np.float32)
+
+
 def check_clip(path: Path) -> dict:
-    """Prüft einen Clip: 4K, 8 s, Kamera fest (große ruhige Fläche), keine Belichtungssprünge, kein Stillstand
-    am Anfang/Ende (Veo-„Zeitlupe“). Liefert Kennzahlen und ok/Grund."""
-    f = np.stack([x.astype(np.float32) for x in _read(path, 4)])
-    motion = f.std(axis=0).mean(axis=2)
-    static = motion < 2.0
-    lum = f.mean(axis=3)[:, static].mean(axis=1)
-    step = np.abs(np.diff(f, axis=0)).mean(axis=(1, 2, 3))
-    # Sprung-Index im bewegten Bereich (Schnee, Feuer): Änderung zum nächsten Bild im Verhältnis zur Änderung über
-    # 6 Bilder. Gleichmäßige Bewegung ≈ 0,55; ein harter Sprung ≈ 1,0. Test 09.10.: Veo-Clips max. 0,62–0,66.
-    g = f.mean(axis=3)
-    mov = motion > 3
-    jump = np.zeros(1)
-    if mov.any():
-        s = g[:, mov]
-        d1 = np.abs(s[1:] - s[:-1]).mean(axis=1)
-        d6 = np.array([np.abs(s[min(i + 6, len(s) - 1)] - s[i]).mean() for i in range(len(s) - 1)])
-        jump = (d1 / np.maximum(d6, 1e-3))[:-6]
-    res = {"frames": len(f), "static_share": round(float(static.mean()), 3),
+    """Prüft einen Clip: 8 s, Kamera fest (große ruhige Fläche), keine Belichtungssprünge, keine Sprünge im Schnee,
+    kein Stillstand am Anfang/Ende (Veo-„Zeitlupe“). Graustufen in 960×540 (ca. 0,4 GB je Clip, Prüfungen
+    nacheinander – drei parallele Farbprüfungen hatten am 09.10. den Speicher gesprengt)."""
+    with _CHECK_LOCK:
+        g = _read_gray(path)
+        motion = g.std(axis=0)
+        static, mov = motion < 2.0, motion > 3
+        lum = g[:, static].mean(axis=1)
+        step = np.array([np.abs(g[i + 1] - g[i]).mean() for i in range(len(g) - 1)])
+        jitter = float(np.mean([np.abs(g[i + 1][static] - g[i][static]).mean() for i in range(len(g) - 1)]))
+        # Sprung-Index im bewegten Bereich (Schnee, Feuer): Änderung zum nächsten Bild im Verhältnis zur Änderung über
+        # 6 Bilder. Gleichmäßige Bewegung ≈ 0,55; ein harter Sprung ≈ 1,0. Test 09.10.: Veo-Clips max. 0,62–0,66.
+        jump = np.zeros(1)
+        if mov.any():
+            s = g[:, mov]
+            d1 = np.abs(s[1:] - s[:-1]).mean(axis=1)
+            d6 = np.array([np.abs(s[min(i + 6, len(s) - 1)] - s[i]).mean() for i in range(len(s) - 1)])
+            jump = (d1 / np.maximum(d6, 1e-3))[:-6]
+        n = len(g)
+        del g
+    res = {"frames": n, "static_share": round(float(static.mean()), 3),
            "jump_median": round(float(np.median(jump)), 3), "jump_max": round(float(jump.max()), 3),
-           "lum_drift": round(float(lum.max() - lum.min()), 2),
-           "static_jitter": round(float(np.abs(np.diff(f, axis=0)).mean(axis=3)[:, static].mean()), 3),
-           "motion_start": round(float(step[:6].mean()), 2), "motion_mid": round(float(step[len(step) // 2 - 3:
-                                                                                        len(step) // 2 + 3].mean()), 2),
+           "lum_drift": round(float(lum.max() - lum.min()), 2) if static.any() else 99.0,
+           "static_jitter": round(jitter, 3),
+           "motion_start": round(float(step[:6].mean()), 2),
+           "motion_mid": round(float(step[len(step) // 2 - 3:len(step) // 2 + 3].mean()), 2),
            "motion_end": round(float(step[-6:].mean()), 2)}
     reasons = []
     if res["frames"] < VEO_SEC * FPS - 2:
@@ -193,9 +213,9 @@ def _encoder(out: Path, fade_in: float = 0.0, fade_out_at: float | None = None, 
 
 def _segment_frames(x: Path, y: Path):
     """Bilder des Segments X→Y: X ab Bild BLEND, Ende weich in Y[0:BLEND] überblendet."""
-    yh = []
+    yh = []                                          # als uint8 (25 MB je 4K-Bild statt 100 MB als float)
     for f in _read(y):
-        yh.append(f.astype(np.float32))
+        yh.append(f.copy())
         if len(yh) == BLEND:
             break
     n = _frame_count(x)
@@ -206,7 +226,7 @@ def _segment_frames(x: Path, y: Path):
         if k >= 0:
             a = (k + 1) / (BLEND + 1)
             a = a * a * (3 - 2 * a)
-            f = (f.astype(np.float32) * (1 - a) + yh[k] * a).astype(np.uint8)
+            f = (f.astype(np.float32) * (1 - a) + yh[k].astype(np.float32) * a).astype(np.uint8)
         yield f
 
 

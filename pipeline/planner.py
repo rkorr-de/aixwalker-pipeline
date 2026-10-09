@@ -148,8 +148,54 @@ GENRES = {
                         "fills the lower part. Write it as a real professional editorial photo (camera, lens, film grain), "
                         "dark, warm and cinematic – never 'illustration', 'render' or 'digital art'."),
     },
+    # Eigene Linie (Rolf, 09.10.2026): „Cozy Winter Cabin“ – Cozy Lofi Ambient / Smooth Jazz Fireplace Ambience (Rolfs
+    # JSON-Prompt), ca. 60 BPM, instrumental. Video: 4K-Kaminfilm aus Veo-Loops (pipeline/loopvideo.py), produziert von
+    # run_cabin.py; Format in config.LINE_FORMAT (≥ 120 Min, 42 + 8 Tracks). Freitags, nicht Teil der Di/Fr-Rotation.
+    "Cozy Winter Cabin": {
+        "playlist": "cabin", "bpm": (58, 64),
+        "style": ("Cozy lofi ambient and smooth jazz fireplace ambience: soft muffled upright felt piano with audible "
+                  "mechanical key sounds, warm 1980s analog synth pads with slow attack and rich sustain, gentle brushed "
+                  "jazz snare and a deep, lazy lofi kick, smooth acoustic stand-up bass, integrated ambient field "
+                  "recordings of a continuously crackling fireplace and a muffled blizzard wind outside. Warm, relaxing, "
+                  "intimate, melancholic yet deeply comforting, cinematic. Lofi aesthetic, warm analog tape saturation, "
+                  "subtle vinyl crackle blended with the fireplace, long lush reverb like a high vaulted log-cabin "
+                  "ceiling, high dynamic range, soft and quiet for background listening. Arrangement: intro with only "
+                  "the crackling fire and a slow warm synth drone; then soft felt piano with a minimal slow jazz "
+                  "progression at very low velocity with deep bass and sparse brushes; then wide lush pads, laid-back, "
+                  "hypnotic; a bridge without percussion, just pads, fire and a nostalgic melodic piano; outro fading "
+                  "to a warm synth tail and the fire. Instrumental, {BPM} BPM."),
+        "purposes": ["cozy winter night by the fireplace", "reading with a blanket on a snowy evening",
+                     "studying and working on a cold winter day", "falling asleep while it snows outside",
+                     "slow Sunday morning coffee in the cabin", "unwinding after a long winter day"],
+        "motifs": [
+            "modern luxury log cabin living room in Montana with a cognac leather sofa and a stone fireplace, "
+            "floor-to-ceiling windows onto a snowy pine forest",
+            "A-frame cabin with a huge triangular glass front onto snow-covered mountains, a stone fireplace and "
+            "a deep sofa with wool blankets",
+            "lakeside log cabin with panoramic windows onto a frozen lake and snowy pines, a corner stone fireplace "
+            "and a reading nook",
+            "mountain chalet living room with exposed timber beams, a black steel wood stove next to tall windows and "
+            "a plush sheepskin-covered sofa",
+            "Scandinavian modern cabin with warm oak walls, a round hanging fireplace and big windows onto a snowy "
+            "birch forest",
+            "rustic log cabin with a large fieldstone hearth, a leather armchair with a knitted blanket and a big "
+            "window onto a blizzard in the pines",
+        ],
+        "moods": ["warm, intimate, comforting", "melancholic, nostalgic, cozy", "calm, hypnotic, dreamy",
+                  "soft, safe, slow"],
+        "visual_rule": ("For THIS line the general image rules 'BRIGHT' and 'people small' do NOT apply. Every "
+                        "art_prompt and thumbnail_prompt is an INTERIOR of an ultra-cozy luxury log cabin at NIGHT: a "
+                        "glowing fireplace with clearly visible flames on one side, large windows showing heavy falling "
+                        "snow over a dark snowy forest under a deep night sky, warm amber light inside vs. freezing blue "
+                        "outside, a sofa or armchair with knitted wool blankets, a low wooden table with candles and a "
+                        "mug. NO people, NO animals. The upper part of the frame (beams, night sky behind glass) is calm. "
+                        "Static camera, no motion blur. Write it as a real photograph, never 'illustration' or 'render'."),
+        "title_rule": ("Title pattern for THIS line: '[Album] · Cozy Winter Cabin · {HOURS} Relaxing Fireplace Chillout 4K' "
+                       "or with a short variant of the last segment (e.g. '{HOURS} Fireplace & Lofi Jazz 4K'). Always use "
+                       "{HOURS}, never {MIN}. Mention '4K', 'fireplace' and 'snow' in hook or tags. No BPM in the title."),
+    },
 }
-ROTATION_EXCLUDE = {"Italian Chillout", "Ibiza Sunset Lounge"}   # eigene Linien mit eigenem Zeitplan → nicht in der Genre-Wahl
+ROTATION_EXCLUDE = {"Italian Chillout", "Ibiza Sunset Lounge", "Cozy Winter Cabin"}   # eigene Linien mit eigenem Zeitplan → nicht in der Genre-Wahl
 for _g in GENRES.values():
     if _g.get("substyles"):
         _g["purposes"] = list(_g["substyles"])
@@ -171,6 +217,9 @@ LIGHTS = {
     "Ibiza Sunset Lounge": ["deep red sun touching the horizon", "sun half below the horizon under a crimson sky",
                             "last minutes of sunset with a burnt-orange afterglow", "fiery red sky reflected on the darkening sea",
                             "dark amber afterglow just after sunset with the first lanterns glowing"],
+    "Cozy Winter Cabin": ["deep blue snowy night with a warm amber fireplace glow", "starry winter night with heavy snowfall",
+                          "blue hour turning to night with candlelight inside", "moonlit snow outside, firelight inside",
+                          "dark blizzard night with a glowing hearth"],
 }
 
 
@@ -224,6 +273,7 @@ GENRE_KEYWORDS = {
     "Mediterranean Spa Lounge": ("lounge", "chill", "sunset", "ibiza", "beach", "balearic", "spa", "mediterr", "cafe"),
     "Italian Chillout": ("ital", "amalfi", "como", "positano", "dinner", "lounge", "jazz", "bossa", "cafe", "sunset", "mediterr"),
     "Ibiza Sunset Lounge": ("ibiza", "balearic", "sunset", "lounge", "chill", "beach", "cafe del mar", "sundowner", "summer"),
+    "Cozy Winter Cabin": ("cabin", "fireplace", "winter", "snow", "cozy", "fire", "jazz", "lofi", "cold"),
 }
 
 
@@ -292,6 +342,7 @@ def choose_brief(mem: dict, analytics_rows: list[dict] | None = None, seed: int 
         "motif_family": _pick(g["motifs"], avoid_motif, rnd), "light": _pick(LIGHTS[genre], avoid_light, rnd),
         "scores": scores, "last_genre": last_genre,
         "long": long, "style": style.replace("{BPM}", str(bpm)), "visual_rule": g.get("visual_rule", ""),
+        "title_rule": g.get("title_rule", ""),
         "search_terms": relevant_terms(mem, genre),
     }
     return brief
@@ -307,6 +358,12 @@ def brief_text(b: dict) -> str:
                 f"arrangement per track): {b['style']}\n")
     if b.get("visual_rule"):
         fmt += f"MANDATORY VISUAL RULE (overrides the general image rules): {b['visual_rule']}\n"
+    lf = config.LINE_FORMAT.get(b.get("genre", ""))
+    if lf:
+        fmt += (f"Format: {lf['min_minutes'] // 60}-hour 4K fireplace film with music ({lf['tracks']}+{lf['extra']} track "
+                f"titles; tracks flow seamlessly into each other).\n")
+    if b.get("title_rule"):
+        fmt += f"MANDATORY TITLE RULE: {b['title_rule']}\n"
     return (fmt + f"Date: {b['date']}\nGenre: {b['genre']} (playlist: {b['playlist']})\nBPM: {b['bpm']}\n"
             f"Purpose / listening situation: {b['purpose']}\nMood direction: {b['mood_hint']}\n"
             f"Visual motif family: {b['motif_family']}\nLight: {b['light']}\n"
@@ -376,6 +433,16 @@ def unify_title(title: str, album: str, keyword: str | None = None, max_len: int
     return full
 
 
+def track_counts(brief: dict) -> tuple[int, int, int]:
+    """(Haupt-Tracks, Reserve-Tracks, Mindestminuten) – Linien mit eigenem Format (config.LINE_FORMAT) zuerst."""
+    fmt = config.LINE_FORMAT.get(brief.get("genre", ""))
+    if fmt:
+        return fmt["tracks"], fmt["extra"], fmt["min_minutes"]
+    if brief.get("long"):
+        return config.LONG_PLANNED_TRACKS, config.LONG_EXTRA_TRACKS, config.LONG_MIN_MINUTES
+    return config.PLANNED_TRACKS, config.EXTRA_TRACKS, config.MIN_MIX_MINUTES
+
+
 def validate(c: dict, mem: dict, brief: dict) -> list[str]:
     """Liefert eine Liste von Beanstandungen (leer = ok). Kleine Dinge werden direkt repariert."""
     errs = []
@@ -389,17 +456,17 @@ def validate(c: dict, mem: dict, brief: dict) -> list[str]:
     if errs:
         return errs
     c["genre"], c["playlist"], c["bpm"] = brief["genre"], brief["playlist"], int(brief["bpm"])
+    if isinstance(c.get("mood"), list):
+        c["mood"] = ", ".join(str(m) for m in c["mood"])
     if brief.get("style") and brief["style"] not in str(c.get("sound_design", "")):
         c["sound_design"] = f"{brief['style']} {c.get('sound_design', '')}".strip()   # Stil-Vorgabe geht 1:1 in jeden Lyria-Prompt
     is_long = bool(brief.get("long"))
     c["minutes_per_track"] = 5
-    c["min_minutes"] = config.LONG_MIN_MINUTES if is_long else config.MIN_MIX_MINUTES
-    c["format"] = "long" if is_long else "standard"
+    n_main, n_extra, c["min_minutes"] = track_counts(brief)
+    c["format"] = "long" if is_long else ("line" if brief.get("genre") in config.LINE_FORMAT else "standard")
     if c["album"].strip().lower() in memory.used_albums(mem):
         errs.append(f"Album-Name schon verwendet: {c['album']}")
     used = memory.used_track_titles(mem)
-    n_main = config.LONG_PLANNED_TRACKS if is_long else config.PLANNED_TRACKS
-    n_extra = config.LONG_EXTRA_TRACKS if is_long else config.EXTRA_TRACKS
     for key, want in (("tracks", n_main), ("extra_tracks", n_extra)):
         lst = [t for t in c[key] if isinstance(t, dict) and t.get("title") and t.get("variation")]
         if len(lst) < want - 2:
@@ -472,8 +539,8 @@ def generate_concept(mem: dict, brief: dict, attempts: int = 3, log=print) -> di
               .replace("{{USED_TITLES}}", ", ".join(used) or "(none)")
               .replace("{{LEARNINGS}}", "\n".join("- " + s for s in mem.get("learnings", [])) or "-")
               .replace("{{GENRE}}", brief["genre"]).replace("{{BPM}}", str(brief["bpm"]))
-              .replace("{{N_TRACKS}}", str(config.LONG_PLANNED_TRACKS if brief.get("long") else config.PLANNED_TRACKS))
-              .replace("{{N_EXTRA}}", str(config.LONG_EXTRA_TRACKS if brief.get("long") else config.EXTRA_TRACKS))
+              .replace("{{N_TRACKS}}", str(track_counts(brief)[0]))
+              .replace("{{N_EXTRA}}", str(track_counts(brief)[1]))
               .replace("{{PLAYLIST}}", brief["playlist"]).replace("{{MOTIF_FAMILY}}", brief["motif_family"])
               .replace("{{LIGHT}}", brief["light"]))
     feedback = ""

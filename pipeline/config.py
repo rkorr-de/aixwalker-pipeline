@@ -42,6 +42,8 @@ PLAYLISTS = {
     "italian": os.environ.get("YT_PLAYLIST_ITALIAN", ""),
     # Ibiza-Linie (Rolf, 09.10.2026): leer = Playlist wird beim ersten Upload über den Titel gesucht bzw. angelegt
     "ibiza": os.environ.get("YT_PLAYLIST_IBIZA", ""),
+    # Winter-Cabin-Linie (Rolf, 09.10.2026): leer = Playlist wird beim ersten Upload über den Titel gesucht bzw. angelegt
+    "cabin": os.environ.get("YT_PLAYLIST_CABIN", ""),
 }
 PLAYLIST_TITLES = {   # für Playlists, die die Pipeline selbst findet/anlegt (youtube.ensure_playlist)
     "italian": ("Italian Chillout Music",
@@ -50,6 +52,10 @@ PLAYLIST_TITLES = {   # für Playlists, die die Pipeline selbst findet/anlegt (y
     "ibiza": ("Ibiza Sunset Lounge",
               "Ibiza Sunset Lounge – Balearic chillout mixes with dreamy, breathy vocal hums for golden-hour beach "
               "club vibes, relaxing summer evenings and sunset lounging. By Aix Walker."),
+    "cabin": ("Cozy Winter Cabin · Relaxing Fireplace Chillout 4K",
+              "Cozy winter cabin ambience in 4K: a crackling fireplace, candlelight and heavy snowfall outside the window, "
+              "with warm lofi jazz and ambient chillout music by Aix Walker. Long fireplace films for relaxing, reading, "
+              "studying and sleeping on cold winter nights."),
 }
 
 # Kanalfarben
@@ -70,6 +76,7 @@ THUMB_KEYWORD = {   # immer mit „Music", damit sofort klar ist: das ist Musik,
     "Chillout Sleep": "Sleep Music",
     "Italian Chillout": "Italian Chillout Music",
     "Ibiza Sunset Lounge": "Ibiza Sunset Lounge",
+    "Cozy Winter Cabin": "Cozy Winter Cabin",
 }
 # Unterzeile unter dem Genre-Begriff (gleiche Antiqua, kleiner) und Genres mit einzeiligem Genre-Begriff (Rolf 09.10.)
 THUMB_SUBLINE = {"Ibiza Sunset Lounge": "Balearic Chillout"}   # Rolf 09.10.: passt zur langsameren Musik
@@ -94,7 +101,15 @@ VOCAL_STYLE = {
 }
 VOCAL_GENRES = set(VOCAL_STYLE)
 # Genre-Angabe am Anfang des Lyria-Prompts (Standard: der Genre-Name). Ibiza: so in Testrunde 3 freigegeben (Rolf 09.10.)
-LYRIA_GENRE_TAGS = {"Ibiza Sunset Lounge": "Balearic Chillout, Ibiza Sunset Chillout, Downtempo Lounge"}
+LYRIA_GENRE_TAGS = {"Ibiza Sunset Lounge": "Balearic Chillout, Ibiza Sunset Chillout, Downtempo Lounge",
+                    "Cozy Winter Cabin": "Cozy Lofi Ambient, Smooth Jazz, Fireplace Ambience"}
+
+# Linien mit eigenem Format (Rolf 09.10.2026, „Cozy Winter Cabin“): bewegter 4K-Kaminfilm aus Veo-Loops statt Standbild,
+# keine Track-/Album-Cover, kein DistroKid, leiseres Mastering, eigene Kostengrenze. Produktion: run_cabin.py.
+LINE_FORMAT = {
+    "Cozy Winter Cabin": {"tracks": 42, "extra": 8, "min_minutes": 120, "lufs": -16.0, "budget_usd": 15.0,
+                          "veo_clips": 3, "max_tracks": 52},
+}
 
 
 def vocal_note(genre: str | None) -> str:
@@ -139,6 +154,15 @@ IMAGE_STYLE = {
                             "magazine look, advertiser-friendly. Moody cinematic orange and teal colour grading: the "
                             "sun, sunset glow and warm lights in strong orange and gold, while the upper sky, the sea "
                             "and the shadows fall into contrasting teal and turquoise tones." + _NO_TEXT),
+    # Winter-Cabin-Linie (Rolf 09.10.2026): Rolfs Bildprompt – Luxus-Blockhütte bei Nacht, Kamin, Panoramafenster, Schneefall
+    "Cozy Winter Cabin": (" Cinematic wide-angle interior photograph, professional architectural interior photography, "
+                          "shot on a 35mm lens at f/2.8, hyper-realistic, photorealistic textures, clean static "
+                          "composition, balanced 16:9 framing, cinematic color grading. Night: perfect contrast between the "
+                          "freezing blue night outside the large windows with heavy falling snow and the warm amber glow "
+                          "inside. The burning fireplace with clearly visible flames and the windows with falling snow are "
+                          "both prominent; the upper part of the frame is calm. No people, no animals, no hands; any "
+                          "magazines or books show no readable text. Real photograph, not CGI, not a render, not an "
+                          "illustration." + _NO_TEXT),
 }
 DEFAULT_GENRE = "Mediterranean Spa Lounge"
 
