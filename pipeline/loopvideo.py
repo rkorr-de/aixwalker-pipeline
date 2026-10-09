@@ -210,17 +210,21 @@ def _segment_frames(x: Path, y: Path):
         yield f
 
 
-def build_segment(x: Path, y: Path, out: Path, fade_in: float = 0.0, max_frames: int | None = None,
+def build_segment(pairs: list[tuple[Path, Path]], out: Path, fade_in: float = 0.0, max_frames: int | None = None,
                   fade_out: bool = False) -> Path:
-    total = max_frames or (_frame_count(x) - BLEND)
+    """Kodiert ein oder mehrere Paar-Segmente (X→Y) am Stück; optional Ein-/Ausblenden, auf max_frames gekürzt."""
+    total = max_frames or sum(_frame_count(x) - BLEND for x, _ in pairs)
     enc = _encoder(out, fade_in, (total / FPS - 3) if fade_out else None)
-    for i, f in enumerate(_segment_frames(x, y)):
-        if i >= total:
-            break
-        enc.stdin.write(f.tobytes())
+    i = 0
+    for x, y in pairs:
+        for f in _segment_frames(x, y):
+            if i >= total:
+                break
+            enc.stdin.write(f.tobytes())
+            i += 1
     enc.stdin.close()
-    if enc.wait() != 0:
-        raise RuntimeError(f"Segment {out.name} fehlgeschlagen")
+    if enc.wait() != 0 or i < total:
+        raise RuntimeError(f"Segment {out.name} fehlgeschlagen ({i}/{total} Bilder)")
     return out
 
 
@@ -242,45 +246,29 @@ def build_video(clips: list[Path], audio: Path, out: Path, work: Path, seed: int
                                 str(audio)], capture_output=True, text=True).stdout)
     names = [c.stem for c in clips]
     by = {c.stem: c for c in clips}
-    seg_frames = _frame_count(clips[0]) - BLEND
-    seg_sec = seg_frames / FPS
-    n = int(np.ceil(dur / seg_sec)) + 1
+    seg_sec = (_frame_count(clips[0]) - BLEND) / FPS
+    n = max(3, int(np.ceil(dur / seg_sec)))          # Segmente: erstes (Einblenden), Mitte (Kopien), Ende (2 am Stück)
     seq = sequence(names, n + 1, seed)
-    # Paar-Segmente einmal kodieren
-    pairs = {(a, b) for a, b in zip(seq[1:n - 1], seq[2:n])}
-    for a, b in sorted(pairs):
-        p = work / f"seg_{a}_{b}.mp4"
+
+    def pair(k: int) -> tuple[Path, Path]:           # Segment k = Clip seq[k], am Ende überblendet in seq[k + 1]
+        return by[seq[k]], by[seq[k + 1]]
+
+    for k in range(1, n - 2):                        # jedes Clip-Paar nur einmal kodieren
+        p = work / f"seg_{seq[k]}_{seq[k + 1]}.mp4"
         if not p.exists():
-            log(f"Segment {a}→{b} wird kodiert …")
-            build_segment(by[a], by[b], p)
-    first = build_segment(by[seq[0]], by[seq[1]], work / "seg_first.mp4", fade_in=3.0)
-    rest = dur - (n - 1) * seg_sec
-    last_frames = max(FPS * 4, int(round(rest * FPS)) + FPS)   # etwas länger als nötig; gekürzt wird beim Muxen
-    last = build_segment(by[seq[n - 1]], by[seq[n]], work / "seg_last.mp4", max_frames=last_frames, fade_out=False)
-    lst = [first] + [work / f"seg_{a}_{b}.mp4" for a, b in zip(seq[1:n - 1], seq[2:n])] + [last]
+            log(f"Segment {seq[k]}→{seq[k + 1]} wird kodiert …")
+            build_segment([pair(k)], p)
+    first = build_segment([pair(0)], work / "seg_first.mp4", fade_in=3.0)
+    # Ende: die letzten beiden Segmente am Stück, exakt auf Tonlänge gekürzt, mit Ausblenden
+    tail_frames = int(round((dur - (n - 2) * seg_sec) * FPS))
+    last = build_segment([pair(n - 2), pair(n - 1)], work / "seg_last.mp4", max_frames=tail_frames, fade_out=True)
+    lst = [first] + [work / f"seg_{seq[k]}_{seq[k + 1]}.mp4" for k in range(1, n - 2)] + [last]
     (work / "list.txt").write_text("".join(f"file '{p.resolve()}'\n" for p in lst))
-    tmp = work / "video_only.mp4"
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(work / "list.txt"),
-                    "-c", "copy", str(tmp)], check=True)
-    # Ausblenden am Ende: nur die letzten Sekunden werden neu kodiert und ersetzen das Ende
-    fade_start = max(0.0, dur - 3.0)
-    body_end = np.floor((fade_start - 2) / 2) * 2   # auf Schlüsselbild-Raster (alle 2 s)
-    tail = work / "tail.mp4"
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{body_end:.3f}", "-i", str(tmp), "-t",
-                    f"{dur - body_end:.3f}", "-vf", f"fade=t=out:st={fade_start - body_end:.3f}:d=3",
-                    "-c:v", "libx264", "-preset", "medium", "-crf", str(CRF), "-pix_fmt", "yuv420p",
-                    "-x264-params", f"keyint={FPS * 2}:min-keyint={FPS * 2}:scenecut=0:open-gop=0:mbtree=0",
-                    "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-an", str(tail)],
-                   check=True)
-    head = work / "head.mp4"
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(tmp), "-t", f"{body_end:.3f}", "-c", "copy", str(head)],
-                   check=True)
-    (work / "list2.txt").write_text(f"file '{head.resolve()}'\nfile '{tail.resolve()}'\n")
     out.parent.mkdir(parents=True, exist_ok=True)
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(work / "list2.txt"),
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(work / "list.txt"),
                     "-i", str(audio), "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "320k",
-                    "-ar", "48000", "-t", f"{dur:.3f}", "-movflags", "+faststart", str(out)], check=True)
-    for p in (tmp, head, tail, first, last):
+                    "-ar", "48000", "-shortest", "-movflags", "+faststart", str(out)], check=True)
+    for p in (first, last):
         p.unlink(missing_ok=True)
     log(f"Kaminfilm fertig: {out.name}, {dur / 60:.1f} Min, {out.stat().st_size / 1e9:.2f} GB, Folge {''.join(seq[:12])}…")
     return out
