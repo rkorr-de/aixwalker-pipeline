@@ -74,6 +74,8 @@ THUMB_KEYWORD = {   # immer mit „Music", damit sofort klar ist: das ist Musik,
 # Unterzeile unter dem Genre-Begriff (gleiche Antiqua, kleiner) und Genres mit einzeiligem Genre-Begriff (Rolf 09.10.)
 THUMB_SUBLINE = {"Ibiza Sunset Lounge": "Chillout Deep House"}
 THUMB_ONE_LINE = {"Ibiza Sunset Lounge"}
+# Thumbnail-Anordnung „Titel oben im Himmel“ (Rolf 09.10.): Titelblock oben, Dauer unten rechts auf Höhe von AIX WALKER
+THUMB_TITLE_TOP = {"Ibiza Sunset Lounge"}
 # Genres MIT Gesang (alle anderen: instrumental, „no vocals“ in Texten)
 VOCAL_GENRES = {"Ibiza Sunset Lounge"}
 # Schriftgröße von Genre-Begriff und Albumname auf Thumbnail/Cover je Genre (1.0 = Standard). Italien: größer (Rolf 08.10.)
@@ -98,13 +100,17 @@ IMAGE_STYLE = {
                          "folds and sheen, subtle film grain, true-to-life colors, realistic shallow depth of field with natural "
                          "bokeh, classy luxury travel-magazine look (Condé Nast Traveller style), tasteful and "
                          "advertiser-friendly." + _NO_TEXT),
-    # Ibiza-Linie (Rolf 09.10.2026): Beach Club mit Gästen bei Sonnenuntergang, gleicher Foto-Realismus wie Italien
+    # Ibiza-Linie (Rolf 09.10.2026): Beach Club mit Gästen bei Sonnenuntergang, gleicher Foto-Realismus wie Italien.
+    # Stimmung dunkler und wärmer (Rolf 09.10. abends): tieferer Sonnenuntergang, mehr Rot am Himmel, dunklere Umgebung
     "Ibiza Sunset Lounge": (" Professional editorial travel photograph, real photo taken on a full-frame camera (Sony "
-                            "A7R V, 24–50 mm), not CGI, not a render, not an illustration. Golden-hour Ibiza sunset with "
-                            "rich orange, gold and pink hues over the sparkling sea, warm string lights, natural wood, "
-                            "thatch and white canopy drapes, relaxed elegant guests, natural skin texture, subtle film "
-                            "grain, slight background blur, bright, warm and vivid, luxury beach-club magazine look, "
-                            "advertiser-friendly." + _NO_TEXT),
+                            "A7R V, 24–50 mm), not CGI, not a render, not an illustration. Late, deep Ibiza sunset: the "
+                            "sun low on or just touching the horizon, a dramatic glowing sky in deep red, crimson, "
+                            "burnt orange and dark amber, fiery red reflections on the darkening sea. The surroundings "
+                            "are already dim and moody, in warm low-key shadows, lit only by the red afterglow, warm "
+                            "string lights, lanterns and candles; natural wood, thatch and white canopy drapes catching "
+                            "the red light, relaxed elegant guests as warm silhouettes, natural skin texture, subtle "
+                            "film grain, slight background blur, dark, warm, rich and cinematic, luxury beach-club "
+                            "magazine look, advertiser-friendly." + _NO_TEXT),
 }
 DEFAULT_GENRE = "Mediterranean Spa Lounge"
 

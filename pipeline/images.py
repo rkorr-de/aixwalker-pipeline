@@ -210,8 +210,10 @@ def _title_lines(d, kw: str, max_w: int, start: int, min_size: int):
 
 
 def _title_block(img: Image.Image, keyword: str, album: str | None, cy: int, max_w: int, scale: float,
-                 kw_start: float = 0.16, subline: str | None = None, one_line: bool = False) -> tuple[int, int]:
-    """Zeichnet Genre-Begriff (1–2 Zeilen, Cinzel) + Albumname (Schreibschrift) zentriert um `cy`. Liefert (oben, unten)."""
+                 kw_start: float = 0.16, subline: str | None = None, one_line: bool = False,
+                 top_y: int | None = None) -> tuple[int, int]:
+    """Zeichnet Genre-Begriff (1–2 Zeilen, Cinzel) + Albumname (Schreibschrift) zentriert um `cy`
+    (mit `top_y`: Oberkante des Blocks fest dort). Liefert (oben, unten)."""
     w, h = img.size
     d = ImageDraw.Draw(img)
     if one_line:   # Ibiza-Linie (Rolf 09.10.2026): Genre-Begriff immer auf EINER Zeile
@@ -240,7 +242,7 @@ def _title_block(img: Image.Image, keyword: str, album: str | None, cy: int, max
     gap_sub = int(fk.size * 0.18)                    # Luft Titel → Unterzeile
     sub_block = (gap_sub + sub_h + int(fk.size * 0.14)) if subline else 0   # + Luft für Schreibschrift-Oberlängen
     total = kw_h + sub_block + (gap + al_h if album else 0)
-    top = cy - total // 2
+    top = cy - total // 2 if top_y is None else top_y
     pos = [((w - _tracked_width(d, ln, fk, tk)) / 2, top - boxes[0][1] + i * lh) for i, ln in enumerate(lines)]
     if subline:
         ts = fs.size * 0.12
@@ -279,7 +281,9 @@ def _title_block(img: Image.Image, keyword: str, album: str | None, cy: int, max
     return top, top + total
 
 
-def _corner_labels(img: Image.Image, scale: float, duration: str = "", mark: bool = True) -> None:
+def _corner_labels(img: Image.Image, scale: float, duration: str = "", mark: bool = True,
+                   duration_bottom: bool = False) -> None:
+    """Dauer oben rechts (bzw. mit `duration_bottom` unten rechts auf Höhe von AIX WALKER), AIX WALKER unten links."""
     w, h = img.size
     m = int(min(w, h) * 0.05)
     d = ImageDraw.Draw(img)
@@ -287,7 +291,9 @@ def _corner_labels(img: Image.Image, scale: float, duration: str = "", mark: boo
     if duration:
         fd = _font(config.FONT_TITLE, h * 0.05, "Bold")
         tw = _tracked_width(d, duration, fd, fd.size * 0.12)
-        items.append(((w - m - tw, m), duration, fd, fd.size * 0.12, config.WHITE))
+        db = d.textbbox((0, 0), duration, font=fd)
+        y = h - m - db[3] if duration_bottom else m
+        items.append(((w - m - tw, y), duration, fd, fd.size * 0.12, config.WHITE))
     if mark:
         fm = _font(config.FONT_TITLE, min(w, h) * 0.028, "SemiBold")
         bb = d.textbbox((0, 0), "AIX WALKER", font=fm)
@@ -336,13 +342,15 @@ def _cover_crop(art: Image.Image, w: int, h: int) -> Image.Image:
 
 def make_thumbnail(art: Image.Image, keyword: str, album: str, out: Path, duration: str = "",
                    w: int = 1280, h: int = 720, text_scale: float = 1.0, subline: str | None = None,
-                   one_line: bool = False) -> Path:
+                   one_line: bool = False, title_top: bool = False) -> Path:
     """YouTube-Thumbnail im neuen Look: helles Motiv, mittig Genre-Begriff + Albumname, Dauer oben rechts.
-    text_scale > 1 macht Genre-Begriff und Albumname größer (config.THUMB_TEXT_SCALE, z. B. Italien-Linie)."""
+    text_scale > 1 macht Genre-Begriff und Albumname größer (config.THUMB_TEXT_SCALE, z. B. Italien-Linie).
+    title_top (config.THUMB_TITLE_TOP, Ibiza): Titelblock oben im Himmel, Dauer unten rechts neben AIX WALKER."""
     img = _cover_crop(art, w, h).convert("RGB")
     _title_block(img, keyword, album, cy=int(h * 0.47), max_w=int(w * min(0.94, 0.80 * text_scale)), scale=h / 720,
-                 kw_start=0.16 * text_scale, subline=subline, one_line=one_line)
-    _corner_labels(img, h / 720, duration)
+                 kw_start=0.16 * text_scale, subline=subline, one_line=one_line,
+                 top_y=int(h * 0.075) if title_top else None)
+    _corner_labels(img, h / 720, duration, duration_bottom=title_top)
     out.parent.mkdir(parents=True, exist_ok=True)
     img.save(out, "JPEG", quality=92)
     if out.stat().st_size > 2_000_000:
