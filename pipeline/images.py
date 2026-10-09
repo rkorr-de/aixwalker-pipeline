@@ -329,18 +329,28 @@ def _smoothstep(x: np.ndarray, a: float, b: float) -> np.ndarray:
     return t * t * (3 - 2 * t)
 
 
-def orange_teal(img: Image.Image, strength: float = 1.0) -> Image.Image:
+def orange_teal(img: Image.Image, strength: float = 1.0, warm_lum: tuple[float, float] = (0.10, 0.40),
+                teal_mix: float = 0.75, bright_keep: float = 0.0, skin: bool = False) -> Image.Image:
     """Kinematografischer Orange-&-Teal-Look: warme, gesättigte Lichter (Sonne, Glühen, Laternen) werden kräftig
-    orange-gold, alles Kühle, Neutrale und Dunkle (Himmel oben, Meer, Schatten) wird in Teal/Türkis getaucht."""
+    orange-gold, alles Kühle, Neutrale und Dunkle (Himmel oben, Meer, Schatten) wird in Teal/Türkis getaucht.
+    Standardwerte = Ibiza-Look (Rolf 09.10.). Für Bilder mit Personen im Vordergrund (Italien): `warm_lum` tiefer
+    (kräftige dunkle Farben wie ein rotes Kleid bleiben warm), `bright_keep` > 0 (helle neutrale Flächen wie weiße
+    Tischdecken kippen nicht ins Türkise), `skin` (Hauttöne bleiben natürlich warm)."""
     a = np.asarray(img.convert("RGB"), dtype=np.float32) / 255.0
-    r, b = a[..., 0], a[..., 2]
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
     lum = a @ np.array([0.299, 0.587, 0.114], np.float32)
     chroma = a.max(-1) - a.min(-1)
-    warm = (_smoothstep(chroma, 0.12, 0.40) * _smoothstep(lum, 0.10, 0.40) * _smoothstep(r - b, 0.05, 0.25))[..., None]
+    warm = (_smoothstep(chroma, 0.12, 0.40) * _smoothstep(lum, *warm_lum) * _smoothstep(r - b, 0.05, 0.25))[..., None]
     teal = lum[..., None] * np.array([0.60, 1.06, 1.12], np.float32) + np.array([0.0, 0.025, 0.035], np.float32)
     orange = lum[..., None] + (a - lum[..., None]) * 1.25                       # Sättigung hoch
     orange = orange * np.array([1.06, 1.0, 0.82], np.float32) + np.array([0.0, 0.05, 0.0], np.float32) * warm
-    graded = warm * orange + (1 - warm) * (0.25 * a + 0.75 * teal)
+    mix = teal_mix * (1 - bright_keep * _smoothstep(lum, 0.45, 0.85))[..., None]
+    graded = warm * orange + (1 - warm) * ((1 - mix) * a + mix * teal)
+    if skin:   # Hautton: R > G > B, mäßig gesättigt, nicht zu dunkel → natürlich warm statt grau/türkis
+        hue = np.where(chroma > 1e-3, (r - g) / np.maximum(chroma, 1e-3), 0)
+        sk = (_smoothstep(chroma, 0.06, 0.14) * (1 - _smoothstep(chroma, 0.45, 0.6)) * _smoothstep(lum, 0.18, 0.35)
+              * (r > g) * (g > b) * _smoothstep(hue, 0.1, 0.25) * (1 - _smoothstep(hue, 0.75, 0.9)))[..., None]
+        graded = (1 - sk) * graded + sk * np.clip(a * np.array([1.03, 1.0, 0.95], np.float32), 0, 1)
     # Spitzlichter (Sonnenkern, Lampen) bleiben warmweiß statt türkis zu kippen
     hi = _smoothstep(lum, 0.78, 0.94)[..., None]
     graded = (1 - hi) * graded + hi * np.clip(a * np.array([1.0, 0.96, 0.84], np.float32), 0, 1)
@@ -372,8 +382,8 @@ def trim_borders(img: Image.Image, tol: float = 0.035) -> Image.Image:
 
 
 def color_grade(img: Image.Image, genre: str | None) -> Image.Image:
-    """Farblook je Genre (config.COLOR_GRADE); ohne Eintrag bleibt das Bild unverändert."""
-    return orange_teal(trim_borders(img)) if genre in config.COLOR_GRADE else img
+    """Farblook je Genre (config.COLOR_GRADE, Wert = Einstellungen für orange_teal); ohne Eintrag unverändert."""
+    return orange_teal(trim_borders(img), **config.COLOR_GRADE[genre]) if genre in config.COLOR_GRADE else img
 
 
 def master_art(scene: str, genre: str | None) -> Image.Image:

@@ -108,6 +108,8 @@ Kostenvoranschlag, Bericht per E-Mail). Startbefehl statt `python run_auto.py`:
   künstlich): immer eine attraktive, elegante Frau in passender Abendgarderobe, Sunset- und Dinner-Stimmung,
   Amalfiküste oder Comer See; Gesicht etwa ein Drittel von oben, damit der große Titel nur über dem Kleid liegt.
 - Thumbnail und Album-Cover aus EINEM Hauptbild (wie gehabt), Schrift für Genre-Begriff und Albumname 1,2-fach größer.
+- Farblook seit 09.10.2026 (Rolf): dunkler und wärmer – tiefer Sonnenuntergang, Kerzenlicht, dazu der Orange-&-Teal-Filter
+  wie bei Ibiza, aber in der sanften Italien-Einstellung (Haut natürlich, weiße Tischdecken nicht türkis; `config.COLOR_GRADE`).
 - Playlist „Italian Chillout Music“: wird beim ersten Upload über den Titel gefunden bzw. angelegt.
 - Italien-Mixe zählen nicht für die Genre-Rotation der Di/Fr/So-Mixe. Freitags und sonntags laufen zwei Linien am selben
   Tag – das Konzept des Tages wird je Linie getrennt wiederverwendet, nicht vermischen.

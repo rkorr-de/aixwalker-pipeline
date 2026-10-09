@@ -77,8 +77,13 @@ THUMB_ONE_LINE = {"Ibiza Sunset Lounge"}
 # Thumbnail-Anordnung „Titel oben im Himmel“ (Rolf 09.10.): Titelblock oben, Dauer unten rechts auf Höhe von AIX WALKER
 THUMB_TITLE_TOP = {"Ibiza Sunset Lounge"}
 # Kinematografischer Orange-&-Teal-Filter auf alle Bilder des Genres (Rolf 09.10.: warme Lichter/Sonne kräftig
-# orange-gold, Himmel, Meer und Schatten in Türkis/Teal) – images.color_grade
-COLOR_GRADE = {"Ibiza Sunset Lounge"}
+# orange-gold, Himmel, Meer und Schatten in Türkis/Teal) – images.color_grade; Wert = Einstellungen für orange_teal().
+# Italien (Rolf 09.10. abends: „auch in die Italian-Linie“): sanftere Variante, weil dort eine Frau groß im Bild ist –
+# Hauttöne natürlich, kräftige Kleiderfarben bleiben warm, weiße Tischdecken kippen nicht ins Türkise.
+COLOR_GRADE = {
+    "Ibiza Sunset Lounge": {},
+    "Italian Chillout": {"warm_lum": (0.03, 0.22), "teal_mix": 0.6, "bright_keep": 0.7, "skin": True, "strength": 0.9},
+}
 # Genres mit Stimme (alle anderen: instrumental, „no vocals“ in Texten). Ibiza (Rolf 09.10. nach 3 Testrunden): KEIN
 # Liedtext, nur selten ein gehauchtes, wortloses Summen weit im Hintergrund – geht als `vocals` in jeden Lyria-Prompt
 VOCAL_STYLE = {
@@ -116,7 +121,11 @@ IMAGE_STYLE = {
                          "Natural golden-hour or sunset light mixed with warm candlelight, natural skin texture, real fabric "
                          "folds and sheen, subtle film grain, true-to-life colors, realistic shallow depth of field with natural "
                          "bokeh, classy luxury travel-magazine look (Condé Nast Traveller style), tasteful and "
-                         "advertiser-friendly." + _NO_TEXT),
+                         "advertiser-friendly. Darker, warmer cinematic mood (Rolf 09.10.): a late, deep sunset with a "
+                         "red-orange sky, the surroundings dimmer and moodier, lit by the afterglow and candlelight, her "
+                         "face softly lit by warm candlelight; moody cinematic orange and teal colour grading – sunset glow, "
+                         "candles and skin in warm orange and gold, sky, water and shadows in contrasting teal tones."
+                         + _NO_TEXT),
     # Ibiza-Linie (Rolf 09.10.2026): Beach Club mit Gästen bei Sonnenuntergang, gleicher Foto-Realismus wie Italien.
     # Stimmung dunkler und wärmer (Rolf 09.10. abends): tieferer Sonnenuntergang, mehr Rot am Himmel, dunklere Umgebung
     "Ibiza Sunset Lounge": (" Professional editorial travel photograph, real photo taken on a full-frame camera (Sony "

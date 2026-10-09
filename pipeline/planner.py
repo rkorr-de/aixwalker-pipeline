@@ -164,9 +164,10 @@ LIGHTS = {
                          "warm amber glow with green plants", "soft morning sun and steam"],
     "Chillout Sleep": ["deep blue dusk with warm window lights", "candlelight", "moonlight with warm lamps",
                        "starry sky with a warm glow", "warm reading lamp at blue hour"],
-    "Italian Chillout": ["golden hour with the low sun over the water", "orange and pink sunset sky with first candles lit",
-                         "blue hour with candlelight and village lights", "warm amber sunset glow reflected on the water",
-                         "last warm sunlight on the old Italian buildings"],   # ortsneutral: passt zu Küste UND See
+    # dunkler und wärmer (Rolf 09.10. abends): tiefer Sonnenuntergang statt heller Goldstunde, Kerzenlicht
+    "Italian Chillout": ["deep red-orange sunset with the sun touching the water", "crimson and amber sunset sky with the candles lit",
+                         "last afterglow of the sunset with candlelight and village lights", "warm amber sunset glow reflected on the darkening water",
+                         "last red sunset light on the old Italian buildings"],   # ortsneutral: passt zu Küste UND See
     "Ibiza Sunset Lounge": ["deep red sun touching the horizon", "sun half below the horizon under a crimson sky",
                             "last minutes of sunset with a burnt-orange afterglow", "fiery red sky reflected on the darkening sea",
                             "dark amber afterglow just after sunset with the first lanterns glowing"],
