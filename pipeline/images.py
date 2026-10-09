@@ -227,7 +227,7 @@ def _title_block(img: Image.Image, keyword: str, album: str | None, cy: int, max
     kw_h = lh * (len(lines) - 1) + (boxes[-1][3] - boxes[0][1])
     fs = None
     sub_h = 0
-    if subline:    # Unterzeile (z. B. „CHILLOUT DEEP HOUSE“) in derselben Antiqua, kleiner
+    if subline:    # Unterzeile (z. B. „BALEARIC CHILLOUT“) in derselben Antiqua, kleiner
         sub_txt = subline.upper()
         fs = _fit_tracked(d, sub_txt, config.FONT_HEAD, int(max_w * 0.80), int(fk.size * 0.48), int(h * 0.025),
                           0.12, "Bold")

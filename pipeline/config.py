@@ -48,7 +48,7 @@ PLAYLIST_TITLES = {   # für Playlists, die die Pipeline selbst findet/anlegt (y
                 "Calm Italian chillout and lounge music for sunset dinners on the Amalfi Coast and Lake Como – "
                 "Italian Amalfi Coast & Lake Como Ambience by Aix Walker. A new mix every few days."),
     "ibiza": ("Ibiza Sunset Lounge",
-              "Ibiza Sunset Lounge – chillout deep house mixes with soulful, ethereal vocals for golden-hour beach "
+              "Ibiza Sunset Lounge – Balearic chillout mixes with dreamy, breathy vocal hums for golden-hour beach "
               "club vibes, relaxing summer evenings and sunset lounging. By Aix Walker."),
 }
 
@@ -72,7 +72,7 @@ THUMB_KEYWORD = {   # immer mit „Music", damit sofort klar ist: das ist Musik,
     "Ibiza Sunset Lounge": "Ibiza Sunset Lounge",
 }
 # Unterzeile unter dem Genre-Begriff (gleiche Antiqua, kleiner) und Genres mit einzeiligem Genre-Begriff (Rolf 09.10.)
-THUMB_SUBLINE = {"Ibiza Sunset Lounge": "Chillout Deep House"}
+THUMB_SUBLINE = {"Ibiza Sunset Lounge": "Balearic Chillout"}   # Rolf 09.10.: passt zur langsameren Musik
 THUMB_ONE_LINE = {"Ibiza Sunset Lounge"}
 # Thumbnail-Anordnung „Titel oben im Himmel“ (Rolf 09.10.): Titelblock oben, Dauer unten rechts auf Höhe von AIX WALKER
 THUMB_TITLE_TOP = {"Ibiza Sunset Lounge"}

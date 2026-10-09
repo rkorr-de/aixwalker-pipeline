@@ -6,7 +6,7 @@ Erzeugt zur Freigabe:
     im Stil der Ibiza-Sunset-Bars (Café-del-Mar-Gefühl), gemastert, als MP3 mit Song-Cover
   • eine Hörprobe aller 3 Tracks mit Überblendung (mix_preview.mp3)
   • 2 Hauptbild-Vorschläge (Nano Banana Pro, 4K), je mit Thumbnail 1280×720 und Album-Cover 3000×3000
-    in der Schrift der Italien-Mixe (Cinzel-Versalien + Schreibschrift) plus Unterzeile „CHILLOUT DEEP HOUSE“;
+    in der Schrift der Italien-Mixe (Cinzel-Versalien + Schreibschrift) plus Unterzeile „BALEARIC CHILLOUT“;
     Stimmung dunkler/wärmer (tiefer, roter Sonnenuntergang), auf Thumbnail und Album-Cover Titel oben im Himmel,
     Dauer unten rechts; alle Bilder mit kinematografischem Orange-&-Teal-Filter (v3)
   • 3 Song-Cover (Nano Banana Pro)
