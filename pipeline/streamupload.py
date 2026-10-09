@@ -124,3 +124,22 @@ def upload_stream(cmd: list[str], title: str, description: str, tags: list[str],
     if not done or "id" not in done:
         raise RuntimeError(f"Upload ohne Video-ID beendet: {str(done)[:300]}")
     return {"video_id": done["id"], "bytes": sent, "md5": md5.hexdigest(), "seconds": round(time.time() - t0)}
+
+
+def remove_incomplete(title: str, log=print) -> list[str]:
+    """Entfernt eigene, nie fertig gewordene Uploads mit diesem Titel (z. B. nach einem abgebrochenen Strom-Upload –
+    09.10.2026 blieb so ein Eintrag mit Länge 0 öffentlich stehen). Fertig verarbeitete Videos bleiben unberührt."""
+    svc = youtube.service()
+    up = svc.channels().list(part="contentDetails", mine=True).execute()["items"][0]["contentDetails"][
+        "relatedPlaylists"]["uploads"]
+    ids = [i["snippet"]["resourceId"]["videoId"] for i in
+           svc.playlistItems().list(part="snippet", playlistId=up, maxResults=25).execute().get("items", [])]
+    removed = []
+    for it in (svc.videos().list(part="snippet,status,contentDetails", id=",".join(ids)).execute().get("items", [])
+               if ids else []):
+        if (it["snippet"]["title"] == title[:100] and it["status"].get("uploadStatus") != "processed"
+                and it["contentDetails"].get("duration") in ("P0D", "PT0S")):
+            svc.videos().delete(id=it["id"]).execute()
+            removed.append(it["id"])
+            log(f"[stream] unfertigen Upload {it['id']} entfernt")
+    return removed

@@ -257,6 +257,7 @@ def main() -> int:
     video_id, video_url, comment_id = None, "(nicht hochgeladen)", None
     if args.upload:
         from pipeline import streamupload, youtube
+        streamupload.remove_incomplete(title, log=log)   # Reste eines abgebrochenen Laufs
         log(f"Streaming-Upload Kaminfilm 4K ({privacy}) …")
         up = streamupload.upload_stream(loopvideo.mux_command(playlist_file, aac), title, desc, tags, privacy=privacy,
                                         log=log)

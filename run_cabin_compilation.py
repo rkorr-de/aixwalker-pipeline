@@ -265,6 +265,7 @@ def main() -> int:
 
     from pipeline import drive, streamupload, youtube
     privacy = "private" if args.private else "public"
+    streamupload.remove_incomplete(t["title"], log=log)   # Reste eines abgebrochenen Laufs
     log(f"Streaming-Upload {total_min} Min 4K ({privacy}) …")
     up = streamupload.upload_stream(loopvideo.mux_command(playlist_file, aac), t["title"], t["description"], t["tags"],
                                     privacy=privacy, log=log)
