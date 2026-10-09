@@ -138,15 +138,25 @@ def make_clips(frame: Image.Image, out: Path, n: int, dry: bool) -> list[Path]:
     return clips
 
 
+def short_center(frame: Image.Image, k: int) -> float:
+    """Bildmitte (0–1) des senkrechten Ausschnitts. Rolf 09.10.: Shorts müssen sich sichtbar unterscheiden –
+    Short 1 = Kamin, Short 2 = Fensterfront mit Schneefall, Sofa und Kerzentisch (gut 0,4 Bildbreiten vom Feuer weg)."""
+    fx = cabin_art.fire_x(frame)
+    if k % 2 == 0:
+        return fx
+    return min(max(fx - 0.36 if fx >= 0.5 else fx + 0.36, 0.16), 0.84)
+
+
 def make_short(clips: list[Path], k: int, frame: Image.Image, final_wav: Path, start: float, question: str,
                out: Path) -> Path:
-    """15-s-Short S1 v2: zwei Segmente (X→Y→X) ergeben eine nahtlose Schleife; senkrechter Ausschnitt um das Feuer."""
+    """15-s-Short S1 v2: zwei Segmente (X→Y→X) ergeben eine nahtlose Schleife; senkrechter Ausschnitt (siehe
+    short_center: Kamin bzw. Fenster/Sofa)."""
     x, y = clips[k % len(clips)], clips[(k + 1) % len(clips)]
     loop4k = out / "shorts" / f"loop_{k + 1}.mp4"
     loopvideo.build_segment([(x, y), (y, x)], loop4k)
     overlay = cabin_art.short_overlay(question, out / "shorts" / f"overlay_{k + 1}.png")
     cw = round(loopvideo.H * 9 / 16)
-    cx = int(min(max(cabin_art.fire_x(frame) * loopvideo.W - cw / 2, 0), loopvideo.W - cw))
+    cx = int(min(max(short_center(frame, k) * loopvideo.W - cw / 2, 0), loopvideo.W - cw))
     dst = out / "shorts" / f"short_{k + 1}.mp4"
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(loop4k), "-i", str(overlay), "-ss", f"{start:.2f}",
                     "-t", str(SHORT_SEC), "-i", str(final_wav), "-filter_complex",
