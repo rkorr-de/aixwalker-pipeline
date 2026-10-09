@@ -50,7 +50,8 @@ def total_usd(ledger: dict | None = None) -> float:
     # lyria_tracks zählt jede erfolgreiche Erzeugung (Neuversuche eingeschlossen); lyria_retries ist nur Information
     return round(led.get("lyria_tracks", 0) * p["lyria_track"]
                  + led.get("image_flash", 0) * p["image_flash"] + led.get("image_pro", 0) * p["image_pro"]
-                 + led.get("image_pro_4k", 0) * p.get("image_pro_4k", p["image_pro"]), 3)
+                 + led.get("image_pro_4k", 0) * p.get("image_pro_4k", p["image_pro"])
+                 + led.get("veo_sec_4k_fast", 0) * p["veo_sec_4k_fast"], 3)
 
 
 def estimate(concept: dict) -> dict:
