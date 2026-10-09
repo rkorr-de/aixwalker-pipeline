@@ -22,6 +22,7 @@ from pathlib import Path
 
 import numpy as np
 import requests
+from scipy import ndimage
 from PIL import Image
 
 from . import config, costs
@@ -122,6 +123,7 @@ def _read(path: Path, scale: int = 1):
 
 
 _CHECK_LOCK = threading.Lock()
+FLAKE_MAX_PX = 90     # Flocke als zusammenhängende Fläche in 960×540 (Test 09.10.: gute Clips ≤ ca. 30, Clip B bis 240)
 
 
 def _read_gray(path: Path, w: int = 960, h: int = 540) -> np.ndarray:
@@ -156,12 +158,22 @@ def check_clip(path: Path) -> dict:
             d1 = np.abs(s[1:] - s[:-1]).mean(axis=1)
             d6 = np.array([np.abs(s[min(i + 6, len(s) - 1)] - s[i]).mean() for i in range(len(s) - 1)])
             jump = (d1 / np.maximum(d6, 1e-3))[:-6]
+        # Riesen-Flocken (Rolf 09.10.: Clip B hatte unscharfe Flocken bis 10× so groß wie normal): helle, bewegte Flecken
+        # im Fenster-/Schneebereich, Feuer und Lampen (im Mittel hell) ausgenommen. Normal ≤ ca. 30 px, Clip B bis 240 px.
+        bright = ndimage.binary_dilation(g.mean(axis=0) > 110, iterations=12)
+        area = mov & ~bright
+        flakes = []
+        for i in range(len(g) - 1):
+            lab, k = ndimage.label(((g[i + 1] - g[i]) > 25) & area)
+            flakes.append(int(np.bincount(lab.ravel())[1:].max()) if k else 0)
+        flakes = np.array(flakes)
         n = len(g)
         del g
     res = {"frames": n, "static_share": round(float(static.mean()), 3),
            "jump_median": round(float(np.median(jump)), 3), "jump_max": round(float(jump.max()), 3),
            "lum_drift": round(float(lum.max() - lum.min()), 2) if static.any() else 99.0,
            "static_jitter": round(jitter, 3),
+           "flake_max": int(flakes.max()), "flake_frames": int((flakes > FLAKE_MAX_PX).sum()),
            "motion_start": round(float(step[:6].mean()), 2),
            "motion_mid": round(float(step[len(step) // 2 - 3:len(step) // 2 + 3].mean()), 2),
            "motion_end": round(float(step[-6:].mean()), 2)}
@@ -173,6 +185,8 @@ def check_clip(path: Path) -> dict:
     # relativ zum Median: dichter Schneefall hebt alle Werte (09.10.: Median 0,73, Max 0,84 ohne sichtbaren Sprung)
     if res["jump_max"] > 0.95 or res["jump_max"] > 1.35 * res["jump_median"]:
         reasons.append("Sprung im Schnee/Feuer")
+    if res["flake_frames"] >= 3:
+        reasons.append("riesige Schneeflocken")
     if res["lum_drift"] > 3.0:
         reasons.append("Helligkeit pumpt")
     if res["static_jitter"] > 0.8:
