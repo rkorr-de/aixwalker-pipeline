@@ -210,30 +210,50 @@ def _title_lines(d, kw: str, max_w: int, start: int, min_size: int):
 
 
 def _title_block(img: Image.Image, keyword: str, album: str | None, cy: int, max_w: int, scale: float,
-                 kw_start: float = 0.16) -> tuple[int, int]:
+                 kw_start: float = 0.16, subline: str | None = None, one_line: bool = False) -> tuple[int, int]:
     """Zeichnet Genre-Begriff (1–2 Zeilen, Cinzel) + Albumname (Schreibschrift) zentriert um `cy`. Liefert (oben, unten)."""
     w, h = img.size
     d = ImageDraw.Draw(img)
-    lines, fk = _title_lines(d, keyword.upper(), max_w, int(h * kw_start), int(h * 0.05))
+    if one_line:   # Ibiza-Linie (Rolf 09.10.2026): Genre-Begriff immer auf EINER Zeile
+        lines = [keyword.upper()]
+        fk = _fit_tracked(d, lines[0], config.FONT_HEAD, max_w, int(h * kw_start), int(h * 0.04), 0.03, "Bold")
+    else:
+        lines, fk = _title_lines(d, keyword.upper(), max_w, int(h * kw_start), int(h * 0.05))
     tk = fk.size * 0.03
     lh = int(fk.size * 1.02)
     boxes = [d.textbbox((0, 0), ln, font=fk) for ln in lines]
     kw_h = lh * (len(lines) - 1) + (boxes[-1][3] - boxes[0][1])
+    fs = None
+    sub_h = 0
+    if subline:    # Unterzeile (z. B. „CHILLOUT DEEP HOUSE“) in derselben Antiqua, kleiner
+        sub_txt = subline.upper()
+        fs = _fit_tracked(d, sub_txt, config.FONT_HEAD, int(max_w * 0.80), int(fk.size * 0.48), int(h * 0.025),
+                          0.12, "Bold")
+        sb = d.textbbox((0, 0), sub_txt, font=fs)
+        sub_h = sb[3] - sb[1]
     fa = None
     if album:
         fa = _fit_text(d, album, config.FONT_SCRIPT, int(max_w * 0.95), int(fk.size * 1.45), int(h * 0.06))
         ab = d.textbbox((0, 0), album, font=fa)
         al_w, al_h = ab[2] - ab[0], ab[3] - ab[1]
     gap = int(fk.size * 0.10)
-    total = kw_h + (gap + al_h if album else 0)
+    gap_sub = int(fk.size * 0.18)                    # Luft Titel → Unterzeile
+    sub_block = (gap_sub + sub_h + int(fk.size * 0.14)) if subline else 0   # + Luft für Schreibschrift-Oberlängen
+    total = kw_h + sub_block + (gap + al_h if album else 0)
     top = cy - total // 2
     pos = [((w - _tracked_width(d, ln, fk, tk)) / 2, top - boxes[0][1] + i * lh) for i, ln in enumerate(lines)]
+    if subline:
+        ts = fs.size * 0.12
+        sx, sy = (w - _tracked_width(d, sub_txt, fs, ts)) / 2, top + kw_h + gap_sub - sb[1]
+        pos_sub = (sx, sy)
     if album:
-        ax, ay = (w - al_w) / 2 - ab[0], top + kw_h + gap - ab[1]
+        ax, ay = (w - al_w) / 2 - ab[0], top + kw_h + sub_block + gap - ab[1]
 
     def paint(md):
         for (x, y), ln in zip(pos, lines):
             _draw_tracked(md, (x, y), ln, fk, 255, tk)
+        if subline:
+            _draw_tracked(md, pos_sub, sub_txt, fs, 255, ts)
         if album:
             md.text((ax, ay), album, font=fa, fill=255)
     # Lesbarkeit auf hellem Himmel (Rolf 08.10.): weicher dunkler Hof + gestufter 3D-Tiefenschatten nach rechts unten
@@ -248,8 +268,12 @@ def _title_block(img: Image.Image, keyword: str, album: str | None, cy: int, max
             _draw_tracked(d, (x + i, y + i), ln, fk, col, tk)
         if album:
             d.text((ax + i * 0.7, ay + i * 0.7), album, font=fa, fill=col)
+        if subline:
+            _draw_tracked(d, (pos_sub[0] + i * 0.6, pos_sub[1] + i * 0.6), sub_txt, fs, col, ts)
     for (x, y), ln in zip(pos, lines):
         _draw_tracked(d, (x, y), ln, fk, config.WHITE, tk)
+    if subline:
+        _draw_tracked(d, pos_sub, sub_txt, fs, config.CREAM, ts)
     if album:
         d.text((ax, ay), album, font=fa, fill=config.CREAM)
     return top, top + total
@@ -311,12 +335,13 @@ def _cover_crop(art: Image.Image, w: int, h: int) -> Image.Image:
 
 
 def make_thumbnail(art: Image.Image, keyword: str, album: str, out: Path, duration: str = "",
-                   w: int = 1280, h: int = 720, text_scale: float = 1.0) -> Path:
+                   w: int = 1280, h: int = 720, text_scale: float = 1.0, subline: str | None = None,
+                   one_line: bool = False) -> Path:
     """YouTube-Thumbnail im neuen Look: helles Motiv, mittig Genre-Begriff + Albumname, Dauer oben rechts.
     text_scale > 1 macht Genre-Begriff und Albumname größer (config.THUMB_TEXT_SCALE, z. B. Italien-Linie)."""
     img = _cover_crop(art, w, h).convert("RGB")
     _title_block(img, keyword, album, cy=int(h * 0.47), max_w=int(w * min(0.94, 0.80 * text_scale)), scale=h / 720,
-                 kw_start=0.16 * text_scale)
+                 kw_start=0.16 * text_scale, subline=subline, one_line=one_line)
     _corner_labels(img, h / 720, duration)
     out.parent.mkdir(parents=True, exist_ok=True)
     img.save(out, "JPEG", quality=92)
@@ -326,11 +351,11 @@ def make_thumbnail(art: Image.Image, keyword: str, album: str, out: Path, durati
 
 
 def make_album_cover(art: Image.Image, keyword: str, album: str, out: Path, size: int = 3000,
-                     text_scale: float = 1.0) -> Path:
+                     text_scale: float = 1.0, subline: str | None = None, one_line: bool = False) -> Path:
     """Album-Cover (DistroKid, 3000×3000) – gleicher Look und gleicher Name wie das Thumbnail."""
     img = _cover_crop(art, size, size).convert("RGB")
     _title_block(img, keyword, album, cy=int(size * 0.5), max_w=int(size * min(0.94, 0.84 * text_scale)),
-                 scale=size / 720, kw_start=0.11 * text_scale)
+                 scale=size / 720, kw_start=0.11 * text_scale, subline=subline, one_line=one_line)
     _corner_labels(img, size / 720, "")
     out.parent.mkdir(parents=True, exist_ok=True)
     img.save(out, "PNG", optimize=True)

@@ -40,11 +40,16 @@ PLAYLISTS = {
     "mallorca": "PLCl2AgQDWKzk",
     # Italien-Linie (Rolf, 08.10.2026): leer = Playlist wird beim ersten Upload über den Titel gesucht bzw. angelegt
     "italian": os.environ.get("YT_PLAYLIST_ITALIAN", ""),
+    # Ibiza-Linie (Rolf, 09.10.2026): leer = Playlist wird beim ersten Upload über den Titel gesucht bzw. angelegt
+    "ibiza": os.environ.get("YT_PLAYLIST_IBIZA", ""),
 }
 PLAYLIST_TITLES = {   # für Playlists, die die Pipeline selbst findet/anlegt (youtube.ensure_playlist)
     "italian": ("Italian Chillout Music",
                 "Calm Italian chillout and lounge music for sunset dinners on the Amalfi Coast and Lake Como – "
                 "Italian Amalfi Coast & Lake Como Ambience by Aix Walker. A new mix every few days."),
+    "ibiza": ("Ibiza Sunset Lounge",
+              "Ibiza Sunset Lounge – chillout deep house mixes with soulful, ethereal vocals for golden-hour beach "
+              "club vibes, relaxing summer evenings and sunset lounging. By Aix Walker."),
 }
 
 # Kanalfarben
@@ -64,9 +69,15 @@ THUMB_KEYWORD = {   # immer mit „Music", damit sofort klar ist: das ist Musik,
     "Dark Ambient Spa": "Luxury Spa Music",
     "Chillout Sleep": "Sleep Music",
     "Italian Chillout": "Italian Chillout Music",
+    "Ibiza Sunset Lounge": "Ibiza Sunset Lounge",
 }
+# Unterzeile unter dem Genre-Begriff (gleiche Antiqua, kleiner) und Genres mit einzeiligem Genre-Begriff (Rolf 09.10.)
+THUMB_SUBLINE = {"Ibiza Sunset Lounge": "Chillout Deep House"}
+THUMB_ONE_LINE = {"Ibiza Sunset Lounge"}
+# Genres MIT Gesang (alle anderen: instrumental, „no vocals“ in Texten)
+VOCAL_GENRES = {"Ibiza Sunset Lounge"}
 # Schriftgröße von Genre-Begriff und Albumname auf Thumbnail/Cover je Genre (1.0 = Standard). Italien: größer (Rolf 08.10.)
-THUMB_TEXT_SCALE = {"Italian Chillout": 1.2}
+THUMB_TEXT_SCALE = {"Italian Chillout": 1.2, "Ibiza Sunset Lounge": 1.2}
 
 # Bildstil je Genre (wird an jeden Bild-Prompt angehängt). Analyse 08.10.2026: erfolgreiche Thumbnails sind doppelt so hell
 # und mehr als doppelt so farbig wie unsere alten dunkel-teal Bilder – daher hell, warm, farbig für Lounge/Spa/Sleep.
@@ -87,6 +98,13 @@ IMAGE_STYLE = {
                          "folds and sheen, subtle film grain, true-to-life colors, realistic shallow depth of field with natural "
                          "bokeh, classy luxury travel-magazine look (Condé Nast Traveller style), tasteful and "
                          "advertiser-friendly." + _NO_TEXT),
+    # Ibiza-Linie (Rolf 09.10.2026): Beach Club mit Gästen bei Sonnenuntergang, gleicher Foto-Realismus wie Italien
+    "Ibiza Sunset Lounge": (" Professional editorial travel photograph, real photo taken on a full-frame camera (Sony "
+                            "A7R V, 24–50 mm), not CGI, not a render, not an illustration. Golden-hour Ibiza sunset with "
+                            "rich orange, gold and pink hues over the sparkling sea, warm string lights, natural wood, "
+                            "thatch and white canopy drapes, relaxed elegant guests, natural skin texture, subtle film "
+                            "grain, slight background blur, bright, warm and vivid, luxury beach-club magazine look, "
+                            "advertiser-friendly." + _NO_TEXT),
 }
 DEFAULT_GENRE = "Mediterranean Spa Lounge"
 

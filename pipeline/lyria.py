@@ -94,13 +94,15 @@ def generate_track(prompt: str, out_path: Path, retries: int = 3, timeout: int =
 
 
 def build_prompt(genre: str, bpm: int, mood: str, variation: str, minutes: float = 3.0,
-                 sound_design: str = "") -> str:
+                 sound_design: str = "", vocals: str = "") -> str:
     """Baut einen Lyria-Prompt. `sound_design` ist die klangliche Identität des ganzen Mixes (gleich für alle
     Tracks, sorgt für Zusammenhalt), `variation` beschreibt, was diesen Track von den anderen abhebt."""
     sd = f" Overall sound of this mix: {sound_design}." if sound_design else ""
+    # Ibiza-Linie (Rolf 09.10.2026): mit Gesang – `vocals` beschreibt Stimme + Original-Textzeilen; sonst instrumental
+    voc = f"Vocals: {vocals} " if vocals else "Instrumental, no vocals, no lyrics, no spoken words. "
     return (
         f"{genre}, {bpm} BPM, {mood}.{sd} This track: {variation}. "
-        f"Instrumental, no vocals, no lyrics, no spoken words. "
+        f"{voc}"
         f"Clean intro without long silence, steady groove, natural ending suitable for a DJ mix. "
         f"Duration about {minutes:.0f} minutes. High fidelity stereo."
     )
