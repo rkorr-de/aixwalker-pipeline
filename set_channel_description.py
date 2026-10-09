@@ -16,7 +16,9 @@ ROOT = Path(__file__).parent
 
 def main() -> int:
     desc = (ROOT / "channel" / "description.txt").read_text(encoding="utf-8").strip()
-    kw = (ROOT / "channel" / "keywords.txt").read_text(encoding="utf-8").strip()
+    # keywords.txt ist kommagetrennt (Rolf); die YouTube-API erwartet Leerzeichen, Mehrwort-Begriffe in Anführungszeichen
+    items = [k.strip() for k in (ROOT / "channel" / "keywords.txt").read_text(encoding="utf-8").split(",") if k.strip()]
+    kw = " ".join(f'"{k}"' if " " in k else k for k in items)
     yt = youtube.service()
     ch = yt.channels().list(part="brandingSettings", mine=True).execute()["items"][0]
     bs = ch["brandingSettings"]
