@@ -238,12 +238,15 @@ def sequence(clips: list[str], n: int, seed: int | None = None) -> list[str]:
     return seq
 
 
-def build_video(clips: list[Path], audio: Path, out: Path, work: Path, seed: int | None = None,
-                log=print) -> Path:
-    """Kaminfilm in Länge der Tonspur: Segmente bauen, aneinanderhängen (ohne Neukodierung), Ton dazu."""
+def _duration(path: Path) -> float:
+    return float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
+                                 str(path)], capture_output=True, text=True).stdout)
+
+
+def prepare_video(clips: list[Path], dur: float, work: Path, seed: int | None = None, log=print) -> Path:
+    """Kodiert alle nötigen Segmente für einen Kaminfilm der Länge `dur` und schreibt die Abspielliste
+    (ffmpeg-concat) – das eigentliche Video entsteht erst beim Aneinanderhängen (Datei oder Upload-Strom)."""
     work.mkdir(parents=True, exist_ok=True)
-    dur = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
-                                str(audio)], capture_output=True, text=True).stdout)
     names = [c.stem for c in clips]
     by = {c.stem: c for c in clips}
     seg_sec = (_frame_count(clips[0]) - BLEND) / FPS
@@ -264,13 +267,32 @@ def build_video(clips: list[Path], audio: Path, out: Path, work: Path, seed: int
     last = build_segment([pair(n - 2), pair(n - 1)], work / "seg_last.mp4", max_frames=tail_frames, fade_out=True)
     lst = [first] + [work / f"seg_{seq[k]}_{seq[k + 1]}.mp4" for k in range(1, n - 2)] + [last]
     (work / "list.txt").write_text("".join(f"file '{p.resolve()}'\n" for p in lst))
+    log(f"Kaminfilm vorbereitet: {dur / 60:.1f} Min aus {n} Segmenten, Folge {''.join(seq[:12])}…")
+    return work / "list.txt"
+
+
+def encode_audio(audio: Path, out: Path) -> Path:
+    """Tonspur einmal als AAC 320k (8 Std. ≈ 1,2 GB statt 5,5 GB WAV) – wird danach nur noch kopiert."""
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(audio), "-c:a", "aac", "-b:a", "320k", "-ar", "48000",
+                    str(out)], check=True)
+    return out
+
+
+def mux_command(playlist: Path, audio_aac: Path, out: str = "pipe:1") -> list[str]:
+    """ffmpeg-Befehl: Segmente + Ton ohne Neuberechnung verbinden. out = Datei (.mp4) oder pipe:1 (MKV-Strom)."""
+    cmd = ["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(playlist), "-i", str(audio_aac),
+           "-map", "0:v", "-map", "1:a", "-c", "copy", "-shortest"]
+    return cmd + (["-f", "matroska", "pipe:1"] if out == "pipe:1" else ["-movflags", "+faststart", out])
+
+
+def build_video(clips: list[Path], audio: Path, out: Path, work: Path, seed: int | None = None,
+                log=print) -> Path:
+    """Kaminfilm als Datei (für Mixe, die auf die Festplatte passen; lange Mixe → streamupload)."""
+    playlist = prepare_video(clips, _duration(audio), work, seed, log)
+    aac = encode_audio(audio, work / "audio.m4a")
     out.parent.mkdir(parents=True, exist_ok=True)
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(work / "list.txt"),
-                    "-i", str(audio), "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "320k",
-                    "-ar", "48000", "-shortest", "-movflags", "+faststart", str(out)], check=True)
-    for p in (first, last):
-        p.unlink(missing_ok=True)
-    log(f"Kaminfilm fertig: {out.name}, {dur / 60:.1f} Min, {out.stat().st_size / 1e9:.2f} GB, Folge {''.join(seq[:12])}…")
+    subprocess.run(mux_command(playlist, aac, str(out)), check=True)
+    log(f"Kaminfilm fertig: {out.name}, {out.stat().st_size / 1e9:.2f} GB")
     return out
 
 

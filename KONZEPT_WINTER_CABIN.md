@@ -1,4 +1,4 @@
-# Konzept: Linie „Cozy Winter Cabin“ – Stand 09.10.2026 (v2, nach Rolfs Antworten und Testlauf)
+# Konzept: Linie „Cozy Winter Cabin“ – Stand 09.10.2026 (v3, nach Rolfs zweiter Antwort)
 
 Grundlage ist die Ibiza-Linie (Gedächtnis → Planer → Konzept → Lyria → Mastering → Upload öffentlich → Drive →
 Gedächtnis → Bericht per E-Mail). Neu: bewegter **4K-Kaminfilm** statt Standbild, Mixe **≥ 120 Min**, **kein DistroKid**.
@@ -14,7 +14,10 @@ Gedächtnis → Bericht per E-Mail). Neu: bewegter **4K-Kaminfilm** statt Standb
 | Kaminknistern | ja, kostenlos (siehe 5) |
 | Drive | nur die Dateien, die das Projekt braucht – **nicht** die langen Videos |
 | Wochen-/Monats-Mix | jeweils **neues Bild + neues Kaminvideo** |
-| Tage | Tages-Mix **Fr + Sa** (≥ 120 Min), **So** Wochen-Mix (Zusammenschnitt Fr + Sa), **1.** Monats-Mix |
+| Tage (v3, wegen Kosten) | **nur Freitag** ein Tages-Mix (≥ 120 Min), **alle 2 Wochen** ein 4-Std.-Mix (Zusammenschnitt der beiden Freitags-Mixe), **am 1.** der lange Monats-Mix (ca. 8 Std. aus allen Freitags-Mixen) – **alles echtes 4K** |
+| Thumbnail (v3) | **Entwurf C**, Textblock **oben links** über den Fenstern, „4K UHD“-Etikett größer (Varianten 2/4/8 HOURS) |
+| Short (v3) | **S1** (Frage-Haken), zusätzlich großes goldenes „4K UHD“-Etikett unten (S1 v2 – zur Wahl) |
+| Playlist (v3) | **Cozy Winter Cabin · Relaxing Fireplace Chillout 4K** |
 
 ## 2. Testlauf 09.10.2026 – Ergebnisse
 
@@ -39,6 +42,19 @@ Gedächtnis → Bericht per E-Mail). Neu: bewegter **4K-Kaminfilm** statt Standb
 - **Musik**: 4 Test-Songs mit deinem JSON-Prompt (Felt-Piano, 80er-Flächen, Besen, Kontrabass, Kamin, Wind), je ca. 3 Min,
   gemastert auf −16 LUFS (leiser, für den Hintergrund). Lyria hat einmal kurz blockiert und beim Neuversuch geliefert.
   Die Tempo-Messung liefert bei dieser ruhigen Musik keinen Wert → für diese Linie wird die Tempoprüfung abgeschaltet.
+
+## 2b. Lange Dateien (4 Std. / 8 Std. in 4K) – Streaming-Upload (getestet 09.10.2026)
+
+8 Std. in 4K sind ca. 55 GB, eine Sitzung hat aber nur ca. 27 GB frei. Lösung (`pipeline/streamupload.py`): Das Video wird
+**nie komplett gespeichert**. ffmpeg hängt die fertigen Segmente und die Tonspur ohne Neuberechnung aneinander und
+schreibt einen MKV-Strom, der in 64-MiB-Stücken direkt zu YouTube geht (Resumable Upload mit unbekannter Gesamtgröße,
+automatisches Weitersenden nach Netzfehlern, Zugang wird zwischendurch erneuert). Auf der Festplatte liegen nur die
+Segmente (ca. 15 MB je Clip-Paar) und die Tonspur als AAC (8 Std. ≈ 1,2 GB).
+
+Echttest: 11,5-Min-4K-Kaminfilm privat gestreamt – 1,3 GB in 60 s (≈ 170 Mbit/s), YouTube hat ihn verarbeitet und als
+**3840 × 2160, 24 Bilder/s, H.264, Länge 11:29** erkannt; danach gelöscht. Hochgerechnet: 4-Std.-Mix ≈ 27 GB ≈ 25 Min
+Upload, 8-Std.-Mix ≈ 55 GB ≈ 45–90 Min Upload. YouTube erlaubt bis 12 Std. bzw. 256 GB je Video. Das Verfahren wird
+für **alle** Cabin-Videos genutzt (auch 2 Std.).
 
 ## 3. Thumbnail-Vorschläge (4 Entwürfe im Drive-Testordner)
 
@@ -108,19 +124,47 @@ Recherche: „Cozy Winter Cabin Ambience“ heißt bereits ein gutes Dutzend Pla
 Wochen-Mix (So): Zusammenschnitt Fr + Sa (ca. 4 Std., ca. 27 GB in 4K, Upload ca. 1 Std.), neues Hauptbild + 3 neue
 Clips. Monats-Mix (1.): wie gehabt aus den Tages-Mixen des Vormonats, neues Bild + Clips.
 
-## 8. Kosten (4K)
+## 8. Kosten (4K, Zeitplan v3)
 
-| Posten | Tages-Mix | Wochen-/Monats-Mix |
-|---|---|---|
-| Lyria ca. 45 Songs × 0,08 $ | 3,60 $ | – |
-| Hauptbild 4K | 0,24 $ | 0,24 $ |
-| 3 Veo-Clips 4K × 8 s × 0,30 $ (+ ggf. 1 Neuversuch 2,40 $) | 7,20 $ (bis 9,60 $) | 7,20 $ |
-| Texte | ca. 0,30 $ | ca. 0,10 $ |
-| **Summe** | **ca. 11,30 $ (bis 13,70 $)** | **ca. 7,50 $** |
+| Posten | Freitags-Mix (2 Std.) | 2-Wochen-Mix (4 Std.) | Monats-Mix (8 Std.) |
+|---|---|---|---|
+| Lyria ca. 45 Songs × 0,08 $ | 3,60 $ | – (Zusammenschnitt) | – (Zusammenschnitt) |
+| Hauptbild 4K | 0,24 $ | 0,24 $ | 0,24 $ |
+| 3 Veo-Clips 4K (8 s × 0,30 $) | 7,20 $ | 7,20 $ | 7,20 $ |
+| Texte | ca. 0,30 $ | ca. 0,10 $ | ca. 0,10 $ |
+| **Summe** | **ca. 11,30 $** | **ca. 7,50 $** | **ca. 7,50 $** |
+| je Monat | × 4,3 = ca. 49 $ | × 2,2 = ca. 16 $ | ca. 7,50 $ |
 
-Pro Monat (ca. 9 Tages-Mixe, 4 Wochen-Mixe, 1 Monats-Mix): **ca. 140 $ ≈ 130 €.** Kostengrenze für diese Linie: 15 $ je
-Lauf (statt 9 $). Sparvariante: Veo in 1080p (0,96 $ statt 2,40 $ je Clip) und auf 4K hochrechnen – ca. 60 $/Monat
-weniger, aber kein echtes 4K. Testlauf heute: ca. 13 $ (4 Bilder, 4 Clips, 4 Songs).
+**Gesamt ca. 73 $ ≈ 67 € im Monat** (+ ggf. 2,40 $ je neu erzeugtem Clip, wenn einer die Prüfung nicht besteht).
+
+## 8b. Prognose: Holen wir die Kosten über die Monetarisierung wieder rein?
+
+Kanalstand 09.10.2026: 2.960 Abos (Hürde 1.000 ✔), 131.611 Aufrufe, aber nur **384 öffentliche Wiedergabestunden in 12
+Monaten** – fürs Partnerprogramm (YPP) braucht es **4.000** (oder alternativ 10 Mio. Shorts-Aufrufe in 90 Tagen).
+
+**Warum diese Linie gute Chancen hat:** Lange Kaminvideos sind ideal für Wiedergabestunden (wer 1 Std. laufen lässt, bringt
+1 Std.). In der Recherche erreichen kleine Kanäle (3.000–6.000 Abos) mit genau diesem Thema 0,8–4,3 Mio. Aufrufe pro
+Video, und die Hochsaison (Nov.–Feb.) beginnt jetzt. Die viralen Kamin-Shorts der Nische (34–61 Mio.) zeigen, dass auch
+der Shorts-Weg ins YPP möglich ist.
+
+**Annahmen:** Einnahmen nach YPP ca. **1,50–3 $ je 1.000 Aufrufe** (Entspannungs-/Ambient-Musik, viel US-Publikum),
+durchschnittlich ca. 20–25 Min Sehdauer je Aufruf. Shorts bringen kaum Geld (Cent-Beträge je 1.000), aber Reichweite.
+Gewinnschwelle 73 $/Monat ≈ **25.000–50.000 Aufrufe im Monat** über alle Cabin-Videos.
+
+| Szenario | Aufrufe je Video | YPP erreicht | Einnahmen in der Saison | Bilanz |
+|---|---|---|---|---|
+| Vorsichtig | 200–500 | frühestens nächster Winter | 0 $ bis dahin | reine Investition (ca. 70 $/Monat) → Abbruchregel nötig |
+| Mittel | 2.000–5.000 (summiert sich, alte Videos laufen weiter) | ca. Dez./Jan. | ca. 50–200 $/Monat | übers Jahr etwa ±0, im Winter Plus, im Sommer Minus |
+| Gut | ein Video „zündet“ (100.000+) | in wenigen Wochen | 500–3.000 $/Monat | Kosten nach 1–2 Monaten wieder drin |
+
+**Ehrlich dazu:** Das sind Schätzungen, keine Zusage. Die meisten Kanäle bleiben im vorsichtigen Szenario; die Nische ist
+aber nachweislich stark und saisonal günstig. Zwei Risiken: (1) YouTube prüft bei der YPP-Aufnahme auf „massenhaft
+produzierte, sich wiederholende“ Inhalte – unsere eigene Musik je Video, wechselnde Szenen und kuratierte Titel sprechen
+dagegen, eine Garantie gibt es nicht. (2) Saisonalität: Im Frühjahr/Sommer sinkt das Interesse an Winterhütten –
+dann auf Varianten wechseln (Regen-Hütte, Herbst, Berg-Chalet), gleiche Technik.
+
+**Vorschlag Abbruchregel:** Ende Januar prüfen – hat die Cabin-Linie bis dahin weniger als ca. 1.500 Wiedergabestunden
+gebracht, Takt reduzieren (nur Monats-Mix) oder pausieren.
 
 ## 9. Was noch zu bauen ist (nach Rolfs Freigabe)
 
@@ -131,12 +175,10 @@ weniger, aber kein echtes 4K. Testlauf heute: ca. 13 $ (4 Bilder, 4 Clips, 4 Son
 - Wochen-Mix (`run_weekly_compilation.py`) und Monats-Mix (`monthly_mix.py`) für die Linie mit Kaminfilm.
 - Bericht per E-Mail ohne DistroKid, Kosten mit Veo-Posten.
 - Routinen: „Winter-Cabin-Mix (Fr/Sa)“ und „Winter-Cabin-Wochen-Mix (So)“; Monats-Mix nimmt die Linie automatisch mit.
+- `pipeline/streamupload.py` (steht schon, getestet).
 - Erster echter Lauf: Freitag, 16.10.2026.
 
 ## 10. Offene Fragen an Rolf
 
-1. Welcher **Thumbnail-Entwurf** (A, B, C, D)?
-2. Welcher **Shorts-Entwurf** (S1, S2, S3)?
-3. Welcher **Playlist-Name** (1–4 oder eigener)?
-4. Echtes **4K mit Veo 4K** (ca. 140 $/Monat) oder Sparvariante 1080p hochgerechnet (ca. 80 $/Monat)?
-5. Uhrzeit: Start Fr/Sa ca. 08:45, So ca. 09:45 – okay?
+1. Short: S1 wie gehabt oder S1 v2 mit großem „4K UHD“-Etikett?
+2. Uhrzeit: Freitags-Mix Start ca. 08:45 (online ca. 10:30–11:00) – okay? 2-Wochen-Mix: sonntags alle 2 Wochen?
