@@ -15,8 +15,8 @@ Gedächtnis → Bericht per E-Mail). Neu: bewegter **4K-Kaminfilm** statt Standb
 | Drive | nur die Dateien, die das Projekt braucht – **nicht** die langen Videos |
 | Wochen-/Monats-Mix | jeweils **neues Bild + neues Kaminvideo** |
 | Tage (v3, wegen Kosten) | **nur Freitag** ein Tages-Mix (≥ 120 Min), **alle 2 Wochen** ein 4-Std.-Mix (Zusammenschnitt der beiden Freitags-Mixe), **am 1.** der lange Monats-Mix (ca. 8 Std. aus allen Freitags-Mixen) – **alles echtes 4K** |
-| Thumbnail (v3) | **Entwurf C**, Textblock **oben links** über den Fenstern, „4K UHD“-Etikett größer (Varianten 2/4/8 HOURS) |
-| Short (v3) | **S1** (Frage-Haken), zusätzlich großes goldenes „4K UHD“-Etikett unten (S1 v2 – zur Wahl) |
+| Thumbnail (v3) | **Entwurf C**, Textblock **oben links** über den Fenstern, „4K UHD“-Etikett größer (Varianten 2/4/8 HOURS). Steht der Kamin im erzeugten Bild links, wird das Bild vor den Veo-Clips **gespiegelt** (Rolfs Idee, kostenlos) – Kamin immer rechts, Text immer links |
+| Short (v3) | **S1 v2**: Frage-Haken + großes goldenes „4K UHD“-Etikett unten |
 | Playlist (v3) | **Cozy Winter Cabin · Relaxing Fireplace Chillout 4K** |
 
 ## 2. Testlauf 09.10.2026 – Ergebnisse
@@ -178,7 +178,7 @@ gebracht, Takt reduzieren (nur Monats-Mix) oder pausieren.
 - `pipeline/streamupload.py` (steht schon, getestet).
 - Erster echter Lauf: Freitag, 16.10.2026.
 
-## 10. Offene Fragen an Rolf
+## 10. Stand 09.10.2026 abends
 
-1. Short: S1 wie gehabt oder S1 v2 mit großem „4K UHD“-Etikett?
-2. Uhrzeit: Freitags-Mix Start ca. 08:45 (online ca. 10:30–11:00) – okay? 2-Wochen-Mix: sonntags alle 2 Wochen?
+- Erster Freitags-Mix „Cabin Embers“ läuft (heute). Routinen angelegt: Fr 08:45, So 09:45 (2-Wochen-Mix, nur wenn
+  fällig – erster am 18.10.), am 1. um 07:45 (Monats-Mix, erster am 01.11.).

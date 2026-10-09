@@ -78,10 +78,14 @@ def _chip(img, x, y, text, s):
 
 
 def fire_x(frame: Image.Image) -> float:
-    """Horizontale Lage des Kaminfeuers (0–1): helle, stark orange Bereiche."""
+    """Horizontale Lage des Kaminfeuers (0–1): die Spalte mit dem meisten hellen, stark orangen Licht (geglättet).
+    Spitze statt Schwerpunkt – sonst ziehen Kerzen und Lampen den Wert zur Seite (Shorts vom 09.10. angeschnitten)."""
     a = np.asarray(frame.convert("RGB").resize((480, 270))).astype(np.float32)
     warm = np.clip((a[..., 0] - 190) / 65, 0, 1) * np.clip((a[..., 0] - a[..., 2] - 70) / 80, 0, 1)
-    return 0.5 if warm.sum() < 5 else float((warm.sum(axis=0) * np.arange(480)).sum() / warm.sum() / 480)
+    if warm.sum() < 5:
+        return 0.5
+    col = np.convolve(warm.sum(axis=0), np.ones(25) / 25, mode="same")
+    return float(np.argmax(col) / 480)
 
 
 def fire_right(frame: Image.Image) -> Image.Image:
