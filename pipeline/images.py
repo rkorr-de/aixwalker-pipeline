@@ -324,11 +324,39 @@ def crop_aspect(img: Image.Image, aw: int, ah: int, bias_y: float = 0.5) -> Imag
     return img.crop((0, y, w, y + nh))
 
 
+def _smoothstep(x: np.ndarray, a: float, b: float) -> np.ndarray:
+    t = np.clip((x - a) / (b - a), 0, 1)
+    return t * t * (3 - 2 * t)
+
+
+def orange_teal(img: Image.Image, strength: float = 1.0) -> Image.Image:
+    """Kinematografischer Orange-&-Teal-Look: warme, gesättigte Lichter (Sonne, Glühen, Laternen) werden kräftig
+    orange-gold, alles Kühle, Neutrale und Dunkle (Himmel oben, Meer, Schatten) wird in Teal/Türkis getaucht."""
+    a = np.asarray(img.convert("RGB"), dtype=np.float32) / 255.0
+    r, b = a[..., 0], a[..., 2]
+    lum = a @ np.array([0.299, 0.587, 0.114], np.float32)
+    chroma = a.max(-1) - a.min(-1)
+    warm = (_smoothstep(chroma, 0.12, 0.40) * _smoothstep(lum, 0.10, 0.40) * _smoothstep(r - b, 0.05, 0.25))[..., None]
+    teal = lum[..., None] * np.array([0.60, 1.06, 1.12], np.float32) + np.array([0.0, 0.025, 0.035], np.float32)
+    orange = lum[..., None] + (a - lum[..., None]) * 1.25                       # Sättigung hoch
+    orange = orange * np.array([1.06, 1.0, 0.82], np.float32) + np.array([0.0, 0.05, 0.0], np.float32) * warm
+    graded = warm * orange + (1 - warm) * (0.25 * a + 0.75 * teal)
+    out = np.clip(a + (graded - a) * strength, 0, 1)
+    out = out + 0.18 * (out - 0.5) * (1 - np.abs(2 * out - 1))                  # filmische S-Kurve
+    return Image.fromarray((np.clip(out, 0, 1) * 255 + 0.5).astype(np.uint8))
+
+
+def color_grade(img: Image.Image, genre: str | None) -> Image.Image:
+    """Farblook je Genre (config.COLOR_GRADE); ohne Eintrag bleibt das Bild unverändert."""
+    return orange_teal(img) if genre in config.COLOR_GRADE else img
+
+
 def master_art(scene: str, genre: str | None) -> Image.Image:
     """Ein Hauptbild je Mix: quadratisch und hoch aufgelöst; Cover nutzt es ganz, Thumbnail einen 16:9-Ausschnitt."""
     img = generate_art(scene + " Square master image: keep the main subject and the calm open area for the title in "
                        "the central horizontal band, so a wide 16:9 crop from the middle shows the same scene.",
                        "1:1", pro=True, style=style_for(genre), image_size="4K")
+    img = color_grade(img, genre)
     print(f"[images] Hauptbild {img.size[0]}×{img.size[1]}")
     return img
 
@@ -359,11 +387,14 @@ def make_thumbnail(art: Image.Image, keyword: str, album: str, out: Path, durati
 
 
 def make_album_cover(art: Image.Image, keyword: str, album: str, out: Path, size: int = 3000,
-                     text_scale: float = 1.0, subline: str | None = None, one_line: bool = False) -> Path:
-    """Album-Cover (DistroKid, 3000×3000) – gleicher Look und gleicher Name wie das Thumbnail."""
+                     text_scale: float = 1.0, subline: str | None = None, one_line: bool = False,
+                     title_top: bool = False) -> Path:
+    """Album-Cover (DistroKid, 3000×3000) – gleicher Look und gleicher Name wie das Thumbnail.
+    title_top (config.THUMB_TITLE_TOP): Titelblock oben im Himmel statt mittig (Rolf 09.10.)."""
     img = _cover_crop(art, size, size).convert("RGB")
     _title_block(img, keyword, album, cy=int(size * 0.5), max_w=int(size * min(0.94, 0.84 * text_scale)),
-                 scale=size / 720, kw_start=0.11 * text_scale, subline=subline, one_line=one_line)
+                 scale=size / 720, kw_start=0.11 * text_scale, subline=subline, one_line=one_line,
+                 top_y=int(size * 0.08) if title_top else None)
     _corner_labels(img, size / 720, "")
     out.parent.mkdir(parents=True, exist_ok=True)
     img.save(out, "PNG", optimize=True)

@@ -2,11 +2,13 @@
 
 Erzeugt zur Freigabe:
   • 3 echte Lyria-Tracks, fast instrumental: nur ab und zu gehauchtes Summen im Hintergrund, KEIN Text
-    (Rolf 09.10. abends: Gesang war viel zu präsent), gemastert, als MP3 mit Song-Cover
+    (Rolf 09.10. abends: Gesang war viel zu präsent); v3: deutlich langsamer, klassischer Balearic Sunset Chillout
+    im Stil der Ibiza-Sunset-Bars (Café-del-Mar-Gefühl), gemastert, als MP3 mit Song-Cover
   • eine Hörprobe aller 3 Tracks mit Überblendung (mix_preview.mp3)
   • 2 Hauptbild-Vorschläge (Nano Banana Pro, 4K), je mit Thumbnail 1280×720 und Album-Cover 3000×3000
     in der Schrift der Italien-Mixe (Cinzel-Versalien + Schreibschrift) plus Unterzeile „CHILLOUT DEEP HOUSE“;
-    Stimmung dunkler/wärmer (tiefer, roter Sonnenuntergang), auf dem Thumbnail Titel oben im Himmel, Dauer unten rechts
+    Stimmung dunkler/wärmer (tiefer, roter Sonnenuntergang), auf Thumbnail und Album-Cover Titel oben im Himmel,
+    Dauer unten rechts; alle Bilder mit kinematografischem Orange-&-Teal-Filter (v3)
   • 3 Song-Cover (Nano Banana Pro)
 und lädt alles nach Google Drive: AIX WALKER Mixe/_TEST Ibiza Sunset Lounge <Version> – <Album>.
 
@@ -23,14 +25,18 @@ from pipeline import audio, config, costs, images, lyria
 
 GENRE = "Ibiza Sunset Lounge"
 ALBUM = "Saffron Horizon"
-VERSION = "v2"   # je Entwurfsrunde neu: eigener Build-Ordner, eigene Kostenzählung, eigener Drive-Ordner
+VERSION = "v3"   # je Entwurfsrunde neu: eigener Build-Ordner, eigene Kostenzählung, eigener Drive-Ordner
 MIX_MIN = 64   # nur für die Dauer-Angabe auf dem Test-Thumbnail (echter Mix ≥ 60 Min)
 
-# Klangidentität aus Rolfs JSON / Musik-Prompt
-SOUND = ("warm and atmospheric Chillout Deep House for an Ibiza sunset lounge: steady soft four-on-the-floor beat with "
-         "gentle low-passed kicks and organic shakers, deep pulsating sidechained sub-bass, lush floating minor-key "
-         "synthesizer pads, soft Rhodes electric piano chords, occasional filtered synth plucks and gentle guitar; "
-         "warm, mesmerizing, hypnotic and deeply relaxing")
+# Klangidentität: klassischer Balearic Sunset Chillout wie in den legendären Ibiza-Sunset-Bars (Café-del-Mar-Gefühl).
+# v3 (Rolf 09.10.): deutlich langsamer und chilliger als die Deep-House-Version (114–118 BPM war zu schnell).
+# Markennamen bewusst nicht im Prompt (Lyria filtert Anlehnungen an bestehende Werke).
+GENRE_TAGS = "Balearic Chillout, Ibiza Sunset Chillout, Downtempo Lounge"
+SOUND = ("classic Balearic sunset chillout, the timeless music of an Ibiza sunset bar as the sun sinks into the sea: "
+         "slow, laid-back downtempo groove with a soft, round, low-key kick and gentle brushed percussion and light "
+         "shakers, no driving four-on-the-floor, warm deep mellow bass, lush slowly evolving pads, soft Rhodes and "
+         "felt piano chords, warm nylon-string Spanish guitar melodies, subtle ambient textures and distant waves; "
+         "spacious, dreamy, slightly melancholic yet warm, unhurried and deeply relaxing")
 # Gesang nur als Hauch im Hintergrund, kein Text (Rolf 09.10. abends: Vocals waren viel zu präsent)
 VOICE = ("almost none, the track is mostly instrumental. Only now and then a soft, breathy, wordless female humming (gentle 'mmm' and airy "
          "'ooh'), placed far in the background, very low in the mix, drenched in reverb and delay like a distant "
@@ -38,20 +44,21 @@ VOICE = ("almost none, the track is mostly instrumental. Only now and then a sof
          "no vocal chops, no spoken words.")
 
 TRACKS = [
-    {"title": "Amber Tides", "bpm": 114, "mood": "warm, floating, relaxing",
-     "variation": "opener: long atmospheric pad intro, the soft kick enters after about 30 seconds, gentle and spacious",
+    {"title": "Amber Tides", "bpm": 90, "mood": "warm, floating, deeply relaxing",
+     "variation": "opener: long atmospheric pad and guitar intro, the soft beat enters gently after about 30 seconds, "
+                  "very calm and spacious",
      "scene": "Close view of a white canopy daybed on an Ibiza beach club at a late, deep sunset, red-amber light "
               "glowing through flowing white drapes, two cocktail glasses and a candle lantern on a wooden side table, "
               "relaxed guests as warm silhouettes on daybeds further back in dim surroundings, dark sea and a deep red "
               "sun touching the horizon."},
-    {"title": "Cala Heartbeat", "bpm": 116, "mood": "warm, euphoric, groovy",
-     "variation": "build: light claps, filtered synth plucks and short clean guitar licks, the groove becomes more present",
+    {"title": "Cala Heartbeat", "bpm": 94, "mood": "warm, gently uplifting, laid-back",
+     "variation": "soft finger snaps, a slow nylon-guitar melody and warm Rhodes chords over a relaxed, swaying groove",
      "scene": "Cliffside beach club terrace above a small Ibiza cove at a late, deep sunset, dark pine silhouettes, "
               "glowing string lights, lounge cushions with elegant guests holding drinks in warm shadow, deep red and "
               "burnt-orange sky reflecting on the darkening water."},
-    {"title": "Saltwater Promises", "bpm": 118, "mood": "euphoric, mesmerizing, uplifting yet relaxed",
-     "variation": "peak: full sub-bass, airy pluck arpeggio, then a long breakdown of floating pads with a faint, "
-                  "distant breathy hum before the final groove",
+    {"title": "Saltwater Promises", "bpm": 92, "mood": "dreamy, mesmerizing, warm and melancholic",
+     "variation": "gentle felt-piano motif and airy pads, a long floating breakdown with a faint, distant breathy "
+                  "hum, then the soft groove returns",
      "scene": "Natural-wood outdoor DJ booth on a beach club deck in Ibiza in the last minutes of sunset, guests "
               "relaxing and softly dancing barefoot on the sand as warm silhouettes, pampas grass, dark palm "
               "silhouettes, glowing lanterns, a deep crimson and dark amber sky over the sea with the red sun half "
@@ -119,27 +126,28 @@ def main() -> int:
                                    duration=images.duration_label(MIX_MIN), text_scale=scale, subline=sub, one_line=one,
                                    title_top=top)
         al = images.make_album_cover(art, kw, ALBUM, out / f"album_3000_{key}.png", text_scale=scale,
-                                     subline=sub, one_line=one)
+                                     subline=sub, one_line=one, title_top=top)
         result["masters"][key] = {"thumbnail": str(th), "album_cover": str(al)}
 
     # 2) Songs: Cover + Lyria mit Gesang + Mastering + MP3
     wavs = []
     for i, t in enumerate(TRACKS, 1):
         log(f"Song-Cover {i}: {t['title']} …")
-        art = images.generate_art(t["scene"], "1:1", pro=True, style=style, image_size="2K")
+        art = images.color_grade(images.generate_art(t["scene"], "1:1", pro=True, style=style, image_size="2K"),
+                                 GENRE)
         cover = images.make_track_cover(art, t["title"], i, ALBUM, out / "covers" / f"{i:02d} {t['title']}.png")
-        prompt = lyria.build_prompt("Chillout Deep House, Ibiza Sunset Lounge, Melodic Deep House", t["bpm"],
+        prompt = lyria.build_prompt(GENRE_TAGS, t["bpm"],
                                     t["mood"], t["variation"], minutes=4, sound_design=SOUND,
                                     vocals=VOICE)
         (out / "prompts").mkdir(exist_ok=True)
         (out / "prompts" / f"{i:02d} {t['title']}.txt").write_text(prompt, encoding="utf-8")
         entry = {"title": t["title"], "bpm": t["bpm"], "cover": str(cover), "prompt": prompt}
         if not args.dry:
-            log(f"Lyria-Track {i}: {t['title']} ({t['bpm']} BPM, Summen im Hintergrund) …")
+            log(f"Lyria-Track {i}: {t['title']} ({t['bpm']} BPM, Balearic Chillout, Summen im Hintergrund) …")
             raw = lyria.generate_track(prompt, out / "raw" / f"{i:02d}.mp3")
             wav = audio.master(raw, out / "wav" / f"{i:02d}.wav")
             mp3 = audio.export_mp3(wav, out / "mp3" / f"{i:02d} {t['title']}.mp3", t["title"], ALBUM, i, len(TRACKS),
-                                   cover, "Deep House", date.today().year)
+                                   cover, "Chillout", date.today().year)
             entry.update({"mp3": str(mp3), "seconds": round(audio.probe_duration(mp3))})
             wavs.append(wav)
         result["tracks"].append(entry)
@@ -149,7 +157,7 @@ def main() -> int:
         log("Hörprobe aller Tracks mit Überblendung …")
         mixed, _ = audio.concat_wavs(wavs, out / "mix_preview.wav", crossfade_sec=6)
         prev = audio.export_mp3(mixed, out / "mix_preview.mp3", f"{ALBUM} (Test-Hörprobe)", ALBUM, 1, 1,
-                                Path(result["tracks"][0]["cover"]), "Deep House", date.today().year)
+                                Path(result["tracks"][0]["cover"]), "Chillout", date.today().year)
         files.append(prev)
         subs["mp3"] = [Path(t["mp3"]) for t in result["tracks"]]
 

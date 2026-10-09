@@ -76,6 +76,9 @@ THUMB_SUBLINE = {"Ibiza Sunset Lounge": "Chillout Deep House"}
 THUMB_ONE_LINE = {"Ibiza Sunset Lounge"}
 # Thumbnail-Anordnung „Titel oben im Himmel“ (Rolf 09.10.): Titelblock oben, Dauer unten rechts auf Höhe von AIX WALKER
 THUMB_TITLE_TOP = {"Ibiza Sunset Lounge"}
+# Kinematografischer Orange-&-Teal-Filter auf alle Bilder des Genres (Rolf 09.10.: warme Lichter/Sonne kräftig
+# orange-gold, Himmel, Meer und Schatten in Türkis/Teal) – images.color_grade
+COLOR_GRADE = {"Ibiza Sunset Lounge"}
 # Genres MIT Gesang (alle anderen: instrumental, „no vocals“ in Texten)
 VOCAL_GENRES = {"Ibiza Sunset Lounge"}
 # Schriftgröße von Genre-Begriff und Albumname auf Thumbnail/Cover je Genre (1.0 = Standard). Italien: größer (Rolf 08.10.)
@@ -110,7 +113,9 @@ IMAGE_STYLE = {
                             "string lights, lanterns and candles; natural wood, thatch and white canopy drapes catching "
                             "the red light, relaxed elegant guests as warm silhouettes, natural skin texture, subtle "
                             "film grain, slight background blur, dark, warm, rich and cinematic, luxury beach-club "
-                            "magazine look, advertiser-friendly." + _NO_TEXT),
+                            "magazine look, advertiser-friendly. Moody cinematic orange and teal colour grading: the "
+                            "sun, sunset glow and warm lights in strong orange and gold, while the upper sky, the sea "
+                            "and the shadows fall into contrasting teal and turquoise tones." + _NO_TEXT),
 }
 DEFAULT_GENRE = "Mediterranean Spa Lounge"
 
