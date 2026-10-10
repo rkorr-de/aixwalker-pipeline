@@ -106,11 +106,22 @@ def playlist_for(key: str) -> str:
     return pid or config.PLAYLISTS["chillout"]
 
 
-def post_comment(video_id: str, text: str) -> str:
-    """Postet einen Top-Level-Kommentar (Scope youtube.force-ssl nötig). Anpinnen geht nur in Studio."""
-    r = service().commentThreads().insert(part="snippet", body={"snippet": {
-        "videoId": video_id, "topLevelComment": {"snippet": {"textOriginal": text}}}}).execute()
-    return r["id"]
+def post_comment(video_id: str, text: str, attempts: int = 4, wait: int = 90) -> str:
+    """Postet einen Top-Level-Kommentar (Scope youtube.force-ssl nötig). Anpinnen geht nur in Studio.
+    Direkt nach dem Upload lehnt YouTube Kommentare manchmal ab (Video wird noch verarbeitet) → mehrere Versuche."""
+    import time
+    last = None
+    for i in range(attempts):
+        try:
+            r = service().commentThreads().insert(part="snippet", body={"snippet": {
+                "videoId": video_id, "topLevelComment": {"snippet": {"textOriginal": text}}}}).execute()
+            return r["id"]
+        except Exception as e:  # noqa: BLE001
+            last = e
+            print(f"[youtube] Kommentar Versuch {i + 1}/{attempts} fehlgeschlagen: {str(e)[:160]}")
+            if i + 1 < attempts:
+                time.sleep(wait)
+    raise RuntimeError(f"Kommentar nach {attempts} Versuchen nicht gepostet: {str(last)[:200]}")
 
 
 def set_public(video_id: str) -> None:
