@@ -79,7 +79,7 @@ Wochentag: `TZ=Europe/Berlin date +%u`, Tag im Monat: `TZ=Europe/Berlin date +%d
 | Di (2) | Auto-Mix: `python run_auto.py` → Ibiza: `python run_auto.py --genre "Ibiza Sunset Lounge"` |
 | Mi (3) | Italien |
 | Do (4) | Ibiza |
-| Fr (5) | Italien (der normale Freitags-Mix kommt weiter aus Rolfs eigener Routine „AIX WALKER Auto-Mix (Fr)“, 14:01) |
+| Fr (5) | Italien → Auto-Mix (alte Fr-Routine von Rolf am 11.10. ausgeschaltet) |
 | Sa (6) | Italien-Wochen-Zusammenschnitt: `python run_weekly_compilation.py --genre "Italian Chillout"` → Ibiza |
 | So (7) | Italien → Sonntags-Lang-Mix: `python run_auto.py --long` (2–3 Std.) |
 
