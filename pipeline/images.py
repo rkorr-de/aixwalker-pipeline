@@ -81,6 +81,45 @@ def generate_art(prompt: str, aspect: str = "1:1", pro: bool = False, timeout: i
     return procedural_art(aspect)
 
 
+REMOVE_TEXT_PROMPT = ("Edit this image: remove ALL text, lettering, titles, script lettering and wordmarks (including any "
+                      "'AIX WALKER' label) and reconstruct the background behind them naturally. Keep everything else "
+                      "exactly identical: same scene, composition, objects, colors, light and photographic style. "
+                      "No new text, no logos, no watermark.")
+
+
+def remove_text(img: Image.Image, timeout: int = 240) -> Image.Image:
+    """Holt das Hauptbild aus einem fertigen Album-Cover zurück (Schrift per KI entfernen), z. B. für den Nachbau von
+    Shorts älterer Mixe, deren master.jpg nicht gespeichert wurde. Ohne API-Key oder bei Fehler: Ausnahme."""
+    if not config.GOOGLE_API_KEY:
+        raise RuntimeError("GOOGLE_API_KEY fehlt")
+    buf = io.BytesIO()
+    img.convert("RGB").resize((2048, 2048), Image.LANCZOS).save(buf, "JPEG", quality=92)
+    body = {"contents": [{"parts": [{"inline_data": {"mime_type": "image/jpeg",
+                                                     "data": base64.b64encode(buf.getvalue()).decode()}},
+                                    {"text": REMOVE_TEXT_PROMPT}]}],
+            "generationConfig": {"responseModalities": ["IMAGE"], "imageConfig": {"aspectRatio": "1:1", "imageSize": "4K"}}}
+    url = f"{config.GEMINI_BASE}/models/{config.IMAGE_MODEL_PRO}:generateContent"
+    hdr = {"x-goog-api-key": config.GOOGLE_API_KEY, "Content-Type": "application/json"}
+    last = None
+    for attempt in range(3):
+        try:
+            r = requests.post(url, headers=hdr, json=body, timeout=timeout)
+            if r.status_code == 400 and "imageSize" in body["generationConfig"]["imageConfig"]:
+                body["generationConfig"]["imageConfig"].pop("imageSize")
+                r = requests.post(url, headers=hdr, json=body, timeout=timeout)
+            if r.status_code != 200:
+                raise RuntimeError(f"HTTP {r.status_code}: {r.text[:300]}")
+            data = _find_inline_image(r.json())
+            if not data:
+                raise RuntimeError(f"kein Bild in Antwort: {r.text[:300]}")
+            costs.count("image_pro_4k" if "imageSize" in body["generationConfig"]["imageConfig"] else "image_pro")
+            return Image.open(io.BytesIO(base64.b64decode(data))).convert("RGB")
+        except Exception as e:  # noqa: BLE001
+            last = e
+            print(f"[images] Schrift entfernen, Versuch {attempt + 1} fehlgeschlagen: {e}")
+    raise RuntimeError(f"Schrift entfernen fehlgeschlagen: {last}")
+
+
 def procedural_art(aspect: str = "1:1", seed: int | None = None) -> Image.Image:
     """Ersatzmotiv ohne API (Dry-Run, Notfall): warmer Sonnenuntergangs-Verlauf über Meer, damit der Look stimmt."""
     rnd = random.Random(seed)

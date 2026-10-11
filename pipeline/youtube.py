@@ -125,7 +125,13 @@ def post_comment(video_id: str, text: str, attempts: int = 4, wait: int = 90) ->
 
 
 def set_public(video_id: str) -> None:
-    service().videos().update(part="status", body={"id": video_id, "status": {"privacyStatus": "public"}}).execute()
+    """Nur die Sichtbarkeit ändern – übrige Status-Felder (KI-Kennzeichnung, Kinder-Einstufung) bleiben erhalten."""
+    svc = service()
+    items = svc.videos().list(part="status", id=video_id).execute().get("items", [])
+    status = items[0]["status"] if items else {}
+    keep = {k: status[k] for k in ("selfDeclaredMadeForKids", "containsSyntheticMedia", "license", "embeddable",
+                                   "publicStatsViewable") if k in status}
+    svc.videos().update(part="status", body={"id": video_id, "status": {**keep, "privacyStatus": "public"}}).execute()
 
 
 def recent_performance(days: int = 28, max_videos: int = 15) -> list[dict]:
