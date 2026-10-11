@@ -4,7 +4,11 @@
       "mcp__Metricool_Social_Media_Management",
       "mcp__Metricool_Social_Media_Management__*",
       "mcp__Gmail",
-      "mcp__Gmail__*"
+      "mcp__Gmail__*",
+      "Bash(python run_kids_compilation.py --upload)",
+      "Bash(python run_kids_compilation.py --vertical --if-due --upload --publish-tomorrow 09:00)",
+      "Bash(/usr/bin/python3 run_kids_compilation.py --upload)",
+      "Bash(/usr/bin/python3 run_kids_compilation.py --vertical --if-due --upload --publish-tomorrow 09:00)"
     ]
   }
 }

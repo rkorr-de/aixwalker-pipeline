@@ -9,3 +9,4 @@ google-auth-oauthlib
 rembg[cpu]
 onnxruntime
 opencv-python-headless
+scipy

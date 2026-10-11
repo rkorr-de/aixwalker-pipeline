@@ -1,0 +1,11 @@
+fireplace_crackle_loop.m4a – nahtlose 5:12-Min-Schleife (auf −30 LUFS normiert), zusammengesetzt aus:
+
+1. „Fire Favorite“ – Internet Archive, https://archive.org/details/FireFavorite
+   Lizenz: CC0 1.0 (Public Domain Dedication), https://creativecommons.org/publicdomain/zero/1.0/
+   verwendet: 0:00,5–4:21
+
+2. „Lithuania, Stabulankiai, fireplace“ (radio aporee) – Internet Archive, https://archive.org/details/aporee_19997_23285
+   Lizenz: Public Domain Mark 1.0, http://creativecommons.org/publicdomain/mark/1.0/
+   verwendet: 1:26,5–2:26 (ruhiger Abschnitt ohne laute Knaller)
+
+Beide gemeinfrei → keine Namensnennung nötig. Geprüft (Gemini, 09.10.2026): keine Stimmen, Tiere oder Störgeräusche.

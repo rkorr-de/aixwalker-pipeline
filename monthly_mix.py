@@ -205,6 +205,7 @@ def produce(genre: str, month: str, pairs: list[tuple[dict, dict]], out: Path, m
         try:
             result["comment_id"] = youtube.post_comment(vid, texts["comment"])
         except Exception as e:  # noqa: BLE001
+            result["comment_error"] = str(e)[:200]
             log(f"Kommentar fehlgeschlagen: {e}")
     result["texts"] = texts
     return result
@@ -220,7 +221,11 @@ def send_mail(results: list[dict], errors: list[str], month: str) -> dict:
         lines += [f"✅ {r['genre']}: {r['title']}", f"   {r.get('video_url')} · {r['duration_min']} Min · {r['tracks']} Tracks",
                   f"   Drive: {r.get('drive_folder', '-')}",
                   "   Mixe: " + ", ".join(r["albums"]),
-                  f"   Kommentar gepostet: {'ja' if r.get('comment_id') else 'nein'} (ANPINNEN geht nur in Studio: Kommentar → ⋮ → Anpinnen)",
+                  ("   Angepinnter Kommentar – bereits gepostet, nur noch anpinnen (Studio → Kommentare → ⋮ → Anpinnen):"
+                   if r.get('comment_id') else
+                   f"   Angepinnter Kommentar – NICHT automatisch gepostet ({r.get('comment_error', 'unbekannter Fehler')}); "
+                   f"bitte selbst als Kanal posten und anpinnen:"),
+                  "   " + t.get("comment", ""),
                   "   Community-Beitrag (Text zum Einfügen, API kann keine Beiträge posten):",
                   "   " + t.get("community_de", "").replace("\n", "\n   "), ""]
     if errors:

@@ -111,7 +111,12 @@ def send_mail(res: dict) -> dict:
              f"Drive: {res.get('drive_folder', '-')}",
              f"Kosten: ca. {res['cost_usd']:.2f} $ (nur Hauptbild, keine Musik-Erzeugung)",
              "Kein DistroKid-Release (Zusammenschnitt). Keine Shorts (Tages-Mixe haben schon Shorts).",
-             f"Kommentar gepostet: {'ja' if res.get('comment_id') else 'nein'} – anpinnen in Studio: Kommentar → ⋮ → Anpinnen",
+             "", "Angepinnter Kommentar:",
+             (f"Bereits unter dem Video gepostet – nur noch anpinnen: Studio → Kommentare → beim Kommentar ⋮ → Anpinnen."
+              if res.get('comment_id') else
+              f"NICHT automatisch gepostet ({res.get('comment_error', 'unbekannter Fehler')}). Bitte selbst unter dem Video "
+              f"als Kanal posten und anpinnen:"),
+             t.get("comment", ""),
              "", "Community-Beitrag (Text zum Einfügen):", t.get("community_de", ""), "", "Kapitel:", res["chapters"]]
     msg = EmailMessage()
     msg["To"], msg["From"] = to, "me"
@@ -245,6 +250,7 @@ def main() -> int:
         try:
             res["comment_id"] = youtube.post_comment(vid, texts["comment"])
         except Exception as e:  # noqa: BLE001
+            res["comment_error"] = str(e)[:200]
             log(f"Kommentar fehlgeschlagen: {e}")
     # Ordnername passt bewusst NICHT zum Tages-Mix-Muster → der Monats-Mix nimmt nur die Tages-Mixe, keine Dopplung
     links = drive.upload_mix_package(f"{today.isoformat()} – WEEKEND {genre} – {name} ({total_min} Min)",

@@ -92,12 +92,15 @@ def build_report(concept: dict, result: dict, estimate_usd: float | None = None)
         "", "## Community-Beitrag (Studio → Community, Text kopieren)",
         metadata.community_post(concept, result.get("video_url", "")),
         "", "## " + ("DISTROKID: Lang-Format (Sleep-Session) – kein DistroKid-Release nötig, die Tracks laufen als Mix auf YouTube."
-                      if concept.get("format") == "long" else distrokid_block(concept, result)),
+                      if concept.get("format") == "long" else
+                      "DISTROKID: entfällt für die Winter-Cabin-Linie (Rolf 09.10.2026) – nur YouTube."
+                      if concept.get("genre") in config.LINE_FORMAT else distrokid_block(concept, result)),
         "", "## Noch zu tun (nur das, was die API nicht kann)",
         "- Kommentar anpinnen (Studio → Kommentare)",
         "- Community-Beitrag posten",
         "- Endscreen setzen: letzte 20 s → Playlist + Abonnieren",
-        *([] if concept.get("format") == "long" else ["- DistroKid-Release anlegen (Angaben oben)"]),
+        *([] if concept.get("format") == "long" or concept.get("genre") in config.LINE_FORMAT
+          else ["- DistroKid-Release anlegen (Angaben oben)"]),
     ]
     return "\n".join(parts)
 
@@ -139,7 +142,8 @@ def send_report(concept: dict, result: dict, out_dir: Path, estimate_usd: float 
     msg.add_alternative(html, subtype="html")
     thumbs = result.get("thumbnails") or []
     _attach_image(msg, Path(thumbs[0]) if thumbs else None)
-    _attach_image(msg, Path(out_dir) / "covers" / "album_3000.png")
+    if concept.get("genre") not in config.LINE_FORMAT:   # Winter-Cabin hat kein Album-Cover
+        _attach_image(msg, Path(out_dir) / "covers" / "album_3000.png")
     raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
     r = svc.users().messages().send(userId="me", body={"raw": raw}).execute()
     return {"sent": True, "to": to, "id": r.get("id"), "file": str(report_path)}

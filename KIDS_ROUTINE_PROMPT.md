@@ -60,7 +60,7 @@ mkdir -p build/kids && nohup python run_kids_short.py --publish-local 16:00 > bu
 
 Danach alle 2–5 Minuten `sleep 240; tail -5 build/kids/run.log` (jeder einzelne Befehl unter 10 Minuten), bis
 `pgrep -f run_kids_short.py` nichts mehr liefert. Nie den Lauf abbrechen oder parallel ein zweites Mal starten,
-solange er noch läuft. Dasselbe Muster (nohup … &, dann Log abfragen) gilt für Schritt 4b und 4c.
+solange er noch läuft. Schritt 4b und 4c dagegen OHNE nohup: Die beiden Befehle sind in .claude/settings.json wörtlich freigegeben und müssen exakt so aufgerufen werden (kein nohup, &, tee, keine Umleitung, kein cd davor), mit Zeitlimit 600000 ms. Ergebnis danach in result_compilation.json bzw. result_longshort.json. (nohup … &, dann Log abfragen) gilt für Schritt 4b und 4c.
 
 Das Skript macht alles selbst: Tier + Lehrinhalt wählen, die laut Verlauf (`Giggle Meadow Shorts/_verlauf.json`
 in Drive) lange nicht dran waren, Story schreiben und von einem strengeren Modell prüfen lassen (Logik, Lerninhalt,
