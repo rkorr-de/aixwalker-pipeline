@@ -1,4 +1,5 @@
 """Kapitel, YouTube-Beschreibung, Tags, Community-Text, Checkliste."""
+import re
 from pathlib import Path
 
 from . import config
@@ -21,7 +22,9 @@ def hours_wording(total_min: int) -> str:
 
 def fill_duration(text: str, total_min: int) -> str:
     """Ersetzt die Platzhalter {MIN} und {HOURS} – die echte Dauer ist erst nach dem Rendern bekannt."""
-    return text.replace("{MIN}", str(total_min)).replace("{HOURS}", hours_wording(total_min))
+    # „{HOURS} Hours“ vom Textmodell würde „3 Hours Hours“ ergeben (Sapphire Oasis, 11.10.2026) → nachfolgendes „hour(s)“ schlucken
+    text = re.sub(r"\{HOURS\}(\s+hours?\b)?", lambda m: hours_wording(total_min), text, flags=re.I)
+    return text.replace("{MIN}", str(total_min))
 
 
 def fill_concept(concept: dict, total_min: int) -> dict:
