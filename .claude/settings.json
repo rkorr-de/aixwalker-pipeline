@@ -8,7 +8,19 @@
       "Bash(python run_kids_compilation.py --upload)",
       "Bash(python run_kids_compilation.py --vertical --if-due --upload --publish-tomorrow 09:00)",
       "Bash(/usr/bin/python3 run_kids_compilation.py --upload)",
-      "Bash(/usr/bin/python3 run_kids_compilation.py --vertical --if-due --upload --publish-tomorrow 09:00)"
+      "Bash(/usr/bin/python3 run_kids_compilation.py --vertical --if-due --upload --publish-tomorrow 09:00)",
+      "Bash(python run_auto.py:*)",
+      "Bash(/usr/bin/python run_auto.py:*)",
+      "Bash(nohup python run_auto.py:*)",
+      "Bash(nohup /usr/bin/python run_auto.py:*)",
+      "Bash(python run_weekly_compilation.py --genre \"Italian Chillout\":*)",
+      "Bash(/usr/bin/python run_weekly_compilation.py --genre \"Italian Chillout\":*)",
+      "Bash(nohup python run_weekly_compilation.py --genre \"Italian Chillout\":*)",
+      "Bash(nohup /usr/bin/python run_weekly_compilation.py --genre \"Italian Chillout\":*)",
+      "Bash(python monthly_mix.py:*)",
+      "Bash(/usr/bin/python monthly_mix.py:*)",
+      "Bash(nohup python monthly_mix.py:*)",
+      "Bash(nohup /usr/bin/python monthly_mix.py:*)"
     ]
   }
 }
