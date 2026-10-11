@@ -112,100 +112,146 @@ def find_passages(mix_wav: Path, starts: list[float], total_sec: float, clip_sec
     return sorted(chosen, key=lambda c: c["start"])
 
 
-# Sicherer Bereich im 9:16-Short: oben blendet YouTube die Kopfzeile ein, unten Titel/Kanal/Sound (≈ 22 %),
-# rechts die Like-/Kommentar-Knöpfe. Alles Wichtige bleibt zwischen SAFE_TOP und SAFE_BOTTOM.
-SAFE_TOP, SAFE_BOTTOM = 150, 1480
+# Sicherer Bereich im 9:16-Short (gemessen am echten Handy-Screenshot, Rolf 11.10.2026): oben Lupe/Menü (bis ≈ 170 px),
+# unten Kanalname, Titel, „KI“/„Öffentlich“ und Knöpfe ab ≈ 1330 px, rechts die Like-/Kommentar-Spalte ab x ≈ 930,
+# y ≈ 1000. Unsere Elemente bleiben zwischen SAFE_TOP und SAFE_BOTTOM; im unteren Teil nur mittig und schmal.
+SAFE_TOP, SAFE_BOTTOM = 190, 1270
+LOW_MAX_W = 700          # max. Breite der Elemente unterhalb von y ≈ 950 (Abstand zur Knopf-Spalte rechts)
 GAP = 44
 
 
-def make_short_frame(art: Image.Image, cover_png: Path, headline: str, track_title: str, out: Path,
+def _extrude(img: Image.Image, paint_white, draw_col, size: int, scale: float = 1.0) -> None:
+    """Weicher Hof + 3D-Tiefenschatten wie auf Thumbnail/Cover (`paint_white(draw)` malt die Form, `draw_col(draw, dx, dy, col)` farbig)."""
+    from .images import _soft_shadow
+    _soft_shadow(img, paint_white, radius=max(6, size * 0.30), alpha=150)
+    _soft_shadow(img, paint_white, radius=max(3, size * 0.08), alpha=170, offset=(int(5 * scale), int(6 * scale)))
+    d = ImageDraw.Draw(img)
+    depth = max(3, int(size * 0.06))
+    for i in range(depth, 0, -1):
+        t = i / depth
+        draw_col(d, i, i, (int(40 + 30 * (1 - t)), int(26 + 20 * (1 - t)), int(18 + 12 * (1 - t))))
+
+
+def make_short_frame(art: Image.Image, cover_png: Path | None, headline: str, track_title: str, out: Path,
                      w: int = 1080, h: int = 1920, total_min: int | None = None, album: str | None = None,
                      keyword: str | None = None, note: str = "no vocals") -> Path:
-    """9:16-Bild ohne Überlagerungen: Hook oben, Cover, Albumname (Wiedererkennung), Track, Hinweis auf den Mix.
-    Die Elemente werden nacheinander von oben nach unten gesetzt; das Cover schrumpft, falls der Platz nicht reicht.
-    Zusätzlich wird <out>.layout.json mit Cover- und Textflächen geschrieben (für das atmende Licht im Video)."""
-    aw, ah = art.size
-    scale = max(w / aw, h / ah)
-    bg = art.resize((int(aw * scale), int(ah * scale)), Image.LANCZOS)
-    bg = bg.crop(((bg.width - w) // 2, (bg.height - h) // 2, (bg.width - w) // 2 + w, (bg.height - h) // 2 + h))
-    bg = bg.filter(ImageFilter.GaussianBlur(18))
-    bg = Image.blend(bg, Image.new("RGB", (w, h), (0, 0, 0)), 0.30)   # neuer Look: hell und warm, nur leicht gedämpft
+    """9:16-Bild „einladend statt Textwand“ (Rolf 11.10.2026): das Hauptbild randlos und scharf, oben Genre-Begriff +
+    große Hook-Zeile, unten Albumname + leuchtender Knopf „FULL MIX · 3 HOURS“ (pulsiert im Video mit der Musik).
+    Nur 4 Textelemente, alles im sicheren Bereich. `cover_png`, `track_title` und `note` bleiben für alte Aufrufe erhalten.
+    Schreibt <out>.layout.json: „cover“ = Knopf (dort sitzt das atmende Licht), „text“ = Textflächen."""
+    from PIL import ImageEnhance
+    from .images import _draw_tracked, _fit_tracked, _tracked_width, crop_aspect, duration_label
+    a = art.convert("RGB")
+    if abs(a.width / a.height - w / h) > 0.01:
+        a = crop_aspect(a, 9, 16)
+    bg = a.resize((w, h), Image.LANCZOS)
+    bg = ImageEnhance.Contrast(ImageEnhance.Color(bg).enhance(1.12)).enhance(1.05)
+    # Verläufe: oben dezent für die Überschrift, unten für die App-Zone (dort steht nur YouTubes eigener Text)
     ov = Image.new("L", (w, h), 0)
     od = ImageDraw.Draw(ov)
     for yy in range(h):
         a_ = 0
-        if yy < h * 0.3:
-            a_ = int(120 * (1 - yy / (h * 0.3)) ** 1.5)
-        elif yy > h * 0.65:
-            a_ = int(150 * ((yy - h * 0.65) / (h * 0.35)) ** 1.3)
+        if yy < 720:
+            a_ = int(150 * (1 - yy / 720) ** 1.7)
+        elif yy > 1080:
+            a_ = int(185 * ((yy - 1080) / (h - 1080)) ** 1.5)
         od.line([(0, yy), (w, yy)], fill=a_)
-    bg = Image.composite(Image.new("RGB", (w, h), (3, 8, 10)), bg, ov)
+    bg = Image.composite(Image.new("RGB", (w, h), (6, 8, 12)), bg, ov)
     d = ImageDraw.Draw(bg)
-    m = 80
     boxes: list[tuple[int, int, int, int]] = []
 
-    def centered(text, font, y, fill, shadow=False):
-        tw = int(d.textlength(text, font=font))
-        x = (w - tw) // 2
-        if shadow:
-            d.text((x + 5, y + 5), text, font=font, fill=(0, 0, 0))
-        d.text((x, y), text, font=font, fill=fill)
-        bb = d.textbbox((x, y), text, font=font)
-        boxes.append((bb[0], bb[1], bb[2] + (5 if shadow else 0), bb[3] + (5 if shadow else 0)))
-        return bb[3]
+    # 1) Genre-Begriff als kleine gesperrte Zeile (sofort klar: MUSIK) …
+    y = SAFE_TOP
+    if keyword:
+        kw = keyword.upper()
+        fk = _fit_tracked(d, kw, config.FONT_TITLE, 780, 46, 30, 0.22, "Bold")
+        tk = fk.size * 0.22
+        kx = (w - _tracked_width(d, kw, fk, tk)) / 2
+        kb = d.textbbox((0, 0), kw, font=fk)
+        from .images import _soft_shadow
+        _soft_shadow(bg, lambda md: _draw_tracked(md, (kx, y - kb[1]), kw, fk, 255, tk), radius=10, alpha=170)
+        d = ImageDraw.Draw(bg)
+        _draw_tracked(d, (kx, y - kb[1]), kw, fk, config.CREAM, tk)
+        boxes.append((int(kx), y, int(kx + _tracked_width(d, kw, fk, tk)), y + kb[3] - kb[1]))
+        y += kb[3] - kb[1] + 34
+    # … darunter die Hook-Zeile groß in Cinzel mit 3D-Schatten (max. 2 Zeilen)
+    hook = headline.upper().strip()
+    size = 136
+    while True:
+        fh = _font(config.FONT_HEAD, size, "Bold")
+        lines = _wrap(d, hook, fh, w - 2 * 90)
+        if len(lines) <= 2 or size <= 72:
+            break
+        size -= 4
+    lines = lines[:2]
+    lh = int(fh.size * 1.04)
+    hb = [d.textbbox((0, 0), ln, font=fh) for ln in lines]
+    pos = [((w - (b[2] - b[0])) / 2 - b[0], y - hb[0][1] + i * lh) for i, (ln, b) in enumerate(zip(lines, hb))]
 
-    # 1) Hook-Überschrift (max. 3 Zeilen)
-    f = _fit_text(d, headline.upper(), config.FONT_HEAD, w - 2 * m, 104, 64)
-    lines = _wrap(d, headline.upper(), f, w - 2 * m)[:3]
-    y, text_bottom = SAFE_TOP, SAFE_TOP
-    for ln in lines:
-        text_bottom = centered(ln, f, y, config.WHITE, shadow=True)
-        y += int(f.size * 1.08)
-    bar_y = max(y, text_bottom) + 26                   # Strich immer unter der echten Text-Unterkante
-    d.rectangle([(w - 160) // 2, bar_y, (w + 160) // 2, bar_y + 9], fill=config.CREAM)
-    boxes.append(((w - 160) // 2, bar_y, (w + 160) // 2, bar_y + 9))
-    if keyword:   # sofort klar: das ist MUSIK (Rolf 08.10.)
-        fk = _fit_text(d, keyword.upper(), config.FONT_HEAD, w - 2 * m, 58, 40)
-        kb = centered(keyword.upper(), fk, bar_y + 9 + 24, config.CREAM, shadow=True)
-        bar_y = kb + 6 - 9
-    # 2) Platz unter dem Cover vorab berechnen, dann Cover so groß wie möglich (max. 64 % Breite)
-    f_album = _fit_text(d, album or "X", config.FONT_SCRIPT, w - 2 * m, 96, 60)
-    f_track = _font(config.FONT_BODY, 36)
-    f_cta = _font(config.FONT_TITLE, 42, "Bold")
-    f_cta2 = _font(config.FONT_BODY, 32)
-    below = (GAP + (f_album.size if album else 0) + 18 + f_track.size + GAP + f_cta.size + 22 + f_cta2.size + 10)
-    cover_top = bar_y + 9 + GAP + 10
-    side = min(int(w * 0.64), SAFE_BOTTOM - below - cover_top)
-    side = max(side, int(w * 0.42))
-    cover = Image.open(cover_png).convert("RGB").resize((side, side), Image.LANCZOS)
-    x = (w - side) // 2
-    shadow_ = Image.new("RGBA", (side + 100, side + 100), (0, 0, 0, 0))
-    ImageDraw.Draw(shadow_).rectangle([50, 50, side + 50, side + 50], fill=(0, 0, 0, 190))
-    shadow_ = shadow_.filter(ImageFilter.GaussianBlur(35))
-    bg.paste(shadow_, (x - 50, cover_top - 35), shadow_)
-    bg.paste(cover, (x, cover_top))
+    def paint_hook(md):
+        for (x, yy), ln in zip(pos, lines):
+            md.text((x, yy), ln, font=fh, fill=255)
+
+    _extrude(bg, paint_hook, lambda dd, dx, dy, col: [dd.text((x + dx, yy + dy), ln, font=fh, fill=col)
+                                                      for (x, yy), ln in zip(pos, lines)], fh.size)
     d = ImageDraw.Draw(bg)
-    cover_box = (x, cover_top, x + side, cover_top + side)
-    # 3) Albumname (identisch zu Video-/Albumtitel), Track, Hinweis auf den ganzen Mix
-    y = cover_box[3] + GAP
+    for (x, yy), ln in zip(pos, lines):
+        d.text((x, yy), ln, font=fh, fill=config.WHITE)
+        bb = d.textbbox((x, yy), ln, font=fh)
+        boxes.append((bb[0], bb[1], bb[2] + 8, bb[3] + 8))
+
+    # 2) Unten: Knopf „▶ FULL MIX · 3 HOURS“ (endet an SAFE_BOTTOM) …
+    dur = duration_label(total_min)
+    label = f"FULL MIX · {dur}" if dur else "FULL MIX"
+    fp = _fit_tracked(d, label, config.FONT_TITLE, LOW_MAX_W - 2 * 54 - 56, 44, 30, 0.10, "Bold")
+    tp = fp.size * 0.10
+    lb = d.textbbox((0, 0), label, font=fp)
+    tri = int(fp.size * 0.78)
+    pw = int(54 + tri + 26 + _tracked_width(d, label, fp, tp) + 54)
+    ph = int(fp.size * 2.45)
+    px0, py1 = (w - pw) // 2, SAFE_BOTTOM
+    py0 = py1 - ph
+    pill = (px0, py0, px0 + pw, py1)
+    from .images import _soft_shadow
+    _soft_shadow(bg, lambda md: md.rounded_rectangle(pill, radius=ph // 2, fill=255), radius=22, alpha=150,
+                 offset=(0, 8))
+    d = ImageDraw.Draw(bg)
+    d.rounded_rectangle(pill, radius=ph // 2, fill=config.CREAM)
+    cy = (py0 + py1) // 2
+    tx0 = px0 + 54
+    ink = (24, 26, 30)
+    d.polygon([(tx0, cy - tri // 2), (tx0, cy + tri // 2), (tx0 + int(tri * 0.86), cy)], fill=ink)
+    _draw_tracked(d, (tx0 + tri + 26, cy - (lb[1] + lb[3]) / 2), label, fp, ink, tp)
+    # … darüber der Albumname in Schreibschrift (identisch zu Video-/Albumtitel)
     if album:
-        y = centered(album, f_album, y, config.CREAM, shadow=True) + 18
-    y = centered(f"{config.ARTIST.upper()}  ·  {track_title.upper()}", f_track, y, config.WHITE, shadow=True) + GAP
-    t1 = f"FULL {total_min} MIN ON THE CHANNEL" if total_min else "FULL MIX ON THE CHANNEL"
-    y = centered(t1, f_cta, y, config.WHITE, shadow=True) + 22
-    centered(f"link in description  ·  {note}  ·  no interruptions", f_cta2, y, config.CREAM, shadow=True)
-    _check_no_overlap(boxes + [cover_box])
+        fa = _fit_text(d, album, config.FONT_SCRIPT, LOW_MAX_W + 40, 150, 84)
+        ab = d.textbbox((0, 0), album, font=fa)
+        ax = (w - (ab[2] - ab[0])) / 2 - ab[0]
+        ay = py0 - 40 - ab[3]
+
+        def paint_album(md):
+            md.text((ax, ay), album, font=fa, fill=255)
+
+        _extrude(bg, paint_album, lambda dd, dx, dy, col: dd.text((ax + dx * 0.7, ay + dy * 0.7), album, font=fa,
+                                                                   fill=col), fa.size)
+        d = ImageDraw.Draw(bg)
+        d.text((ax, ay), album, font=fa, fill=config.CREAM)
+        bb = d.textbbox((ax, ay), album, font=fa)
+        boxes.append((bb[0], bb[1], bb[2] + 6, bb[3] + 6))
+    _check_no_overlap(boxes + [pill])
     out.parent.mkdir(parents=True, exist_ok=True)
     bg.save(out, "PNG")
-    Path(str(out) + ".layout.json").write_text(json.dumps({"cover": cover_box, "text": boxes}))
+    Path(str(out) + ".layout.json").write_text(json.dumps({"cover": pill, "text": boxes, "kind": "pill"}))
     return out
 
 
 def _check_no_overlap(boxes: list[tuple[int, int, int, int]]) -> None:
     """Sicherheitsnetz: kein Element darf ein anderes berühren oder unter SAFE_BOTTOM rutschen."""
     for i, a in enumerate(boxes):
-        if a[3] > SAFE_BOTTOM + 40:
-            raise ValueError(f"Short-Layout: Element reicht bis y={a[3]} (> sicherer Bereich {SAFE_BOTTOM})")
+        if a[3] > SAFE_BOTTOM + 10 or a[1] < SAFE_TOP - 10:
+            raise ValueError(f"Short-Layout: Element {a} außerhalb des sicheren Bereichs ({SAFE_TOP}–{SAFE_BOTTOM})")
+        if a[3] > 950 and a[2] > 925:
+            raise ValueError(f"Short-Layout: Element {a} ragt unten rechts in die Like-/Kommentar-Knöpfe")
         for b_ in boxes[i + 1:]:
             if a[0] < b_[2] and b_[0] < a[2] and a[1] < b_[3] and b_[1] < a[3]:
                 raise ValueError(f"Short-Layout: Überlagerung {a} / {b_}")

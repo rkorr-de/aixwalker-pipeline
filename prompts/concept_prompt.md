@@ -19,7 +19,7 @@ and new – never a rehash of an earlier release.
 - Image prompts: photorealistic, BRIGHT, warm and colorful – a place people long to be (infinity pool, resort terrace,
   beach club, villa, candlelit spa, cozy cabin) in the brief's light. People only small or seen from behind.
   Advertiser-friendly (suggestive no), **no text, letters, logos or watermarks in the image**.
-- Hook texts for Shorts: max 4 words, curiosity-driven. Thumbnail text is set by the pipeline (genre keyword + album name).
+- Hook texts for Shorts: max 4 words, an inviting, sensual invitation into the scene (e.g. "Your ocean retreat", "Dinner at golden hour", "Let the day melt"). No questions, no hashtags, no BPM. The Short image shows only: genre keyword, this hook, the album name and a "FULL MIX" button – so the hook must carry the emotion. Thumbnail text is set by the pipeline (genre keyword + album name).
 - Durations are unknown before rendering: write `{MIN}` where the minute count belongs (e.g. "Sleep Music · {MIN} Min")
   and `{HOURS}` for a wording like "1 Hour" / "1.5 Hours". Never write a fixed number of minutes yourself.
 

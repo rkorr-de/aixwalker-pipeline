@@ -28,8 +28,10 @@ RELEASE_SEC = 2.2    # wie langsam er wieder abklingt
 
 # ---------------------------------------------------------------- Hüllkurve
 
-def envelope(audio: Path, fps: float, start: float = 0.0, dur: float | None = None, sr: int = 4000) -> np.ndarray:
-    """Geglättete Lautstärke 0..1 je Videobild (speichersparend über ffmpeg, auch für 3-Stunden-Mixe)."""
+def envelope(audio: Path, fps: float, start: float = 0.0, dur: float | None = None, sr: int = 4000,
+             attack: float = ATTACK_SEC, release: float = RELEASE_SEC, floor: float = GLOW_MIN) -> np.ndarray:
+    """Geglättete Lautstärke 0..1 je Videobild (speichersparend über ffmpeg, auch für 3-Stunden-Mixe).
+    Standard = ruhiges Atmen (langes Video); Shorts nutzen kurze Zeiten → Puls im Takt."""
     cmd = ["ffmpeg", "-v", "error"]
     if start:
         cmd += ["-ss", f"{start:.3f}"]
@@ -47,13 +49,13 @@ def envelope(audio: Path, fps: float, start: float = 0.0, dur: float | None = No
     lo, hi = np.percentile(db, 10), np.percentile(db, 97)
     x = np.clip((db - lo) / max(hi - lo, 1e-6), 0, 1)
     # asymmetrisch glätten: langsam heller, noch langsamer dunkler → „Atmen" statt Zucken
-    a_up, a_dn = 1 - np.exp(-1 / (ATTACK_SEC * fps)), 1 - np.exp(-1 / (RELEASE_SEC * fps))
+    a_up, a_dn = 1 - np.exp(-1 / (attack * fps)), 1 - np.exp(-1 / (release * fps))
     out = np.empty_like(x)
     v = float(x[: int(fps * 2)].mean()) if len(x) else 0.0
     for i, xi in enumerate(x):
         v += (a_up if xi > v else a_dn) * (xi - v)
         out[i] = v
-    return GLOW_MIN + (1 - GLOW_MIN) * out
+    return floor + (1 - floor) * out
 
 
 def _write_env_video(env: np.ndarray, path: Path) -> Path:
@@ -67,7 +69,7 @@ def _write_env_video(env: np.ndarray, path: Path) -> Path:
 
 def make_glow(size: tuple[int, int], cover: tuple[int, int, int, int], out: Path,
               clear: list[tuple[int, int, int, int]] | None = None, spread: int | None = None,
-              strength: float = 0.55) -> tuple[Path, tuple[int, int]]:
+              strength: float = 0.55, round_r: int = 0) -> tuple[Path, tuple[int, int]]:
     """Deckkraft-Maske (Graustufen) des weichen Gold-Scheins um das Cover (x0, y0, x1, y1), nur für den Bereich um das
     Cover zugeschnitten. Das Cover selbst und `clear`-Flächen (Text) bleiben frei, mit weichem Übergang.
     Liefert (Pfad, (x, y)) – die Position der Maske im Bild."""
@@ -75,14 +77,18 @@ def make_glow(size: tuple[int, int], cover: tuple[int, int, int, int], out: Path
     x0, y0, x1, y1 = cover
     spread = spread or int(min(w, h) * 0.05)
     g = Image.new("L", (w, h), 0)
-    ImageDraw.Draw(g).rectangle([x0 - spread // 3, y0 - spread // 3, x1 + spread // 3, y1 + spread // 3], fill=255)
+    ImageDraw.Draw(g).rounded_rectangle([x0 - spread // 3, y0 - spread // 3, x1 + spread // 3, y1 + spread // 3],
+                                        radius=round_r + spread // 3 if round_r else 0, fill=255)
     g = g.filter(ImageFilter.GaussianBlur(spread))
     keep = Image.new("L", (w, h), 255)
     kd = ImageDraw.Draw(keep)
     for bx in clear or []:
         kd.rectangle([bx[0] - 12, bx[1] - 12, bx[2] + 12, bx[3] + 12], fill=0)
     keep = keep.filter(ImageFilter.GaussianBlur(10))
-    keep.paste(0, (x0, y0, x1, y1))                       # Cover exakt unberührt
+    if round_r:                                           # runder Knopf (Short): genau seine Form aussparen
+        ImageDraw.Draw(keep).rounded_rectangle([x0, y0, x1, y1], radius=round_r, fill=0)
+    else:
+        keep.paste(0, (x0, y0, x1, y1))                   # Cover exakt unberührt
     a = np.asarray(g, dtype=np.float32) / 255 * (np.asarray(keep, dtype=np.float32) / 255) * strength
     pad = spread * 3
     cx0, cy0 = max(0, x0 - pad) // 2 * 2, max(0, y0 - pad) // 2 * 2   # gerade Werte (yuv420)
@@ -262,8 +268,11 @@ def build_short_animated(frame_png: Path, mix_wav: Path, start: float, end: floa
     dur = end - start
     layout = json.loads(Path(str(frame_png) + ".layout.json").read_text())
     glow, pos = make_glow((w, h), tuple(layout["cover"]), out.parent / f"{out.stem}_glow.png",
-                          clear=[tuple(b) for b in layout["text"]], spread=48, strength=0.6)
-    env = _write_env_video(envelope(mix_wav, fps, start, dur), out.parent / f"{out.stem}_env.gray")
+                          clear=[tuple(b) for b in layout["text"]],
+                          **({"spread": 40, "strength": 1.9, "round_r": (layout["cover"][3] - layout["cover"][1]) // 2}
+                             if layout.get("kind") == "pill" else {"spread": 48, "strength": 0.6}))
+    pulse = {"attack": 0.04, "release": 0.45, "floor": 0.12} if layout.get("kind") == "pill" else {}
+    env = _write_env_video(envelope(mix_wav, fps, start, dur, **pulse), out.parent / f"{out.stem}_env.gray")
     graph = (_glow_graph(w, h, fps, glow, pos, still_bg=True) + ";"
              f"[1:a]afade=t=in:d=0.15,afade=t=out:st={dur - 1.5:.2f}:d=1.5[aout]")
     cmd = ["ffmpeg", "-hide_banner", "-nostats", "-y",

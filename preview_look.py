@@ -49,7 +49,7 @@ def main() -> int:
                                   duration=images.duration_label(smp["min"]))
         a = images.make_album_cover(art1, kw, smp["album"], out / f"{slug}_album.png")
         c = images.make_track_cover(track_art, smp["track"], 1, smp["album"], out / f"{slug}_track01.png")
-        s = shorts.make_short_frame(art16, c, smp["hook"], smp["track"], out / f"{slug}_short.png",
+        s = shorts.make_short_frame(art1, c, smp["hook"], smp["track"], out / f"{slug}_short.png",
                                     total_min=smp["min"], album=smp["album"], keyword=kw)
         rows.append((t, a, c, s))
         print(f"{g}: {t.name}, {a.name}, {c.name}, {s.name}")
