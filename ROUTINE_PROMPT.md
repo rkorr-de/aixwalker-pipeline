@@ -65,6 +65,29 @@ Zweimal pro Woche (Dienstag und Freitag) erscheint ein neuer Mix, der wie ein ku
    Short-IDs, wichtigste Analytics-Erkenntnis). Code-Änderungen, die zur Behebung eines Fehlers nötig waren,
    committen und pushen (nur Code – keine Konzepte aus `build/`, keine Logs).
 
+## Tagesplan der Routine „AIX WALKER Tages-Routine“ (seit 11.10.2026, täglich 11:04 Berlin)
+
+EINE Routine startet alle Mix-Läufe des Tages – **nacheinander, nie gleichzeitig** (alle schreiben dasselbe Gedächtnis
+in Drive). Sie läuft in der Umgebung „AixWalker“ mit dem Repository als Quelle; getrennte Routinen pro Linie sind
+mehrfach gescheitert (Cowork-Umgebung ohne Zugangsdaten, fehlendes Repository, wechselnde Sicherheitsprüfung).
+Wochentag: `TZ=Europe/Berlin date +%u`, Tag im Monat: `TZ=Europe/Berlin date +%d`.
+
+| Tag | Läufe in dieser Reihenfolge |
+|---|---|
+| am 1. des Monats (zusätzlich, zuerst) | Monats-Mix: `python monthly_mix.py` (siehe MONTHLY_ROUTINE_PROMPT.md) |
+| Mo (1) | Italien: `python run_auto.py --genre "Italian Chillout"` |
+| Di (2) | Auto-Mix: `python run_auto.py` → Ibiza: `python run_auto.py --genre "Ibiza Sunset Lounge"` |
+| Mi (3) | Italien |
+| Do (4) | Ibiza |
+| Fr (5) | Italien → Auto-Mix |
+| Sa (6) | Italien-Wochen-Zusammenschnitt: `python run_weekly_compilation.py --genre "Italian Chillout"` → Ibiza |
+| So (7) | Italien → Sonntags-Lang-Mix: `python run_auto.py --long` (2–3 Std.) |
+
+Jeden Lauf im Hintergrund starten (`… > build/<name>.log 2>&1`), das Log verfolgen, bis er wirklich fertig ist, erst dann
+den nächsten starten. Bricht ein Lauf ab: Ursache beheben, denselben Befehl einmal erneut starten (Konzept und fertige
+Tracks werden wiederverwendet), danach mit dem nächsten Lauf des Tages weitermachen. Die Winter-Cabin-Linie hat eigene
+Routinen (siehe unten).
+
 ## Was die Pipeline bewusst nicht tut (steht im Bericht als To-do für Rolf)
 
 Kommentar anpinnen und Community-Beitrag posten (keine API), Endscreen setzen, DistroKid-Release anlegen (keine
