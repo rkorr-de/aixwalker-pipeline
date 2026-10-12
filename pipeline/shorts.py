@@ -137,7 +137,8 @@ def make_short_frame(art: Image.Image, cover_png: Path | None, headline: str, tr
                      keyword: str | None = None, note: str = "no vocals") -> Path:
     """9:16-Bild „einladend statt Textwand“ (Rolf 11.10.2026): das Hauptbild randlos und scharf, oben Genre-Begriff +
     große Hook-Zeile, unten Albumname + leuchtender Knopf „FULL MIX · 3 HOURS“ (pulsiert im Video mit der Musik).
-    Nur 4 Textelemente, alles im sicheren Bereich. `cover_png`, `track_title` und `note` bleiben für alte Aufrufe erhalten.
+    Nur 4 Textelemente, alles im sicheren Bereich. Regel für ALLE Linien (Rolf 12.10.): nie ein kleines Cover im Short –
+    `cover_png` wird bewusst ignoriert; `track_title` und `note` bleiben für alte Aufrufe erhalten.
     Schreibt <out>.layout.json: „cover“ = Knopf (dort sitzt das atmende Licht), „text“ = Textflächen."""
     from PIL import ImageEnhance
     from .images import _draw_tracked, _fit_tracked, _tracked_width, crop_aspect, duration_label

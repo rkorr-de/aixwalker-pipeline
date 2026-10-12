@@ -29,6 +29,9 @@ Zweimal pro Woche (Dienstag und Freitag) erscheint ein neuer Mix, der wie ein ku
   Die Pipeline erzwingt das – nicht umgehen, nicht auf den alten dunklen Teal-Look zurückbauen.
 - Visuals: atmendes Licht um das Cover (keine Wellenform), Shorts ohne Zoom und ohne Überlagerungen; Short-Clips
   starten am Beat-Einsatz des Hauptteils. Bitte nicht auf die alte Wellenform zurückbauen.
+- **Shorts in ALLEN Linien nur als Vollbild** (Rolf, 12.10.2026): Hintergrund ist immer ein randloser 9:16-Ausschnitt
+  aus dem Hauptbild bzw. Film – **nie ein kleines Album-Cover mittig im Short**. Nur 4 Textelemente (Genre-Begriff,
+  Hook, Albumname, Knopf „FULL MIX · …“), alles oberhalb der App-Einblendungen (siehe `pipeline/shorts.py`).
 - **Hauptbild (Thumbnail + Album-Cover) immer OUTDOOR** (Rolf, 12.10.2026): Szene unter freiem Himmel – Terrasse, Garten,
   Strand, Pool, Seeufer –, nie ein Innenraum. pipeline/images.master_art hängt die Regel an jeden Bildauftrag an.
   Ausnahme Winter-Cabin: bleibt ganz innen (Hauptbild = Kaminfilm; von Rolf am 12.10.2026 so entschieden).

@@ -255,7 +255,7 @@ def main() -> int:
         passages = shorts.find_passages(mix_wav, starts, total_sec, config.SHORT_CLIP_SEC, config.SHORTS_COUNT)
         for k, p in enumerate(passages):
             t_title = tracks[p["track_index"]]["title"]
-            frame = shorts.make_short_frame(master, covers[p["track_index"]], overlays[k], t_title,   # 9:16 aus dem 1:1-Hauptbild
+            frame = shorts.make_short_frame(master, None, overlays[k], t_title,   # 9:16 aus dem 1:1-Hauptbild
                                             out / "shorts" / f"short_{k + 1}_frame.png", total_min=total_min,
                                             album=album, keyword=config.THUMB_KEYWORD.get(genre),
                                             note=config.vocal_note(genre))
