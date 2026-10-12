@@ -29,6 +29,9 @@ Zweimal pro Woche (Dienstag und Freitag) erscheint ein neuer Mix, der wie ein ku
   Die Pipeline erzwingt das – nicht umgehen, nicht auf den alten dunklen Teal-Look zurückbauen.
 - Visuals: atmendes Licht um das Cover (keine Wellenform), Shorts ohne Zoom und ohne Überlagerungen; Short-Clips
   starten am Beat-Einsatz des Hauptteils. Bitte nicht auf die alte Wellenform zurückbauen.
+- **Hauptbild (Thumbnail + Album-Cover) immer OUTDOOR** (Rolf, 12.10.2026): Szene unter freiem Himmel – Terrasse, Garten,
+  Strand, Pool, Seeufer –, nie ein Innenraum. pipeline/images.master_art hängt die Regel an jeden Bildauftrag an.
+  Ausnahme vorerst Winter-Cabin (Hauptbild = Kaminfilm, Klärung mit Rolf offen).
 - KI-Label beim Upload immer gesetzt. **Mix und beide Shorts werden sofort ÖFFENTLICH veröffentlicht.**
 - Paket (MP3s einzeln in `mp3/`, Album-Cover, Video, Thumbnails, Metadaten, Shorts) in Google Drive unter
   „AIX WALKER Mixe/<Datum – Album>“; die MP3s liegen dort fertig für DistroKid.

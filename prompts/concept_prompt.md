@@ -17,7 +17,7 @@ and new – never a rehash of an earlier release.
   alphabetically – so choose titles whose alphabetical order equals the intended energy arc of the mix
   (opening → build → peak → landing). Avoid generic titles ("Track 1", "Study 02", "Reprise").
 - Image prompts: photorealistic, BRIGHT, warm and colorful – a place people long to be (infinity pool, resort terrace,
-  beach club, villa, candlelit spa, cozy cabin) in the brief's light. People only small or seen from behind.
+  beach club, villa, open-air spa, lake shore) in the brief's light. thumbnail_prompt is ALWAYS an outdoor scene under the open sky, never an interior room. People only small or seen from behind.
   Advertiser-friendly (suggestive no), **no text, letters, logos or watermarks in the image**.
 - Hook texts for Shorts: max 4 words, an inviting, sensual invitation into the scene (e.g. "Your ocean retreat", "Dinner at golden hour", "Let the day melt"). No questions, no hashtags, no BPM. The Short image shows only: genre keyword, this hook, the album name and a "FULL MIX" button – so the hook must carry the emotion. Thumbnail text is set by the pipeline (genre keyword + album name).
 - Durations are unknown before rendering: write `{MIN}` where the minute count belongs (e.g. "Sleep Music · {MIN} Min")
@@ -50,7 +50,7 @@ and new – never a rehash of an earlier release.
   "extra_tracks": [ {"title": "...", "variation": "..."} ],   // exactly {{N_EXTRA}}, each a fully new composition (for normal mixes alphabetically AFTER the last regular track; in LONG format any order)
   "visual": {"motif_family": "{{MOTIF_FAMILY}}", "motif": "one concrete scene", "light": "{{LIGHT}}"},
   "art_prompt": "base scene for the track covers (square), same place family and light as thumbnail_prompt, bright and colorful, no text",
-  "thumbnail_prompt": "the release's key scene (used for BOTH thumbnail 16:9 and album cover 1:1): one aspirational place matching motif and light, centered composition with calm open sky or water in the middle for a big title, bright and colorful, no text",
+  "thumbnail_prompt": "the release's key scene (used for BOTH thumbnail 16:9 and album cover 1:1): one aspirational OUTDOOR place under the open sky matching motif and light, centered composition with calm open sky or water in the middle for a big title, bright and colorful, no text",
   "thumbnail_headline": "exactly the album name",
   "yt_title": "[Album] · [genre core keyword / search term] · {MIN} Min · [purpose] ([BPM] BPM)  — under 85 characters, album name first and spelled exactly like 'album'",
   "hook": "one sentence, use {HOURS} or {MIN} for the duration",

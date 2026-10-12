@@ -427,6 +427,9 @@ def color_grade(img: Image.Image, genre: str | None) -> Image.Image:
 
 def master_art(scene: str, genre: str | None) -> Image.Image:
     """Ein Hauptbild je Mix: quadratisch und hoch aufgelöst; Cover nutzt es ganz, Thumbnail einen 16:9-Ausschnitt."""
+    if genre != "Cozy Winter Cabin":   # Rolf 12.10.2026: Hauptbild für Thumbnail/Cover immer draußen
+        scene = scene + (" OUTDOOR scene under the open sky (terrace, garden, beach, pool, lake shore, cliff or "
+                         "courtyard) – never an interior room, the sky must be visible.")
     img = generate_art(scene + " Square master image: keep the main subject and the calm open area for the title in "
                        "the central horizontal band, so a wide 16:9 crop from the middle shows the same scene.",
                        "1:1", pro=True, style=style_for(genre), image_size="4K")

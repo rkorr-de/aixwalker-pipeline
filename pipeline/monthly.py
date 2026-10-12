@@ -112,14 +112,14 @@ HERO_PROMPTS = {   # Genre-Stichwort → Motiv (immer eine Frau, werbefreundlich
                 "Amalfi Coast or Lake Como at sunset, real professional editorial travel photograph (full-frame camera, "
                 "natural skin texture, subtle film grain, not CGI), warm golden light"),
     "mediterranean": "elegant woman in a white dress on a luxury resort terrace at golden sunset over the Mediterranean, warm amber light with teal accents",
-    "spa": "calm woman in a spa robe by candles and hot stones, steam, dark moody spa, teal accent light",
-    "sleep": "serene woman asleep in a soft bed by a starry window, moonlight, floor mist, teal accent glow",
+    "spa": "calm woman in a white spa robe at an outdoor infinity spa pool with candles and soft steam at dusk, open sky, teal accent light",
+    "sleep": "serene woman resting in a hammock on a terrace under a starry night sky above a calm bay, moonlight, teal accent glow",
 }
 
 
 def hero_prompt(genre: str) -> str:
     g = genre.lower()
-    base = next((v for k, v in HERO_PROMPTS.items() if k in g), "calm woman in a dark moody room, teal accent light")
+    base = next((v for k, v in HERO_PROMPTS.items() if k in g), "calm woman on a terrace at dusk under an open sky, teal accent light")
     return (f"Cinematic photo, {base}. Woman on the RIGHT third of the frame, face clearly visible, left side dark and "
             "empty for text. Photorealistic, high contrast, no text, no logos, 16:9.")
 
