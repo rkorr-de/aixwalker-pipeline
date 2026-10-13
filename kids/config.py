@@ -77,9 +77,23 @@ STYLE_BIBLE = (
     "background full of flowers and toys – never a plain beige, cream or grey background, shallow depth of field, dreamy whimsical storybook mood, flower meadow "
     "setting, vertical 9:16 composition, ultra detailed, high quality, no text, no letters, no watermark, no logo"
 )
+# Startbild fürs Video (Keyframe): gleicher Look, aber OHNE fliegende Tiere und Spielzeug-Hintergrund – alles, was
+# im Startbild steht, muss Kling 15 s lang stabil halten; zusätzliche Kleinteile tauchten auf/verschwanden/verdoppelten
+# sich (Videoprüfung 09.–13.10.2026). STYLE_BIBLE bleibt fürs Thumbnail (Standbild) unverändert.
+KEYFRAME_STYLE = (
+    "Pixar-style 3D animated render, adorable chibi proportions with a big round head, oversized sparkling glossy "
+    "eyes, tiny button nose, rosy cheeks, soft subsurface-scattering skin and fluffy fur, warm golden backlight, "
+    "vivid rich candy colors (bright sky blue, sunny yellow, bubblegum pink, lilac, lime green, tangerine), "
+    "colorful but calm background with soft out-of-focus flowers – no other animals, no extra toys or objects "
+    "besides the ones named, never a plain beige, cream or grey background, shallow depth of field, whole "
+    "character visible with space around it, vertical 9:16 composition, high quality, no text, no letters, no "
+    "watermark, no logo"
+)
 NEGATIVE_PROMPT = (
-    "text, letters, captions, subtitles, watermark, logo, speech, talking, dialogue, lip sync, scary, dark, horror, "
-    "blood, weapons, realistic human, deformed, extra limbs, blurry, low quality, glitch, flicker"
+    "text, letters, captions, watermark, logo, speech, talking, words, lip sync, scary, horror, realistic human, "
+    "human hands, fingers, extra limbs, extra legs, extra arms, extra head, morphing, melting, merging bodies, "
+    "character changes appearance, duplicate objects, objects appearing or disappearing, teleporting objects, "
+    "scene cut, jump cut, camera cut, zoom, camera pan, blurry, glitch, flicker"
 )
 # Figuren sind immer Eigenkreationen – keine Namen oder Designs bekannter Marken.
 FORBIDDEN_WORDS = ["disney", "pixar character", "mickey", "minnie", "donald duck", "elsa", "bluey", "peppa",
@@ -136,6 +150,9 @@ VIDEO_MAX_ERRORS = int(os.environ.get("KIDS_VIDEO_MAX_ERRORS", "4"))       # sch
 # Video-Versuche je Lauf (gleiche Story). Besteht keiner die Videoprüfung, wird das beste trotzdem veröffentlicht
 # (Rolf, 07.10.2026: täglich ein Short hat Vorrang). Weitere Versuche nur, solange das Budget reicht.
 VIDEO_ATTEMPTS = int(os.environ.get("KIDS_VIDEO_ATTEMPTS", "2"))
+# Kosten (Rolf, 13.10.2026): Ein zweites Video (2,52 $) nur, wenn das erste eindeutig kaputt ist. Auswertung 09.–13.10.:
+# Neuversuch bei 1–2 schweren Fehlern brachte 3 von 3 Malen kein besseres Video; bei 3 schweren Fehlern (09.10.) schon.
+VIDEO_RETRY_MIN_CRITICAL = int(os.environ.get("KIDS_VIDEO_RETRY_MIN_CRITICAL", "3"))
 
 # Suchbegriffe, nach denen Eltern suchen – fließen in Beschreibung und Tags ein (Englisch).
 PARENT_KEYWORDS = [

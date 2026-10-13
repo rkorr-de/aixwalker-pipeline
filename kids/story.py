@@ -25,8 +25,8 @@ SCHEMA = {
         "species": "the given animal",
         "look": "very precise description of body, fur/skin, colors, eyes, ONE accessory – for visual consistency",
     },
-    "friend": "optional second character (species + very precise look) or empty string – at most ONE friend",
-    "setting": "one bright, colorful, everyday place (playroom, garden, kitchen, park, beach, bedroom ...) with the 2–3 props the story needs, all visible from the start",
+    "friend": "usually an EMPTY string; only if the lesson truly needs a second character: species + very precise look (it stays in place and never touches the main character)",
+    "setting": "one bright, colorful, everyday place (playroom, garden, kitchen, park, beach, bedroom ...) with at most 2 large props in clearly different colors and shapes, all visible from the start and never moved",
     "beats": [
         "1 WANT (0–4 s): what the character wants and why – shown by looking/pointing at it",
         "2 PROBLEM (4–8 s): a simple, visible obstacle; the first try does not work",
@@ -34,9 +34,9 @@ SCHEMA = {
         "4 HAPPY END (12–15 s): goal reached, the lesson is visible, big smile",
     ],
     "shots": [
-        {"seconds": 8, "action": "beats 1+2 in plain words: who does what, where, with which prop; camera, facial expression",
+        {"seconds": 8, "action": "beats 1+2 in plain words: who does what with the whole body or head, where, facial expression (NO camera or shot words)",
          "sounds": "audible sounds (no voices, no words)", "ends_with": "exact final image of this shot"},
-        {"seconds": 8, "action": "beats 3+4 in plain words, continuing exactly from the end of shot 1",
+        {"seconds": 7, "action": "beats 3+4 in plain words, continuing exactly from the end of shot 1 in the same unbroken take (NO camera or shot words)",
          "sounds": "...", "ends_with": "final happy image"},
     ],
     "sfx_cues": [{"second": "0–14.5, when the sound happens", "sound": "one key from the SOUND LIBRARY below"}],
@@ -47,6 +47,30 @@ SCHEMA = {
     "thumbnail_moment": "which moment works as thumbnail",
 }
 
+# Drehbarkeits-Regeln – abgeleitet aus den Fehlern der Videoprüfung 09.–13.10.2026 (jeder Fehlversuch = 2,52 $):
+# harte Schnitte/Figur ändert Aussehen, zusätzliche Arme/Beine bei Klatschen/Halten/Schieben, zweite Figur bekommt
+# Extra-Gliedmaßen, Gegenstände verschwinden/verdoppeln/springen, zwei ähnliche Gegenstände verschmelzen.
+# Wird gleichermaßen vom Story-Schreiber, vom Story-Prüfer und im Kling-Prompt benutzt.
+FILMABLE_RULES = (
+    "- ONE single continuous scene in ONE place, like a single camera take: no shot changes, no camera moves, no "
+    "zoom, no 'wide shot/medium shot/close-up', no time jumps.\n"
+    "- Prefer ONE character only. A second character is allowed only if the lesson truly needs it; then it stays in "
+    "its place, moves very little, and the two NEVER touch each other.\n"
+    "- Bodies only do whole-body or head actions: walk slowly, stop, sit down, look, tilt the head, nod, smile, "
+    "yawn, wiggle ears, wag the tail, lie down, peek out from behind something. NEVER: clapping, waving, pointing, "
+    "grabbing, holding, carrying, pushing, pulling, throwing, stacking, hugging, giving – paws and hands stay on "
+    "the ground or relaxed.\n"
+    "- At most 2 props, both large, simple and in clearly different colors and shapes. Never two similar objects "
+    "(no 'big and small carrot', no two balls). Props stay exactly where they are for the whole clip – nothing "
+    "rolls, falls, moves, opens, appears or disappears. The solution comes from what the CHARACTER does (goes "
+    "around, waits, sits somewhere else, chooses another spot, is quiet, takes turns by stepping aside), not from "
+    "moving an object.\n"
+    "- At most 4 simple actions in total, each lasting 3–4 seconds; slow and calm.\n"
+    "- No water, wind, rain, snow falling, flying, jumping, climbing, falling, springs, bouncing, transformation, "
+    "crowds, tiny objects, text, letters or numbers.\n"
+    "- Nothing scary, sad for long, dangerous or rude."
+)
+
 SYSTEM = (
     "You are an award-winning preschool TV writer (think of the clarity of the best toddler shows) and a director "
     "who knows exactly what AI video models can and cannot animate. You write 15-second wordless mini stories for "
@@ -55,15 +79,10 @@ SYSTEM = (
     "a simple obstacle; the character solves it in a sensible, copyable way (cause → effect); happy ending where "
     "the lesson is visible. Every step follows logically from the one before. Animals behave plausibly for their "
     "kind and stay in their natural element (fish stay in water, nobody breathes underwater who can't, etc.). "
-    "Nothing magical, random or unexplained. A 3-year-old must be able to retell it: 'Bunny wanted the ball, but "
-    "it was too high, so Bunny got a stool, and now they play.'\n\n"
-    "FILMABLE for an AI video model (very important – otherwise the video shows typical AI errors): "
-    "one main character (+ at most one friend), large simple props (ball, block, apple, cup, blanket, umbrella, "
-    "watering can), slow simple motions on solid ground (walk, look, point, reach, push, pull, carry, give, hug, "
-    "sit, nod, clap). AVOID: water/liquid physics, splashing, swimming, pouring large amounts; jumping across gaps, "
-    "flying, launching, springs, bouncing high; falling; objects that transform, appear or disappear; tiny objects "
-    "handled with fingers; more than 3 props; crowds; text, letters or numbers written anywhere; fast action; "
-    "anything scary, sad for long, dangerous or rude. The final image does NOT need to match the first one.\n\n"
+    "Nothing magical, random or unexplained. A 3-year-old must be able to retell it: 'Bunny wanted to nap, but "
+    "the sun was in her eyes, so Bunny walked to the shady blanket, and now she sleeps happily.'\n\n"
+    "FILMABLE for an AI video model (very important – every failed video costs real money). Follow these rules "
+    "strictly:\n" + FILMABLE_RULES + "\nThe final image does NOT need to match the first one.\n\n"
     "No speech, no dialogue, no text on screen, no real-world brands or known characters. "
     "Answer ONLY with valid JSON that matches the given schema."
 )
@@ -191,9 +210,11 @@ def review(story: dict, history: list[dict], allow_repeat_species: bool = False)
         "- clarity: a 2–3-year-old understands what the character wants, what the problem is and how it is solved, "
         "WITHOUT words\n"
         "- lesson: there is a clear, positive, everyday lesson or learning moment that is visible at the end\n"
-        "- filmable: an AI video model can animate it without typical errors (no water physics, no jumping/flying/"
-        "launching, no transformations, no tiny objects, max 2 characters, max 3 large props, slow simple motions); "
-        "the two 8-second shots connect seamlessly\n"
+        "- filmable: an AI video model (Kling) can animate it in ONE take without typical errors. Check every "
+        "sentence against these rules:\n" + FILMABLE_RULES + "\n"
+        "  Score filmable 4 or lower if ANY rule is broken (e.g. paws hold/push/clap anything, a prop moves, two "
+        "similar props, camera or shot words, two characters touching, more than 4 actions). Only a story that "
+        "keeps all rules may get 8 or more.\n"
         + ("- originality: clearly different PLOT/IDEA from every story listed above (same recurring character/"
            "animal is fine here, judge only the idea)\n" if allow_repeat_species else
            "- originality: clearly different from every story listed above (different animal AND different idea)\n")
@@ -268,14 +289,15 @@ def _write(species: str, lesson: str, history: list[dict], rounds: int, log,
         f"e.g. footsteps while walking, 'idea' when the solution comes, 'tada' or 'sparkle' at the happy end; at "
         f"least one cute animal sound; at least 1 s between cues):\n"
         f"{json.dumps(sfx_library.available(), indent=1)}\n\n"
-        "Rules: 2 shots × 8 seconds that together tell the 4 beats. Shot 2 starts exactly where shot 1 ends (same "
-        "place, same props, same character position). Sounds are cartoon SFX and little animal noises only (squeaks, "
+        "Rules: 2 parts (8 s + 7 s = 15 s) of ONE continuous, unbroken take that together tell the 4 beats. Part 2 "
+        "continues exactly where part 1 ends (same place, same props in the same spots, same character position). "
+        "Filmability rules (most important – check every sentence against them):\n" + FILMABLE_RULES + "\n"
+        "Sounds are cartoon SFX and little animal noises only (squeaks, "
         "giggles, soft taps, a happy 'ta-da' chime) – never words, never grunts or babbling. The setting is bright and colorful. "
         "Title: emotion + animal + what happens, one emoji, ends with #shorts. Description: line 1 = the story in "
         "one sentence, line 2 = what children learn, then 6–10 search phrases parents use, then hashtags.\n\n"
         "A strict reviewer will score your story 1–10 on: logic, clarity (understandable without words for a "
-        "2-year-old), lesson (clearly visible at the end), filmable (only slow, simple, large motions; nothing rolls "
-        "far, falls, flies, splashes or changes shape; max 3 big props; the same props in both shots), originality "
+        "2-year-old), lesson (clearly visible at the end), filmable (every filmability rule above is kept), originality "
         f"and charm. Everything below {config.STORY_MIN_SCORE} is rejected – check your draft against this list "
         "before answering."
     )
@@ -330,9 +352,9 @@ def character_sheet_prompt(story: dict) -> str:
 def keyframe_prompt(story: dict, shot_idx: int) -> str:
     shot = story["shots"][shot_idx]
     moment = shot["action"] if shot_idx == 0 else shot["ends_with"]
-    return (f"{_cast(story)} Place: {story['setting']}. First moment of this scene: {moment}. "
+    return (f"{_cast(story)} Place: {story['setting']}. First moment of this scene: {_clean_action(moment)} "
             f"All characters fully visible, centered, camera at child eye level, props clearly visible. "
-            f"{config.STYLE_BIBLE}")
+            f"{config.KEYFRAME_STYLE}")
 
 
 def veo_prompt(story: dict, shot_idx: int) -> str:
@@ -345,21 +367,54 @@ def veo_prompt(story: dict, shot_idx: int) -> str:
             f"colors, colorful detailed background, warm light, vertical 9:16, no text on screen.")
 
 
+_CAMERA_WORDS = re.compile(
+    r"\b(wide|medium|close[- ]?up|long|eye[- ]level|establishing|tracking|overhead|low[- ]angle|high[- ]angle)\s+"
+    r"(shot|angle|view)\b[^.]*\.\s*|\b(the )?camera\b[^.]*\.\s*|\b(cut to|zoom(s|ing)? (in|out))\b[^.]*\.\s*",
+    re.I)
+
+
+def _clean_action(text: str) -> str:
+    """Entfernt Sätze mit Kamera-/Schnitt-Begriffen ('Medium shot …', 'Camera tracks …') – sie führten bei Kling
+    zu harten Schnitten und einer Figur, die danach anders aussieht (10. und 13.10.2026)."""
+    return re.sub(r"\s{2,}", " ", _CAMERA_WORDS.sub("", text or "")).strip()
+
+
 def kling_prompt(story: dict) -> str:
-    """Ein durchgehender 15-s-Clip: beide Shots als Zeitablauf, ruhige Kamera, keine Schnitte."""
+    """Ein durchgehender 15-s-Clip in EINER Einstellung. Keine Zeitmarken (0–8 s / 8–15 s) und keine Kamerabegriffe
+    mehr – beides hat Kling als Schnitt gelesen. Harte Regeln gegen die typischen Fehler der Videoprüfung."""
     s1, s2 = story["shots"]
-    return (f"Pixar-style 3D animation for toddlers, one continuous shot, no cuts. {_cast(story)} "
-            f"Place: {story['setting']}. Story: {story['summary']} "
-            f"0–8 s: {s1['action']} 8–15 s: {s2['action']} Ends with: {s2['ends_with']}. "
-            f"Slow, simple, clearly readable motion, stable camera at child eye level, characters keep exactly the "
-            f"same look, correct anatomy for the animal, objects stay solid and stay in place unless pushed, "
-            f"nothing appears or disappears, vivid rich candy colors, colorful detailed background, warm light, "
-            f"no text on screen. Audio: cute ANIMAL sounds and soft cartoon sound effects exactly synchronized with "
-            f"the visible actions – the characters make the natural cute sounds of their animal kind (squeaks, "
-            f"chirps, snuffles, little grunts of effort, happy squeals, giggly animal laughs), soft footsteps when "
-            f"walking, gentle thud when something lands, a bright chime at the happy end. The animals do NOT speak "
-            f"or babble like humans: no speech, no words, no human-like gibberish, no dialogue, no singing, no "
-            f"music.")
+    n = 2 if story.get("friend") else 1
+    who = "exactly ONE animal character" if n == 1 else "exactly TWO animal characters who never touch each other"
+    head = (f"Pixar-style 3D animation for toddlers. ONE single continuous camera take: static camera at child eye "
+            f"level, no cuts, no zoom, no pan, no scene change from the first to the last frame. {_cast(story)} "
+            f"Place: {story['setting']}. ")
+    rules = (f"Rules for the whole clip: {who} in the scene, no other animals or people. Each character keeps exactly "
+            f"the same body, face, colors and accessories in every frame, with the correct number of legs, paws, ears "
+            f"and tail for its species – never extra limbs, never hands or fingers. Paws stay on the ground or relaxed; "
+            f"the characters do not hold, push, carry or clap. Every object stays solid, keeps its shape and stays "
+            f"exactly where it is; nothing appears, disappears, duplicates or moves by itself. Slow, calm, simple "
+            f"motion, only one action at a time. Vivid rich candy colors, warm light, no text on screen. "
+            f"Audio: only soft cute animal sounds of the character's species (squeaks, chirps, snuffles, purrs) and "
+            f"gentle cartoon sound effects synchronized with the visible actions – soft footsteps when walking, a "
+            f"bright chime at the happy end. Absolutely no human voice: no speech, no words, no babbling, no "
+            f"laughing, no singing, no music.")
+    # fal.ai schneidet nach 2500 Zeichen ab – die Regeln müssen immer vollständig ankommen, gekürzt wird nur die
+    # Handlung (am Satzende).
+    budget = 2490 - len(head) - len(rules)
+
+    def fit(text: str, limit: int) -> str:
+        if len(text) <= limit:
+            return text
+        cut = text[:limit]
+        return cut[:cut.rfind(". ") + 1] if ". " in cut else cut
+
+    a1, a2, end = _clean_action(s1["action"]), _clean_action(s2["action"]), _clean_action(s2["ends_with"])
+    fixed = len("First:  Then, in the same take:  Last image:  ") + len(end)
+    per = max(150, (budget - fixed) // 2)
+    action = f"First: {fit(a1, per)} Then, in the same take: {fit(a2, per)} Last image: {end} "
+    if len(action) > budget:                       # Notfall: Schlussbild weglassen
+        action = f"First: {fit(a1, per)} Then, in the same take: {fit(a2, per)} "
+    return (head + action + rules)[:2500]
 
 
 def sfx_prompt(story: dict) -> str:

@@ -262,6 +262,13 @@ def main() -> int:
             tried.append(a)
             if a["review"]["passed"]:
                 break
+            crit = a["review"].get("scores", {}).get("critical", 0)
+            if n < attempts_max and crit < config.VIDEO_RETRY_MIN_CRITICAL:
+                msg = (f"kein zweites Video: nur {crit} schwere(r) Fehler (Neuversuch erst ab "
+                       f"{config.VIDEO_RETRY_MIN_CRITICAL}) – spart {costs.price(video_key, 15):.2f} $")
+                log(msg)
+                result["warnings"].append(msg)
+                break
         if not tried:
             raise RuntimeError(f"Kein Video erzeugt ({attempts_max} Versuch(e)): {last_err}")
 
