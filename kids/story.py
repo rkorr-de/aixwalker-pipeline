@@ -25,8 +25,8 @@ SCHEMA = {
         "species": "the given animal",
         "look": "very precise description of body, fur/skin, colors, eyes, ONE accessory – for visual consistency",
     },
-    "friend": "usually an EMPTY string; only if the lesson truly needs a second character: species + very precise look (it stays in place and never touches the main character)",
-    "setting": "one bright, colorful, everyday place (playroom, garden, kitchen, park, beach, bedroom ...) with at most 2 large props in clearly different colors and shapes, all visible from the start and never moved",
+    "friend": "EMPTY string, or a second animal that plays together with the main character: species + very precise look, clearly different from the main character (other species or clearly different colors)",
+    "setting": "one bright, colorful, everyday place (playroom, garden, kitchen, park, beach, bedroom ...) with at most 2 large props in clearly different colors and shapes, all visible from the start; a prop only moves if the story needs it (slowly, always visible)",
     "beats": [
         "1 WANT (0–4 s): what the character wants and why – shown by looking/pointing at it",
         "2 PROBLEM (4–8 s): a simple, visible obstacle; the first try does not work",
@@ -34,7 +34,7 @@ SCHEMA = {
         "4 HAPPY END (12–15 s): goal reached, the lesson is visible, big smile",
     ],
     "shots": [
-        {"seconds": 8, "action": "beats 1+2 in plain words: who does what with the whole body or head, where, facial expression (NO camera or shot words)",
+        {"seconds": 8, "action": "beats 1+2 in plain words: who does what (body, head, paws), where, facial expression (NO camera or shot words)",
          "sounds": "audible sounds (no voices, no words)", "ends_with": "exact final image of this shot"},
         {"seconds": 7, "action": "beats 3+4 in plain words, continuing exactly from the end of shot 1 in the same unbroken take (NO camera or shot words)",
          "sounds": "...", "ends_with": "final happy image"},
@@ -54,18 +54,19 @@ SCHEMA = {
 FILMABLE_RULES = (
     "- ONE single continuous scene in ONE place, like a single camera take: no shot changes, no camera moves, no "
     "zoom, no 'wide shot/medium shot/close-up', no time jumps.\n"
-    "- Prefer ONE character only. A second character is allowed only if the lesson truly needs it; then it stays in "
-    "its place, moves very little, and the two NEVER touch each other.\n"
-    "- Bodies only do whole-body or head actions: walk slowly, stop, sit down, look, tilt the head, nod, smile, "
-    "yawn, wiggle ears, wag the tail, lie down, peek out from behind something. NEVER: clapping, waving, pointing, "
-    "grabbing, holding, carrying, pushing, pulling, throwing, stacking, hugging, giving – paws and hands stay on "
-    "the ground or relaxed.\n"
+    "- One or TWO animal characters. Two characters may interact in a friendly way (look at each other, walk side "
+    "by side, clap together, nod, gently nuzzle or bump noses, take turns, sit next to each other). Each character "
+    "keeps its own clearly different look (different species or clearly different colors), so they never blend.\n"
+    "- Allowed body actions: walk slowly, stop, sit down, look, tilt the head, nod, smile, yawn, wiggle ears, wag "
+    "the tail, lie down, peek out, CLAP the two front paws (slowly and clearly, a few claps), wave one paw, nudge "
+    "something gently with the nose or one paw. NOT allowed: grabbing, holding, carrying, throwing, stacking, "
+    "complicated hand or finger movements, long hugs where bodies overlap.\n"
     "- At most 2 props, both large, simple and in clearly different colors and shapes. Never two similar objects "
-    "(no 'big and small carrot', no two balls). Props stay exactly where they are for the whole clip – nothing "
-    "rolls, falls, moves, opens, appears or disappears. The solution comes from what the CHARACTER does (goes "
-    "around, waits, sits somewhere else, chooses another spot, is quiet, takes turns by stepping aside), not from "
-    "moving an object.\n"
-    "- At most 4 simple actions in total, each lasting 3–4 seconds; slow and calm.\n"
+    "(no 'big and small carrot', no two balls). An object may move ONLY if the story needs it to move (e.g. a ball "
+    "rolls after a nudge, a swing swings, a door opens): then it moves slowly and smoothly, stays visible the whole "
+    "time and keeps its shape. Every other object stays exactly where it is. Nothing appears, disappears, "
+    "duplicates or teleports.\n"
+    "- At most 4 simple actions in total, each lasting 3–4 seconds; slow and calm, one action at a time.\n"
     "- No water, wind, rain, snow falling, flying, jumping, climbing, falling, springs, bouncing, transformation, "
     "crowds, tiny objects, text, letters or numbers.\n"
     "- Nothing scary, sad for long, dangerous or rude."
@@ -212,8 +213,10 @@ def review(story: dict, history: list[dict], allow_repeat_species: bool = False)
         "- lesson: there is a clear, positive, everyday lesson or learning moment that is visible at the end\n"
         "- filmable: an AI video model (Kling) can animate it in ONE take without typical errors. Check every "
         "sentence against these rules:\n" + FILMABLE_RULES + "\n"
-        "  Score filmable 4 or lower if ANY rule is broken (e.g. paws hold/push/clap anything, a prop moves, two "
-        "similar props, camera or shot words, two characters touching, more than 4 actions). Only a story that "
+        "  Score filmable 4 or lower if ANY rule is broken (e.g. paws grab/hold/carry/throw something, an object moves "
+        "without the story needing it or moves fast/jumps/disappears, two similar props, camera or shot words, "
+        "more than 4 actions). Clapping, waving, one moving object and two interacting animals are fine if done "
+        "slowly and clearly. Only a story that "
         "keeps all rules may get 8 or more.\n"
         + ("- originality: clearly different PLOT/IDEA from every story listed above (same recurring character/"
            "animal is fine here, judge only the idea)\n" if allow_repeat_species else
@@ -384,15 +387,19 @@ def kling_prompt(story: dict) -> str:
     mehr – beides hat Kling als Schnitt gelesen. Harte Regeln gegen die typischen Fehler der Videoprüfung."""
     s1, s2 = story["shots"]
     n = 2 if story.get("friend") else 1
-    who = "exactly ONE animal character" if n == 1 else "exactly TWO animal characters who never touch each other"
+    who = ("exactly ONE animal character" if n == 1 else
+           "exactly TWO animal characters who play together in a friendly way and always stay two separate, "
+           "clearly different bodies")
     head = (f"Pixar-style 3D animation for toddlers. ONE single continuous camera take: static camera at child eye "
             f"level, no cuts, no zoom, no pan, no scene change from the first to the last frame. {_cast(story)} "
             f"Place: {story['setting']}. ")
     rules = (f"Rules for the whole clip: {who} in the scene, no other animals or people. Each character keeps exactly "
             f"the same body, face, colors and accessories in every frame, with the correct number of legs, paws, ears "
-            f"and tail for its species – never extra limbs, never hands or fingers. Paws stay on the ground or relaxed; "
-            f"the characters do not hold, push, carry or clap. Every object stays solid, keeps its shape and stays "
-            f"exactly where it is; nothing appears, disappears, duplicates or moves by itself. Slow, calm, simple "
+            f"and tail for its species – never extra limbs, never hands or fingers. Clapping means the two front paws "
+            f"meet slowly and clearly; the characters never grab, hold or carry anything. Every object stays solid "
+            f"and keeps its shape; only an object the action above moves may move – slowly, smoothly and always "
+            f"visible; all other objects stay exactly where they are; nothing appears, disappears, duplicates or "
+            f"teleports. Slow, calm, simple "
             f"motion, only one action at a time. Vivid rich candy colors, warm light, no text on screen. "
             f"Audio: only soft cute animal sounds of the character's species (squeaks, chirps, snuffles, purrs) and "
             f"gentle cartoon sound effects synchronized with the visible actions – soft footsteps when walking, a "
@@ -414,6 +421,11 @@ def kling_prompt(story: dict) -> str:
     action = f"First: {fit(a1, per)} Then, in the same take: {fit(a2, per)} Last image: {end} "
     if len(action) > budget:                       # Notfall: Schlussbild weglassen
         action = f"First: {fit(a1, per)} Then, in the same take: {fit(a2, per)} "
+    # Sehr lange Beschreibungen: erst die Handlung, dann notfalls Figuren/Ort kürzen – die Regeln bleiben vollständig.
+    room = 2500 - len(rules)
+    if len(head) + len(action) > room:
+        head = fit(head, max(room - 300, room // 2)) + " "
+        action = fit(action, room - len(head))
     return (head + action + rules)[:2500]
 
 
