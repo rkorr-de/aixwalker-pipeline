@@ -5,7 +5,7 @@
                      Di + Fr, also bis zu 4) → ca. 4–8 Std.
   --period monthly   am 1.: alle Freitags-Mixe des Vormonats → ca. 8–10 Std. (max. 11:50 Std., YouTube-Grenze 12 Std.)
 
-Musik: die MP3s der Freitags-Mixe aus Drive (keine Lyria-Kosten). Neu: EIN Hauptbild 4K + 3 Veo-Clips (ca. 7,50 $),
+Musik: die MP3s der Freitags-Mixe aus Drive (keine Lyria-Kosten). Neu: EIN Hauptbild 4K + 2 Veo-Clips (seit 13.10.2026, ca. 5,10 $),
 Kaminfilm per Streaming-Upload (kein 27-/55-GB-Video auf der Platte), Thumbnail C mit „4 HOURS“/„8 HOURS“, Playlist,
 Kommentar, Drive (Thumbnail, Hauptbild, Loop-Clips, Metadaten – keine MP3s, die liegen bei den Freitags-Mixen),
 Gedächtnis (memory.json → „cabin_compilations“), Bericht per E-Mail. Keine Shorts, kein DistroKid.
@@ -235,7 +235,7 @@ def main() -> int:
         frame.save(frame_png)
         frame.save(base / "master.jpg", "JPEG", quality=92)
     import run_cabin
-    clips = run_cabin.make_clips(frame, base, config.LINE_FORMAT[GENRE]["veo_clips"], args.dry_run)
+    clips = run_cabin.make_clips(frame, base, config.LINE_FORMAT[GENRE].get("compilation_veo_clips", 2), args.dry_run)
     playlist_file = loopvideo.prepare_video(clips, total_sec, base / "work", log=log)
     thumb = cabin_art.make_thumbnail(frame, images.duration_label(total_min), base / "thumbnail.jpg")
 

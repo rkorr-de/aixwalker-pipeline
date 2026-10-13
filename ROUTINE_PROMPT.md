@@ -134,9 +134,9 @@ Eigene Linie, alles **echtes 4K**, kein DistroKid. Konzept und Testergebnisse: `
   Fireplace Chillout 4K“, Drive (MP3s, Hauptbild, Loop-Clips, Thumbnail, Metadaten, Shorts – nicht das lange Video),
   Gedächtnis, E-Mail. Dauer ca. 1–1,5 Std. Kosten ca. 11 $ (Grenze 15 $).
 - **Sonntag 09:45 (alle 2 Wochen)** – **`python run_cabin_compilation.py --period biweekly --if-due`**: alle noch
-  nicht verwendeten Cabin-Mixe der letzten 15 Tage (seit 13.10. Di + Fr, bis zu 4 → ca. 4–8 Std.) mit neuem Bild + neuen Clips; nicht fällig → beendet sich sofort ohne Kosten.
+  nicht verwendeten Cabin-Mixe der letzten 15 Tage (seit 13.10. Di + Fr, bis zu 4 → ca. 4–8 Std.) mit neuem Bild + neuem Film aus **2** Clips (Rolf 13.10.); nicht fällig → beendet sich sofort ohne Kosten.
 - **Am 1. um 07:45** – **`python run_cabin_compilation.py --period monthly`**: alle Freitags-Mixe des Vormonats
-  (ca. 8–10 Std., max. 11:50 Std.), neues Bild + neue Clips, Upload ca. 1 Std.
+  (ca. 8–10 Std., max. 11:50 Std.), neues Bild + neuer Film aus 2 Clips, Upload ca. 1 Std.
 - Bei Abbruch denselben Befehl erneut starten (fertige Tracks, Hauptbild und geprüfte Clips werden wiederverwendet).
   Fällt ein Veo-Clip zweimal durch die Prüfung, reichen 2 Clips; mit weniger bricht der Lauf ab (Fehler nennen).
 - Nicht umbauen: Endbild-Vorgabe für Veo (ohne fährt die Kamera), Überblendung an den Nähten, `mbtree=0`, Streaming-Upload.

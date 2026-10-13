@@ -109,7 +109,8 @@ LYRIA_GENRE_TAGS = {"Ibiza Sunset Lounge": "Balearic Chillout, Ibiza Sunset Chil
 # keine Track-/Album-Cover, kein DistroKid, leiseres Mastering, eigene Kostengrenze. Produktion: run_cabin.py.
 LINE_FORMAT = {
     "Cozy Winter Cabin": {"tracks": 42, "extra": 8, "min_minutes": 120, "lufs": -16.0, "budget_usd": 15.0,
-                          "veo_clips": 3, "max_tracks": 52},
+                          "veo_clips": 3, "max_tracks": 52,
+                          "compilation_veo_clips": 2},   # Zusammenschnitte: neuer Film aus 2 statt 3 Clips (Rolf 13.10.2026)
 }
 
 

@@ -106,14 +106,15 @@ def _static_clip(frame_png: Path, dst: Path) -> Path:
 
 
 def make_clips(frame: Image.Image, out: Path, n: int, dry: bool) -> list[Path]:
-    """n Veo-Clips; jeder wird geprüft, ein durchgefallener einmal neu erzeugt. Mind. 2 gute Clips nötig."""
+    """n Veo-Clips; jeder wird geprüft, ein durchgefallener einmal neu erzeugt (bei nur 2 Clips zweimal, weil es keine
+    Reserve gibt). Mind. 2 gute Clips nötig."""
     d = out / "clips"
     d.mkdir(parents=True, exist_ok=True)
     names = "ABCDEFGH"[:n]
 
     def one(name: str) -> Path | None:
         p = d / f"{name}.mp4"
-        for attempt in range(2):
+        for attempt in range(2 if n > 2 else 3):
             if not (p.exists() and attempt == 0):
                 if dry:
                     _static_clip(out / "img" / "frame_4k.png", p)
