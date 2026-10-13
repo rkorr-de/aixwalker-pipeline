@@ -11,7 +11,7 @@ maximum watch time (long sessions), YouTube Partner Program, revenue. Each mix m
 and new – never a rehash of an earlier release.
 
 ## Fixed channel rules
-- Themes: Mediterranean Spa Lounge · Dark Ambient Spa (luxury spa) · Chillout Sleep · Italian Chillout (own line: Italian dinner & sunset lounge, Amalfi Coast & Lake Como – follow the MANDATORY VISUAL RULE in the brief) · Ibiza Sunset Lounge (own line: classic Balearic sunset chillout at an Ibiza beach club – follow the MANDATORY SOUND STYLE and VISUAL RULE in the brief).
+- Themes: Mediterranean Spa Lounge · Dark Ambient Spa (luxury spa) · Chillout Sleep · Slow Gym Beats (own line every two weeks: slow, heavy instrumental workout beats; images warm and outdoor) · Italian Chillout (own line: Italian dinner & sunset lounge, Amalfi Coast & Lake Como – follow the MANDATORY VISUAL RULE in the brief) · Ibiza Sunset Lounge (own line: classic Balearic sunset chillout at an Ibiza beach club – follow the MANDATORY SOUND STYLE and VISUAL RULE in the brief).
 - Instrumental only, no vocals (Ibiza Sunset Lounge: mostly instrumental, at most a rare wordless breathy hum far in the background – never lyrics, never write vocals or lyrics into a track variation). English for YouTube metadata, German for community texts.
 - Track titles are original inventions, **never reused** across releases, and the final tracklist is sorted
   alphabetically – so choose titles whose alphabetical order equals the intended energy arc of the mix
@@ -20,6 +20,7 @@ and new – never a rehash of an earlier release.
   beach club, villa, open-air spa, lake shore) in the brief's light. thumbnail_prompt is ALWAYS an outdoor scene under the open sky, never an interior room. People only small or seen from behind.
   Advertiser-friendly (suggestive no), **no text, letters, logos or watermarks in the image**.
 - Hook texts for Shorts: max 4 words, an inviting, sensual invitation into the scene (e.g. "Your ocean retreat", "Dinner at golden hour", "Let the day melt"). No questions, no hashtags, no BPM. The Short image shows only: genre keyword, this hook, the album name and a "FULL MIX" button – so the hook must carry the emotion. Thumbnail text is set by the pipeline (genre keyword + album name).
+- Short titles follow our best-performing Short (13.10.2026: by far the most watch time of all Shorts): one fitting emoji first, then an evocative vibe or era plus the moment to listen, e.g. "✨ Elegant 1960s Dolce Vita Vibes for Your Evening". No questions, no BPM, no "#Shorts" (the pipeline adds album name, genre keyword and #Shorts).
 - Durations are unknown before rendering: write `{MIN}` where the minute count belongs (e.g. "Sleep Music · {MIN} Min")
   and `{HOURS}` for a wording like "1 Hour" / "1.5 Hours". Never write a fixed number of minutes yourself.
 
@@ -62,7 +63,7 @@ and new – never a rehash of an earlier release.
   "ab_titles": [3 alternative titles, each < 70 characters, each starting with the album name, use {MIN}/{HOURS}],
   "ab_thumbs": [],
   "short_overlays": ["max 4 words", "max 4 words"],
-  "short_titles": ["< 70 chars, emoji ok", "< 70 chars, emoji ok"],
+  "short_titles": ["< 70 chars, one emoji first, vibe + moment", "< 70 chars, one emoji first, vibe + moment"],
   "shorts": [ {"start": "mm:ss", "end": "mm:ss", "overlay": "...", "why": "German, one line"}, {...} ],
   "title_de": "German title: Album – Genre-Kurzbeschreibung (BPM)",
   "teaser_de": "German, one sentence, no duration",

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Lange Zusammenschnitte der Winter-Cabin-Linie (Rolf 09.10.2026), alles echtes 4K, mit NEUEM Bild + neuen Clips:
 
-  --period biweekly  alle 2 Wochen (sonntags): die beiden letzten Freitags-Mixe → ca. 4 Std.
+  --period biweekly  alle 2 Wochen (sonntags): alle noch nicht verwendeten Cabin-Mixe der letzten 15 Tage (seit 13.10.2026
+                     Di + Fr, also bis zu 4) → ca. 4–8 Std.
   --period monthly   am 1.: alle Freitags-Mixe des Vormonats → ca. 8–10 Std. (max. 11:50 Std., YouTube-Grenze 12 Std.)
 
 Musik: die MP3s der Freitags-Mixe aus Drive (keine Lyria-Kosten). Neu: EIN Hauptbild 4K + 3 Veo-Clips (ca. 7,50 $),
@@ -59,7 +60,7 @@ def pick_sources(period: str, folders: list[dict], mem: dict, today: date, month
         return [f for f in folders if f["date"].startswith(month)]
     used = {a for e in mem.get("cabin_compilations", []) if e.get("period") == "biweekly" for a in e.get("albums", [])}
     recent = [f for f in folders if f["date"] >= (today - timedelta(days=15)).isoformat() and f["album"] not in used]
-    return recent[-2:]
+    return recent[-4:]   # seit 13.10.2026 zwei Cabin-Mixe pro Woche (Di + Fr) → bis zu 4 je 2-Wochen-Mix
 
 
 def scene_prompt(mem: dict, seed: int) -> str:

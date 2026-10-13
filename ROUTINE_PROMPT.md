@@ -15,8 +15,14 @@ Zweimal pro Woche (Dienstag und Freitag) erscheint ein neuer Mix, der wie ein ku
   werbefreundlich, kein Text im generierten Bildmotiv. Cover und Thumbnails bleiben so wiedererkennbar, das Motiv
   und die Lichtstimmung wechseln aber bei jedem Mix (steuert der Planer über das Gedächtnis).
 - Themen: Mediterranean Spa Lounge (Fokus) · Dark Ambient Spa (Luxury Spa) · Chillout Sleep ·
-  Italian Chillout (eigene Linie) · Ibiza Sunset Lounge (eigene Linie) · Cozy Winter Cabin (eigene Linie, 4K-Kaminfilm). **Keine Gym- und keine Night-Drive-/Driving-Mixe mehr** (Rolf, 08.10.2026) – auch
-  nicht per `--genre` erzwingen.
+  Italian Chillout (eigene Linie) · Ibiza Sunset Lounge (eigene Linie) · Cozy Winter Cabin (eigene Linie, 4K-Kaminfilm) ·
+  Slow Gym Beats (eigene Linie, nur alle 2 Wochen – wieder aufgenommen von Rolf am 13.10.2026). **Keine
+  Night-Drive-/Driving-Mixe mehr** (Rolf, 08.10.2026) – auch nicht per `--genre` erzwingen.
+- **Schwerpunkte seit 13.10.2026 (Rolf, nach Auswertung Metricool + Gedächtnis):** Italian Chillout und Cozy Winter Cabin
+  bringen die meiste Wiedergabezeit pro Video → Italien weiter 4×/Woche + Samstags-Zusammenschnitt, Cabin 2×/Woche.
+  **Pausiert:** Auto-Mix (Mediterranean Spa Lounge, Chillout Sleep, Dark Ambient Spa), Sonntags-Lang-Mix (Sleep/Spa) und
+  die Ibiza-Linie. Über Mediterranean Spa Lounge und Ibiza entscheidet Rolf nach der 7-Tage-Auswertung am 20.10.2026;
+  bis dahin keine neuen Mixe davon. Sleep, Dark Spa und Night Drive bleiben aus.
   Der Planer verteilt die Genres (Lounge-Quote, nie mehr als zwei gleiche in Folge); innerhalb eines Genres wechseln
   Zweck, BPM, Stimmung und Motiv.
 - **Jeder Mix mindestens 60 Minuten.** Lyria liefert ca. 3 Min je Track → 20 Tracks + 8 Reserve-Tracks.
@@ -80,16 +86,19 @@ in Drive). Sie läuft in der Umgebung „AixWalker“ mit dem Repository als Que
 mehrfach gescheitert (Cowork-Umgebung ohne Zugangsdaten, fehlendes Repository, wechselnde Sicherheitsprüfung).
 Wochentag: `TZ=Europe/Berlin date +%u`, Tag im Monat: `TZ=Europe/Berlin date +%d`.
 
-| Tag | Läufe in dieser Reihenfolge |
+| Tag | Läufe in dieser Reihenfolge (Stand 13.10.2026) |
 |---|---|
 | am 1. des Monats (zusätzlich, zuerst) | Monats-Mix: `python monthly_mix.py` (siehe MONTHLY_ROUTINE_PROMPT.md) |
 | Mo (1) | Italien: `python run_auto.py --genre "Italian Chillout"` |
-| Di (2) | Auto-Mix: `python run_auto.py` → Ibiza: `python run_auto.py --genre "Ibiza Sunset Lounge"` |
+| Di (2) | Winter-Cabin (2. Cabin-Mix der Woche): `python run_auto.py --genre "Cozy Winter Cabin"` (ca. 1–1,5 Std., ca. 11 $) |
 | Mi (3) | Italien |
-| Do (4) | Ibiza |
-| Fr (5) | Italien → Auto-Mix (alte Fr-Routine von Rolf am 11.10. ausgeschaltet) |
-| Sa (6) | Italien-Wochen-Zusammenschnitt: `python run_weekly_compilation.py --genre "Italian Chillout"` → Ibiza |
-| So (7) | Italien → Sonntags-Lang-Mix: `python run_auto.py --long` (2–3 Std.) |
+| Do (4) | **nur in geraden Kalenderwochen** (`TZ=Europe/Berlin date +%V` gerade): Gym `python run_auto.py --genre "Slow Gym Beats"`; sonst kein Lauf |
+| Fr (5) | Italien (der Cabin-Freitags-Mix läuft in seiner eigenen Routine um 08:45) |
+| Sa (6) | Italien-Wochen-Zusammenschnitt: `python run_weekly_compilation.py --genre "Italian Chillout"` |
+| So (7) | Italien |
+
+Pausiert seit 13.10.2026 (nicht starten, bis Rolf es wieder freigibt): Auto-Mix `python run_auto.py`, Ibiza
+`--genre "Ibiza Sunset Lounge"`, Sonntags-Lang-Mix `python run_auto.py --long`.
 
 Jeden Lauf im Hintergrund starten (`… > build/<name>.log 2>&1`), das Log verfolgen, bis er wirklich fertig ist, erst dann
 den nächsten starten. Bricht ein Lauf ab: Ursache beheben, denselben Befehl einmal erneut starten (Konzept und fertige
@@ -113,6 +122,9 @@ Die Sonntags-Routine startet statt `python run_auto.py` den Befehl **`python run
 
 ## Winter-Cabin-Linie „Cozy Winter Cabin“ (seit 09.10.2026) – 4K-Kaminfilm
 
+**Seit 13.10.2026 zwei Cabin-Mixe pro Woche** (Rolf): Freitag in der eigenen Routine (08:45) und Dienstag in der
+Tages-Routine – gleicher Befehl, gleicher Ablauf.
+
 Eigene Linie, alles **echtes 4K**, kein DistroKid. Konzept und Testergebnisse: `KONZEPT_WINTER_CABIN.md`.
 - **Freitag 08:45** – Freitags-Mix (≥ 120 Min): **`python run_auto.py --genre "Cozy Winter Cabin"`** (im Hintergrund,
   Log `build/auto_cabin.log`). run_auto leitet an `run_cabin.py` weiter: Lyria-Tracks (Cozy Lofi Ambient / Smooth Jazz
@@ -121,8 +133,8 @@ Eigene Linie, alles **echtes 4K**, kein DistroKid. Konzept und Testergebnisse: `
   komplett auf der Platte), Thumbnail C, 2 Shorts S1 v2 (15-s-Loops mit Frage), Playlist „Cozy Winter Cabin · Relaxing
   Fireplace Chillout 4K“, Drive (MP3s, Hauptbild, Loop-Clips, Thumbnail, Metadaten, Shorts – nicht das lange Video),
   Gedächtnis, E-Mail. Dauer ca. 1–1,5 Std. Kosten ca. 11 $ (Grenze 15 $).
-- **Sonntag 09:45 (alle 2 Wochen)** – **`python run_cabin_compilation.py --period biweekly --if-due`**: die beiden
-  letzten Freitags-Mixe (ca. 4 Std.) mit neuem Bild + neuen Clips; nicht fällig → beendet sich sofort ohne Kosten.
+- **Sonntag 09:45 (alle 2 Wochen)** – **`python run_cabin_compilation.py --period biweekly --if-due`**: alle noch
+  nicht verwendeten Cabin-Mixe der letzten 15 Tage (seit 13.10. Di + Fr, bis zu 4 → ca. 4–8 Std.) mit neuem Bild + neuen Clips; nicht fällig → beendet sich sofort ohne Kosten.
 - **Am 1. um 07:45** – **`python run_cabin_compilation.py --period monthly`**: alle Freitags-Mixe des Vormonats
   (ca. 8–10 Std., max. 11:50 Std.), neues Bild + neue Clips, Upload ca. 1 Std.
 - Bei Abbruch denselben Befehl erneut starten (fertige Tracks, Hauptbild und geprüfte Clips werden wiederverwendet).

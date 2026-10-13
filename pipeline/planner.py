@@ -37,6 +37,22 @@ GENRES = {
         "moods": ["warm, sunlit, luxurious, relaxed", "positive, smooth, sunset-golden", "airy, organic, deeply relaxing",
                   "cinematic, balmy, elegant"],
     },
+    # Wieder aufgenommen (Rolf, 13.10.2026): Gym nur alle 2 Wochen (Do in geraden Kalenderwochen) als eigene Linie –
+    # bringt Aufrufe, hält aber kürzer als Italien/Cabin. Start: `run_auto.py --genre "Slow Gym Beats"`.
+    # Bilder im hellen, warmen Look und OUTDOOR (Regel 12.10.), nicht im alten dunklen Teal-Look.
+    "Slow Gym Beats": {
+        "playlist": "gym", "bpm": (70, 90),
+        "purposes": ["heavy lifting", "leg day", "push/pull sessions", "late-night gym", "cardio & stairmaster",
+                     "warm-up & mobility", "cooldown after the set", "home workout focus"],
+        "motifs": ["open-air rooftop gym above the city at sunset with a loaded barbell rack",
+                   "beach workout area with iron weights on the sand at golden hour",
+                   "outdoor calisthenics park with pull-up bars and city skyline at dusk",
+                   "athletic woman training with a kettlebell on a cliff terrace above the sea (advertiser-friendly)",
+                   "athletic man doing heavy deadlifts on an open-air training deck at sunset",
+                   "chalk dust in warm backlight over an outdoor lifting platform"],
+        "moods": ["dark, heavy, hypnotic", "focused, powerful, determined", "slow, menacing, powerful",
+                  "gritty, determined, minimal"],
+    },
     "Dark Ambient Spa": {
         "playlist": "chillout", "bpm": (50, 62),
         "purposes": ["massage & wellness", "hot stone ritual", "sauna & steam", "evening bath", "yin yoga & stretching",
@@ -195,17 +211,19 @@ GENRES = {
                        "{HOURS}, never {MIN}. Mention '4K', 'fireplace' and 'snow' in hook or tags. No BPM in the title."),
     },
 }
-ROTATION_EXCLUDE = {"Italian Chillout", "Ibiza Sunset Lounge", "Cozy Winter Cabin"}   # eigene Linien mit eigenem Zeitplan → nicht in der Genre-Wahl
+ROTATION_EXCLUDE = {"Italian Chillout", "Ibiza Sunset Lounge", "Cozy Winter Cabin", "Slow Gym Beats"}   # eigene Linien mit eigenem Zeitplan → nicht in der Genre-Wahl
 for _g in GENRES.values():
     if _g.get("substyles"):
         _g["purposes"] = list(_g["substyles"])
 # Strategie 05.10.2026: Sleep/Spa haben den höchsten RPM (ca. 4–8 $) und die längsten Sitzungen → häufiger;
-# Gym- und Night-Drive-Mixe eingestellt (Rolf, 08.10.2026).
+# Night-Drive-Mixe eingestellt (Rolf, 08.10.2026); Gym seit 13.10.2026 nur als eigene Linie alle 2 Wochen.
 GENRE_WEIGHT = {"Mediterranean Spa Lounge": 1.6, "Chillout Sleep": 1.35, "Dark Ambient Spa": 1.25}
 LIGHTS = {
     "Mediterranean Spa Lounge": ["golden hour sunset over the sea", "bright sunny Mediterranean afternoon", "pink-orange Ibiza sunset sky",
                                  "warm amber dusk with lanterns", "low sun glittering on turquoise water",
                                  "clear blue sky with white architecture"],
+    "Slow Gym Beats": ["golden hour backlight with chalk dust", "deep orange sunset over the city skyline",
+                       "warm last sunlight on the sea", "blue hour with warm floodlights", "dramatic sunset sky with strong rim light"],
     "Dark Ambient Spa": ["warm golden candlelight", "golden hour over an open-air spa garden", "lanterns at dusk",
                          "warm amber glow with green plants", "soft morning sun and steam"],
     "Chillout Sleep": ["deep blue dusk with warm window lights", "candlelight", "moonlight with warm lamps",
@@ -269,6 +287,7 @@ GENRE_TITLE_PREFIX = {g: (k.lower(),) for g, k in config.THUMB_KEYWORD.items()} 
 # in Titel/Tags einfließen – sonst entstehen Titel wie „Slow Beat“ für einen Sleep-Mix (Fehler vom 06.10.2026).
 GENRE_KEYWORDS = {
     "Chillout Sleep": ("sleep", "nap", "insomnia", "rain", "calm", "relax", "dream", "lullaby", "bed"),
+    "Slow Gym Beats": ("gym", "workout", "lift", "training", "cardio", "fitness", "pump"),
     "Dark Ambient Spa": ("spa", "massage", "sauna", "wellness", "yoga", "stone", "ambient", "relax", "meditat"),
     "Mediterranean Spa Lounge": ("lounge", "chill", "sunset", "ibiza", "beach", "balearic", "spa", "mediterr", "cafe"),
     "Italian Chillout": ("ital", "amalfi", "como", "positano", "dinner", "lounge", "jazz", "bossa", "cafe", "sunset", "mediterr"),

@@ -33,7 +33,7 @@ CHANNEL_URL = "https://www.youtube.com/@AIXWALKER"
 LOGO_PNG = ASSETS / "brand" / "aixwalker_logo.png"   # rundes Kanal-Logo, unten links im Mix-Video (Rolf 08.10.2026)
 
 PLAYLISTS = {
-    "gym": "PLVJixyQyNYDc",       # nur noch für alte Videos – Gym-Mixe eingestellt (08.10.2026)
+    "gym": "PLVJixyQyNYDc",       # Gym-Linie alle 2 Wochen (wieder ab 13.10.2026)
     "chillout": "PLQyvcKUee6e8",
     "songs": "PLZUHXQMXYvmo",
     "aachen": "PLAPYXyJDsfd4",
@@ -74,6 +74,7 @@ THUMB_KEYWORD = {   # immer mit „Music", damit sofort klar ist: das ist Musik,
     "Mediterranean Spa Lounge": "Chillout Lounge Music",
     "Dark Ambient Spa": "Luxury Spa Music",
     "Chillout Sleep": "Sleep Music",
+    "Slow Gym Beats": "Slow Gym Beats Music",
     "Italian Chillout": "Italian Chillout Music",
     "Ibiza Sunset Lounge": "Ibiza Sunset Lounge",
     "Cozy Winter Cabin": "Cozy Winter Cabin",
@@ -130,6 +131,10 @@ IMAGE_STYLE = {
                          "phone screen, high-end wellness-magazine look." + _NO_TEXT),
     "Chillout Sleep": (" Calm, dreamy evening photography: soft warm lights against a deep blue dusk sky, gentle but colorful, "
                        "cozy and safe, clear and not murky, high-end interior or nature photography." + _NO_TEXT),
+    # Gym (wieder ab 13.10.2026): hell und warm statt altem dunklem Teal-Look, immer draußen
+    "Slow Gym Beats": (" Cinematic, warm sports photography: strong golden-hour or sunset backlight, rich warm orange and "
+                       "amber tones with deep but clear shadows, dramatic sky, bright enough to read well on a phone screen, "
+                       "high contrast, shallow depth of field, premium fitness-magazine look, advertiser-friendly." + _NO_TEXT),
     # Italien-Linie: super-realistisch wie ein echtes Magazin-Shooting, ausdrücklich nicht künstlich (Rolf 08.10.2026)
     "Italian Chillout": (" Professional editorial travel photograph, real photo taken on a full-frame camera (Canon EOS R5 or "
                          "Sony A7R V, 35–85 mm prime lens), not CGI, not a render, not an illustration, not airbrushed. "
