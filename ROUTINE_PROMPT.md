@@ -90,7 +90,7 @@ Wochentag: `TZ=Europe/Berlin date +%u`, Tag im Monat: `TZ=Europe/Berlin date +%d
 |---|---|
 | am 1. des Monats (zusätzlich, zuerst) | Monats-Mix: `python monthly_mix.py` (siehe MONTHLY_ROUTINE_PROMPT.md) |
 | Mo (1) | Italien: `python run_auto.py --genre "Italian Chillout"` |
-| Di (2) | Winter-Cabin (2. Cabin-Mix der Woche): `python run_auto.py --genre "Cozy Winter Cabin"` (ca. 1–1,5 Std., ca. 11 $) |
+| Di (2) | Winter-Cabin (2. Cabin-Mix der Woche): `python run_auto.py --genre "Cozy Winter Cabin"` (ca. 1–1,5 Std., ca. 8,90 $) |
 | Mi (3) | Italien |
 | Do (4) | **nur in geraden Kalenderwochen** (`TZ=Europe/Berlin date +%V` gerade): Gym `python run_auto.py --genre "Slow Gym Beats"`; sonst kein Lauf |
 | Fr (5) | Italien (der Cabin-Freitags-Mix läuft in seiner eigenen Routine um 08:45) |
@@ -128,17 +128,17 @@ Tages-Routine – gleicher Befehl, gleicher Ablauf.
 Eigene Linie, alles **echtes 4K**, kein DistroKid. Konzept und Testergebnisse: `KONZEPT_WINTER_CABIN.md`.
 - **Freitag 08:45** – Freitags-Mix (≥ 120 Min): **`python run_auto.py --genre "Cozy Winter Cabin"`** (im Hintergrund,
   Log `build/auto_cabin.log`). run_auto leitet an `run_cabin.py` weiter: Lyria-Tracks (Cozy Lofi Ambient / Smooth Jazz
-  Fireplace, 58–64 BPM, −16 LUFS, keine Tempoprüfung), EIN Hauptbild 4K, 3 Veo-Clips 4K (Start = Ende = Hauptbild,
+  Fireplace, 58–64 BPM, −16 LUFS, keine Tempoprüfung), EIN Hauptbild 4K, 2 Veo-Clips 4K (seit 13.10.2026, vorher 3) (Start = Ende = Hauptbild,
   automatisch geprüft), nahtloser Kaminfilm mit gemeinfreiem Kaminknistern, **Streaming-Upload** (das Video liegt nie
   komplett auf der Platte), Thumbnail C, 2 Shorts S1 v2 (15-s-Loops mit Frage), Playlist „Cozy Winter Cabin · Relaxing
   Fireplace Chillout 4K“, Drive (MP3s, Hauptbild, Loop-Clips, Thumbnail, Metadaten, Shorts – nicht das lange Video),
-  Gedächtnis, E-Mail. Dauer ca. 1–1,5 Std. Kosten ca. 11 $ (Grenze 15 $).
+  Gedächtnis, E-Mail. Dauer ca. 1–1,5 Std. Kosten ca. 8,90 $ (Grenze 15 $).
 - **Sonntag 09:45 (alle 2 Wochen)** – **`python run_cabin_compilation.py --period biweekly --if-due`**: alle noch
   nicht verwendeten Cabin-Mixe der letzten 15 Tage (seit 13.10. Di + Fr, bis zu 4 → ca. 4–8 Std.) mit neuem Bild + neuem Film aus **2** Clips (Rolf 13.10.); nicht fällig → beendet sich sofort ohne Kosten.
 - **Am 1. um 07:45** – **`python run_cabin_compilation.py --period monthly`**: alle Freitags-Mixe des Vormonats
   (ca. 8–10 Std., max. 11:50 Std.), neues Bild + neuer Film aus 2 Clips, Upload ca. 1 Std.
 - Bei Abbruch denselben Befehl erneut starten (fertige Tracks, Hauptbild und geprüfte Clips werden wiederverwendet).
-  Fällt ein Veo-Clip zweimal durch die Prüfung, reichen 2 Clips; mit weniger bricht der Lauf ab (Fehler nennen).
+  Mit 2 Clips gibt es keine Reserve: ein durchgefallener Clip wird bis zu zweimal neu erzeugt; bleibt danach nur 1 Clip, bricht der Lauf ab (Fehler nennen).
 - Nicht umbauen: Endbild-Vorgabe für Veo (ohne fährt die Kamera), Überblendung an den Nähten, `mbtree=0`, Streaming-Upload.
 
 ## Ibiza-Linie „Ibiza Sunset Lounge“ (seit 09.10.2026)
