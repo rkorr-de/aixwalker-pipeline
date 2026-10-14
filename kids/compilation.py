@@ -646,16 +646,9 @@ def longshort_due(today: str) -> bool:
 
 # ---------------------------------------------------------------- Metadaten --------------------------------------------
 def add_affiliate_line(desc: str) -> str:
-    """Setzt die Affiliate-Zeile (config.AFFILIATE_LINE) vor den Hashtag-Block; leer/schon vorhanden = unverändert."""
-    line = config.AFFILIATE_LINE
-    if not line or line in desc:
-        return desc
-    parts = desc.rstrip().split("\n\n")
-    if len(parts) > 1 and parts[-1].lstrip().startswith("#"):
-        parts.insert(len(parts) - 1, line)
-    else:
-        parts.append(line)
-    return "\n\n".join(parts)
+    """Kuscheltier-Partnerlinks (kids/affiliate.py, 5 Stück, passend zu den Geschichten) vor den Hashtag-Block."""
+    from . import affiliate
+    return affiliate.apply(desc, desc, n=5)
 
 
 def metadata(info: dict, today: str) -> dict:

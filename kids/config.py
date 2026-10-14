@@ -160,15 +160,8 @@ PARENT_KEYWORDS = [
     "calm video for kids", "cute animation for babies", "bedtime cartoon", "preschool cartoon", "cute animals for kids",
     "3d animation kids", "short cartoon for children", "baby sensory video", "silly animal cartoon", "wholesome kids video",
 ]
-# Affiliate-Zeile für die Videobeschreibung (z. B. Amazon-Partnerprogramm-Link zu passendem Spielzeug/Büchern) –
-# komplett fertiger Text inkl. Link, den Rolf nach Anmeldung beim Partnerprogramm einträgt.
-# Nicht gesetzt = eingebauter Standard (Ziggy-Link); `KIDS_AFFILIATE_LINE` leer gesetzt = kein Zusatztext.
-# COPPA-konform, da nur ein Link in der Beschreibung steht (keine Datenerfassung bei Kindern).
-DEFAULT_AFFILIATE_LINE = (
-    "🧸 Ziggy's favorite cuddly bunny: https://www.amazon.de/dp/B072JH191N?tag=gigglemeadow2-21&linkCode=ll2 "
-    "(Amazon affiliate link – as an Amazon Associate we earn from qualifying purchases)"
-)
-AFFILIATE_LINE = os.environ.get("KIDS_AFFILIATE_LINE", DEFAULT_AFFILIATE_LINE).strip()
+# Affiliate-Links (Amazon-Partnerprogramm): Kuscheltier-Liste und Text in kids/affiliate.py (Stand 14.10.2026).
+# `KIDS_AFFILIATE_LINE` leer gesetzt = keine Links; jeder andere Wert wird ignoriert (früherer Einzel-Link).
 
 PLAYLIST_TITLE = '🧸 Cute Baby Animal Cartoons for Toddlers – Giggle Meadow 🌼'
 PLAYLIST_DESCRIPTION = (
