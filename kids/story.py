@@ -13,7 +13,7 @@ import json
 import random
 import re
 
-from . import config, gemini, sfx_library
+from . import affiliate, config, gemini, sfx_library
 
 SCHEMA = {
     "slug": "kebab-case-id",
@@ -165,10 +165,10 @@ def _sanitize(story: dict) -> dict:
         if kw not in story["tags"]:
             story["tags"].append(kw)
     desc = story.get("description", "").strip()
-    if config.AFFILIATE_LINE:
-        desc += "\n\n" + config.AFFILIATE_LINE
     if "#shorts" not in desc.lower():
         desc += "\n\n" + " ".join(config.HASHTAGS)
+    desc = affiliate.apply(desc, json.dumps({k: story.get(k) for k in ("title", "summary", "character", "friend",
+                                                                        "setting")}, ensure_ascii=False))
     story["description"] = desc[:4800]
     assert len(story["shots"]) == 2, "genau 2 Shots erwartet"
     lib = sfx_library.available()
