@@ -2,9 +2,9 @@
 
 - Bild: 8-s-Clip aus Bild-zu-Video, auf ~16 s verlangsamt (Bewegungs-Interpolation), leichte Vignette + Filmkorn
 - Text: ein Satz nach dem anderen, Wort für Wort (sanft einblenden + leicht aufsteigen); *Wort* = Schlüsselwort in
-  Instrument Serif kursiv (größer, warmes Creme), Rest Inter SemiBold; weicher Schatten, keine Kästen
+  Kaushan Script (größer, warmes Creme), Rest Kaushan Script weiß; weicher Schatten, keine Kästen
 - Formate: normal, „breathing“ (atmender Kreis: breathe in · hold · breathe out), „split“ (A oben, B unten)
-- Schluss: „FULL 1-HOUR“ + Genre-Mix in Serif kursiv + Pfeil nach unten (zum verknüpften Video)
+- Schluss: „Full 1-hour“ + Genre-Mix (Schlüsselwort-Stil) + Pfeil nach unten (zum verknüpften Video)
 Jedes Bild wird in Python zusammengesetzt (sub-pixel-genau) und roh an ffmpeg gegeben.
 """
 import math
@@ -17,8 +17,9 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 from . import config, shorts
 
 W, H = 1080, 1920
-FONT_SANS = config.ASSETS / "fonts" / "Inter.ttf"
-FONT_SERIF_I = config.ASSETS / "fonts" / "InstrumentSerif-Italic.ttf"
+# Rolf 15.10.2026, 23:51: Kaushan Script für alle Texte (Pinsel-Schreibschrift, OFL); Schlüsselwort größer + Creme
+FONT_SANS = config.ASSETS / "fonts" / "KaushanScript-Regular.ttf"
+FONT_SERIF_I = FONT_SANS
 WHITE = (255, 255, 255)
 CREAM = (255, 232, 196)
 TEXT_CY = 560                     # Mitte der Textzone (oberes Drittel, Gesichter liegen meist tiefer)
@@ -59,11 +60,26 @@ def _tokens(text: str) -> list[tuple[str, bool]]:
     return out
 
 
-def layout_sentence(text: str, cy: int = TEXT_CY, size: int = 88, max_w: int = 900) -> list[dict]:
+def _wrap(toks, widths, sp, max_w):
+    lines, cur, cw = [], [], 0.0
+    for (w, hl), wd in zip(toks, widths):
+        add = wd if not cur else cw + sp + wd
+        if cur and add > max_w:
+            lines.append((cur, cw))
+            cur, cw = [(w, hl, wd)], wd
+        else:
+            cur.append((w, hl, wd))
+            cw = add
+    if cur:
+        lines.append((cur, cw))
+    return lines
+
+
+def layout_sentence(text: str, cy: int = TEXT_CY, size: int = 100, max_w: int = 900) -> list[dict]:
     """Liefert je Wort {img, x, y} – Zeilen mittig, Schlüsselwörter in Serif kursiv (1,35× größer)."""
     probe = ImageDraw.Draw(Image.new("L", (10, 10)))
     while True:
-        fs, fi = _sans(size), _serif(int(size * 1.38))
+        fs, fi = _sans(size), _serif(int(size * 1.22))
         sp = probe.textlength(" ", font=fs)
         toks = _tokens(text)
         widths = [probe.textlength(w, font=fi if hl else fs) for w, hl in toks]
@@ -81,6 +97,14 @@ def layout_sentence(text: str, cy: int = TEXT_CY, size: int = 88, max_w: int = 9
         if len(lines) <= 3 or size <= 50:
             break
         size -= 4
+    # Ausgewogener Umbruch: kleinste Breite mit gleicher Zeilenzahl (kein einzelnes Wort allein in der letzten Zeile)
+    if len(lines) > 1 and max_w > 400:
+        lo = int(max(wd for wd in widths)) + 1
+        for mw in range(lo, int(max_w), 10):
+            trial = _wrap(toks, widths, sp, mw)
+            if len(trial) == len(lines):
+                lines = trial
+                break
     lh = size * 1.32
     top = cy - lh * len(lines) / 2
     asc = fs.getmetrics()[0]
@@ -117,15 +141,15 @@ def _check(words: list[dict]) -> None:
             raise ValueError("Text ragt in die Knopf-Spalte")
 
 
-def layout_cta(genre: str, cy: int = 1040) -> list[dict]:
-    """Schluss: kleine Zeile „FULL 1-HOUR“, darunter der Genre-Mix in Serif kursiv, darunter ein feiner Pfeil."""
+def layout_cta(genre: str, cy: int = 640) -> list[dict]:
+    """Schluss: kleine Zeile „Full 1-hour“, darunter der Genre-Mix als Schlüsselwort, darunter ein feiner Pfeil."""
     probe = ImageDraw.Draw(Image.new("L", (10, 10)))
     items = []
-    small = "FULL 1-HOUR"
-    fs = _sans(36, "SemiBold")
-    track = 0.30 * fs.size
+    small = "Full 1-hour"
+    fs = _sans(60)
+    track = 0.02 * fs.size
     sw = sum(probe.textlength(c, font=fs) for c in small) + track * (len(small) - 1)
-    img = Image.new("RGBA", (int(sw) + 80, 110), (0, 0, 0, 0))
+    img = Image.new("RGBA", (int(sw) + 80, 160), (0, 0, 0, 0))
     m = Image.new("L", img.size, 0)
     md, d = ImageDraw.Draw(m), ImageDraw.Draw(img)
     x = 40
@@ -139,7 +163,7 @@ def layout_cta(genre: str, cy: int = 1040) -> list[dict]:
     for c in small:
         d.text((x, 40), c, font=fs, fill=WHITE + (235,))
         x += probe.textlength(c, font=fs) + track
-    items.append({"img": img, "x": (W - img.width) / 2, "y": cy - 120})
+    items.append({"img": img, "x": (W - img.width) / 2, "y": cy - 175})
     big = layout_sentence(f"*{GENRE_CTA.get(genre, 'chillout mix')}*", cy=cy + 14, size=74, max_w=880)
     items += big
     # Pfeil
