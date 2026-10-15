@@ -1,6 +1,6 @@
 """Shorts 2.0 (Rolf 15.10.2026, 22:26): Bewegtbild (Veo-Clip, ruhige Zeitlupe) + Text, der sich Wort für Wort aufbaut.
 
-- Bild: 8-s-Clip aus Bild-zu-Video, auf ~16 s verlangsamt (Bewegungs-Interpolation), leichte Vignette + Filmkorn
+- Bild: 15-s-Clip aus Kling 3.0 (Bild-zu-Video) in Originaltempo – keine Zeitlupe (ruckelte); Vignette + Filmkorn
 - Text: ein Satz nach dem anderen, Wort für Wort (sanft einblenden + leicht aufsteigen); *Wort* = Schlüsselwort in
   Kaushan Script (größer, warmes Creme), Rest Kaushan Script weiß; weicher Schatten, keine Kästen
 - Formate: normal, „breathing“ (atmender Kreis: breathe in · hold · breathe out), „split“ (A oben, B unten)
@@ -22,6 +22,8 @@ FONT_SANS = config.ASSETS / "fonts" / "KaushanScript-Regular.ttf"
 FONT_SERIF_I = FONT_SANS
 WHITE = (255, 255, 255)
 CREAM = (255, 232, 196)
+BREATH = (3.5, 1.0, 3.5)          # Sekunden: ein, halten, aus (passt in einen 15-s-Clip)
+BREATH_START = 3.4
 TEXT_CY = 560                     # Mitte der Textzone (oberes Drittel, Gesichter liegen meist tiefer)
 GENRE_CTA = {"Mediterranean Spa Lounge": "Chillout Lounge mix", "Dark Ambient Spa": "Spa & Relax mix",
              "Chillout Sleep": "Sleep Music mix", "Italian Chillout": "Italian Chillout mix",
@@ -177,28 +179,28 @@ def layout_cta(genre: str, cy: int = 640) -> list[dict]:
 
 # ---------------------------------------------------------------- Zeitplan
 
-def timeline(beats: list[str], genre: str, breathing: bool = False, dur: float = 16.0) -> tuple[list[dict], float]:
+def timeline(beats: list[str], genre: str, breathing: bool = False, dur: float = 15.0) -> tuple[list[dict], float]:
     """Elemente mit Start/Ende; Wörter je Satz versetzt (0,16 s)."""
     els = []
     t = -0.25                                  # erster Satz: erstes Wort ist im ersten Bild schon halb da
     first = layout_sentence(beats[0])
     for i, w in enumerate(first):
-        els.append({**w, "t0": t + i * 0.16, "t1": 6.4 if not breathing else 4.2, "rise": 14})
+        els.append({**w, "t0": t + i * 0.16, "t1": 6.0 if not breathing else 3.2, "rise": 14})
     if breathing:
-        t = 4.6
-        for word, sec in (("breathe in", 4.0), ("hold", 2.0), ("breathe out", 4.0)):
+        t = BREATH_START
+        for word, sec in (("breathe in", BREATH[0]), ("hold", BREATH[1]), ("breathe out", BREATH[2])):
             for w in layout_sentence(word, size=66):
                 els.append({**w, "t0": t, "t1": t + sec - 0.1, "rise": 0, "fade": 0.5})
             t += sec
-        els.append({"ring": True, "t0": 4.6, "t1": t + 0.3})
-        cta_at = t + 0.6
-        dur = cta_at + 4.5
+        els.append({"ring": True, "t0": BREATH_START, "t1": t + 0.3})
+        cta_at = t + 0.2
+        dur = max(dur, cta_at + 3.4)
     else:
         if len(beats) > 1:
             second = layout_sentence(beats[1])
             for i, w in enumerate(second):
-                els.append({**w, "t0": 6.9 + i * 0.16, "t1": 11.6, "rise": 14})
-        cta_at = 12.0
+                els.append({**w, "t0": 6.5 + i * 0.16, "t1": 10.6, "rise": 14})
+        cta_at = 11.0
         dur = max(dur, cta_at + 4.0)
     for w in layout_cta(genre):
         els.append({**w, "t0": cta_at + (0.25 if "ring" not in w else 0), "t1": dur + 1, "rise": 10, "fade": 0.7})
@@ -215,14 +217,15 @@ def _alpha(el: dict, t: float) -> tuple[float, float]:
 
 
 def _ring(frame: Image.Image, e: float) -> None:
-    """Atem-Kreis: 4 s größer (ein), 2 s halten, 4 s kleiner (aus)."""
-    if e < 4:
-        r = 130 + 120 * _smooth(e / 4)
-    elif e < 6:
+    """Atem-Kreis: einatmen (größer), halten, ausatmen (kleiner) – Takt aus BREATH."""
+    bi, bh, bo = BREATH
+    if e < bi:
+        r = 130 + 120 * _smooth(e / bi)
+    elif e < bi + bh:
         r = 250
     else:
-        r = 250 - 120 * _smooth((e - 6) / 4)
-    a = _smooth(e / 0.6) * _smooth((10.3 - e) / 0.6)
+        r = 250 - 120 * _smooth((e - bi - bh) / bo)
+    a = _smooth(e / 0.6) * _smooth((bi + bh + bo + 0.3 - e) / 0.6)
     if a <= 0.01:
         return
     size = int(2 * r + 80)
@@ -252,6 +255,26 @@ def slow_clip(src: Path, dst: Path, factor: float, crop_half: bool = False) -> P
     return dst
 
 
+def prep_clip(src: Path, dst: Path, crop_half: bool = False) -> Path:
+    """Nur skalieren/zuschneiden – Originaltempo und -bildrate (Kling liefert 15 s am Stück, keine Zeitlupe nötig)."""
+    h = 960 if crop_half else H
+    vf = f"scale={W}:-2:flags=lanczos,crop={W}:{h},format=rgb24"
+    subprocess.run(["ffmpeg", "-hide_banner", "-v", "error", "-y", "-i", str(src), "-an", "-vf", vf,
+                    "-c:v", "libx264", "-preset", "veryfast", "-crf", "12", "-pix_fmt", "yuv420p", str(dst)],
+                   check=True)
+    return dst
+
+
+def _probe(path: Path) -> tuple[float, float]:
+    """(Dauer s, Bildrate fps)"""
+    out = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
+                          "stream=r_frame_rate:format=duration", "-of", "default=nw=1", str(path)],
+                         capture_output=True, text=True).stdout
+    vals = dict(l.split("=", 1) for l in out.split() if "=" in l)
+    num, _, den = vals.get("r_frame_rate", "30/1").partition("/")
+    return float(vals.get("duration", 8)), float(num) / float(den or 1)
+
+
 def _frames(path: Path, w: int, h: int):
     p = subprocess.Popen(["ffmpeg", "-v", "error", "-i", str(path), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
                          stdout=subprocess.PIPE)
@@ -270,12 +293,16 @@ def render(clip: Path, beats: list[str], genre: str, wav: Path, start: float, ou
     work.mkdir(parents=True, exist_ok=True)
     els, dur = timeline(beats, genre, breathing)
     split = clip_b is not None
-    # Zeitlupe: 8-s-Clip auf etwas mehr als die Short-Länge strecken
-    src_len = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
-                                    str(clip)], capture_output=True, text=True).stdout or 8)
-    factor = round((dur + 0.5) / src_len, 3)
-    a = slow_clip(clip, work / "a.mp4", factor, crop_half=split)
-    b = slow_clip(clip_b, work / "b.mp4", factor, crop_half=True) if split else None
+    src_len, src_fps = _probe(clip)
+    if src_len >= dur - 0.6:                   # Kling 15 s: Originaltempo, ruckelfrei
+        a = prep_clip(clip, work / "a.mp4", crop_half=split)
+        b = prep_clip(clip_b, work / "b.mp4", crop_half=True) if split else None
+        fps = round(src_fps) or 24
+    else:                                      # alter Weg (Veo 8 s): Zeitlupe
+        factor = round((dur + 0.5) / src_len, 3)
+        a = slow_clip(clip, work / "a.mp4", factor, crop_half=split)
+        b = slow_clip(clip_b, work / "b.mp4", factor, crop_half=True) if split else None
+        fps = 30
     # Leichte Abdunklung oben (Text) – statisch
     shade = Image.new("L", (W, H), 0)
     sd = ImageDraw.Draw(shade)
@@ -287,7 +314,6 @@ def render(clip: Path, beats: list[str], genre: str, wav: Path, start: float, ou
     if split and labels:                       # Ortsnamen an der Trennlinie (A oben, B unten)
         els += [{**w, "t0": 0.3, "t1": dur + 1, "rise": 0} for w in layout_sentence(f"*{labels[0]}*", cy=900, size=40)]
         els += [{**w, "t0": 0.5, "t1": dur + 1, "rise": 0} for w in layout_sentence(f"*{labels[1]}*", cy=1020, size=40)]
-    fps = 30
     n_frames = int(round(dur * fps))
     cmd = ["ffmpeg", "-hide_banner", "-nostats", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
            "-r", str(fps), "-i", "-", "-ss", f"{start:.2f}", "-t", f"{dur:.2f}", "-i", str(wav),
