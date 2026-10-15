@@ -20,7 +20,11 @@
       "Bash(python monthly_mix.py:*)",
       "Bash(/usr/bin/python monthly_mix.py:*)",
       "Bash(nohup python monthly_mix.py:*)",
-      "Bash(nohup /usr/bin/python monthly_mix.py:*)"
+      "Bash(nohup /usr/bin/python monthly_mix.py:*)",
+      "Bash(python run_tip_short.py:*)",
+      "Bash(/usr/bin/python run_tip_short.py:*)",
+      "Bash(nohup python run_tip_short.py:*)",
+      "Bash(nohup /usr/bin/python run_tip_short.py:*)"
     ]
   }
 }
