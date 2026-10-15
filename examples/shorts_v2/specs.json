@@ -1,0 +1,86 @@
+[
+  {
+    "id": "01-pov-evening",
+    "format": "POV – Wiedererkennen",
+    "mix": "Mediterranean Spa Lounge",
+    "beats": ["POV: it's 9 pm", "and the evening is finally *yours*"],
+    "image": "Cinematic vertical photograph, 9:16. A woman in her thirties in a soft champagne silk slip dress leans on the railing of a private balcony high above a Mediterranean coastal town at blue hour, a glass of white wine in her hand, looking out over twinkling town lights and the calm sea. Warm string lights glow around her, a light breeze moves her hair. Seen from behind at a three-quarter angle, face in soft profile. Intimate, aspirational, quiet luxury, real editorial photo, 35mm, shallow depth of field, natural skin texture, subtle film grain. The upper third of the frame is calm evening sky. No text, no logos.",
+    "motion": "Very slow, smooth cinematic push-in. Her hair and the silk dress move gently in the evening breeze, the town lights twinkle softly, the sea shimmers. She slowly lifts the glass a little. Calm, dreamy, continuous single shot."
+  },
+  {
+    "id": "02-send-couple",
+    "format": "Teilen – an jemanden schicken",
+    "mix": "Italian Chillout",
+    "beats": ["Send this to the one", "you'd watch this *sunset* with"],
+    "image": "Cinematic vertical photograph, 9:16. A couple in their thirties stands close together on a stone terrace high above the Amalfi Coast at sunset, she leans back into his arms, both looking out at the glowing orange sea and the pastel cliffside village below. She wears a flowing white linen dress, he a light linen shirt. Lemon trees and terracotta pots frame the terrace. Seen from behind at a slight angle, warm golden backlight, romantic, timeless, real editorial travel photo, 35mm, natural skin, film grain. The upper third is warm sky. No text, no logos.",
+    "motion": "Slow, gentle dolly forward. The couple sways softly, her dress and hair flutter in the warm sea breeze, the sunlight sparkles on the water, leaves of the lemon trees move. Romantic, calm, continuous single shot."
+  },
+  {
+    "id": "03-breathe",
+    "format": "Mitmachen – Atmen",
+    "mix": "Dark Ambient Spa",
+    "beats": ["Breathe with me", "slowly in… and out"],
+    "breathing": true,
+    "image": "Cinematic vertical photograph, 9:16. A woman with her eyes closed floats peacefully on her back in a warm outdoor stone spa pool at dusk, her hair spreading in the water, soft steam rising, candles and lanterns along the edge, tropical plants and a deep blue evening sky above. Serene expression, arms relaxed. Shot from a high angle, calm and luxurious, real editorial spa photo, soft warm light, natural skin texture, subtle film grain. No text, no logos.",
+    "motion": "Very slow overhead drift. The water ripples gently, steam rises and swirls softly, candle flames flicker, her chest rises and falls with slow breathing. Peaceful, meditative, continuous single shot."
+  },
+  {
+    "id": "04-your-sign",
+    "format": "Zeichen – Erlaubnis zur Pause",
+    "mix": "Mediterranean Spa Lounge",
+    "beats": ["This is your sign", "to *slow down* tonight"],
+    "image": "Cinematic vertical photograph, 9:16. A woman in a white linen dress walks barefoot along the edge of the sea on an empty beach at golden hour, holding her sandals in one hand, gentle waves washing over her feet, the low sun behind her creating a warm glow around her hair. Seen from a low angle at three-quarter view, peaceful smile, free and unhurried. Real editorial photo, 50mm, warm tones, natural skin texture, film grain. The upper third is soft golden sky. No text, no logos.",
+    "motion": "Slow tracking shot alongside her as she walks slowly. Waves gently roll over her feet, the dress and her hair move in the breeze, golden sunlight flickers on the water. Calm, free, continuous single shot."
+  },
+  {
+    "id": "05-rate-evening",
+    "format": "Bewerten – Kommentar-Frage",
+    "mix": "Italian Chillout",
+    "beats": ["Rate this evening", "from *1 to 10*"],
+    "image": "Cinematic vertical photograph, 9:16. A candlelit dinner table for two on a lakeside terrace on Lake Como at dusk, a couple in elegant evening wear clinks wine glasses and laughs, white linen, candles, a bottle of wine, the lake glowing pink and violet behind them with mountains and village lights across the water. Seen from a slight distance, warm candlelight on their faces, joyful and intimate. Real editorial photo, 35mm, shallow depth of field, natural skin texture, film grain. No text, no logos.",
+    "motion": "Slow, smooth push-in towards the table. Candle flames flicker, the couple clinks glasses and smiles at each other, reflections dance on the lake, village lights twinkle. Warm, romantic, continuous single shot."
+  },
+  {
+    "id": "06-amalfi-or-como",
+    "format": "Entscheiden – A oder B",
+    "mix": "Italian Chillout",
+    "beats": ["Amalfi or Lake Como?", "Pick *one*. Only one."],
+    "split": true,
+    "image": "Cinematic vertical photograph, 9:16. A woman in a red summer dress and a wide straw hat stands on a sunlit terrace above the colourful cliffside houses of the Amalfi Coast, the turquoise sea below, bougainvillea around her, looking over her shoulder towards the camera with a soft smile. Golden afternoon light, real editorial travel photo, 35mm, natural skin texture, film grain. No text, no logos.",
+    "image_b": "Cinematic vertical photograph, 9:16. A couple sits in an elegant vintage wooden motorboat gliding across the calm, glittering water of Lake Como at golden hour, green mountains and pastel villas with cypress trees on the shore behind them, she wears sunglasses and a silk scarf, he steers, both relaxed and smiling. Real editorial travel photo, 35mm, warm light, natural skin texture, film grain. No text, no logos.",
+    "motion": "Slow, gentle push-in. Her dress and hat brim move in the warm breeze, bougainvillea flowers sway, the sea below sparkles. Calm, sunny, continuous single shot.",
+    "motion_b": "The wooden boat glides slowly and smoothly across the lake, a soft wake trails behind, her scarf flutters, sunlight glitters on the water. Calm, elegant, continuous single shot."
+  },
+  {
+    "id": "07-mind-off",
+    "format": "Musik für einen Moment",
+    "mix": "Chillout Sleep",
+    "beats": ["Music for when", "your mind won't *switch off*"],
+    "image": "Cinematic vertical photograph, 9:16. A woman lies relaxed in a soft rope hammock in a garden at night, wrapped in a light knitted blanket, eyes closed, warm fairy lights strung between the trees above her, a starry deep blue sky, fireflies glowing softly. Seen from above at a slight angle, peaceful and safe. Real editorial photo, soft warm light against cool night tones, natural skin texture, film grain. No text, no logos.",
+    "motion": "Very slow drift. The hammock sways gently, the fairy lights twinkle, fireflies drift slowly through the air, leaves move softly. Dreamy, calm, continuous single shot."
+  },
+  {
+    "id": "08-countdown-italy",
+    "format": "Countdown – Flucht in den Moment",
+    "mix": "Italian Chillout",
+    "beats": ["Your Italian evening", "starts in *3… 2… 1…*"],
+    "image": "Cinematic vertical photograph, 9:16. A woman in an elegant emerald green evening dress walks down old stone steps between pastel houses in Positano at golden hour, turning back towards the camera with a warm inviting smile, one hand on the railing, the sea and the village glowing behind her, bougainvillea on the walls. Real editorial travel photo, 50mm, warm light, natural skin texture, film grain. No text, no logos.",
+    "motion": "Slow, smooth camera follow as she turns and smiles, her dress moves gently, warm light flickers through the flowers, the sea shimmers in the background. Inviting, cinematic, continuous single shot."
+  },
+  {
+    "id": "09-cabin",
+    "format": "Gemütlichkeit – Winterabend",
+    "mix": "Cozy Winter Cabin",
+    "beats": ["Snow outside.", "Fire inside. *Nowhere* to be."],
+    "image": "Cinematic vertical photograph, 9:16. A couple sits close together on a thick rug in front of a crackling stone fireplace in a cozy wooden mountain cabin at night, wrapped in one big wool blanket, holding mugs of hot cocoa, her head resting on his shoulder. Through a large window behind them heavy snow falls in the blue night. Warm amber firelight on their faces, candles, books. Real editorial interior photo, 35mm, natural skin texture, film grain. No text, no logos.",
+    "motion": "Very slow push-in. The fire crackles and flickers warmly, snowflakes fall steadily outside the window, steam rises from the mugs, the couple breathes calmly. Cozy, peaceful, continuous single shot."
+  },
+  {
+    "id": "10-save-sleep",
+    "format": "Speichern – für später",
+    "mix": "Chillout Sleep",
+    "beats": ["Save this for the night", "you can't *fall asleep*"],
+    "image": "Cinematic vertical photograph, 9:16. A woman sleeps peacefully in a canopy bed with sheer white curtains on an open-air terrace of a seaside villa under a full moon, soft white linen, the calm sea glittering in silver moonlight behind, a lantern glowing softly on a side table. Serene, safe, dreamlike. Real editorial photo, cool blue moonlight with warm lantern accents, natural skin texture, film grain. No text, no logos.",
+    "motion": "Very slow drift. The sheer curtains billow gently in the night breeze, moonlight shimmers on the sea, the lantern flame flickers, she breathes calmly in her sleep. Dreamlike, continuous single shot."
+  }
+]
