@@ -194,9 +194,12 @@ Ziel: mehr Zuschauer in die langen Mixe bringen (Wiedergabestunden fürs Partner
 Rückfragen**. Plan-Dokument: „Aix Walker – Wachstums- und Einnahmenplan 2026/27“ (Claude Docs).
 - Skript: `python run_tip_short.py --kind wellness|dolcevita` – nimmt den nächsten offenen Eintrag aus der Warteschlange
   `AIX WALKER Mixe/_memory/tip_queue.json` (beim ersten Lauf aus `tips/seed.json` angelegt), holt einen Track aus dem
-  neuesten Mix des Eintrags-Genres (Drive), erzeugt EIN 9:16-Bild (Nano Banana, Bildstil des Genres), rendert 25 s im
-  modernen Short-Look (Rolf 15.10.2026: Label-Chip, Hook in Montserrat Black mit Kontur + goldenem Schlüsselwort, Tipp-Zeilen
-  als weiße Boxen, die nacheinander einblenden, langsamer Zoom, Knopf „FULL MIX · LINK BELOW“), lädt ihn **öffentlich mit
+  neuesten Mix des Eintrags-Genres (Drive), erzeugt EIN 9:16-Bild (Nano Banana, Bildstil des Genres), rendert ca. 30 s im
+  **ruhigen Wellness-Look** (`pipeline/tipcalm.py`, Rolf 15.10.2026: „chillig, schön, zum Betrachten einladen – nicht
+  blubbblubb drei Texte“): immer nur EIN Text, sanft ein-/ausgeblendet, je ~6 s; Kennzeile fein gesperrt, Überschrift
+  Cinzel Regular, Text Manrope; butterweiche, kaum spürbare Kamerafahrt (Sub-Pixel), warmes wanderndes Licht, weiche
+  Vignette; bei Box-Atmung ein atmender Kreis (4-4-4-4); Schluss „listen to the full mix“ + Albumname in Schreibschrift.
+  **Nicht** auf den lauten Stil (Boxen, Badges, Pulsieren, schnelle Einblendungen) zurückbauen. Lädt ihn **öffentlich mit
   KI-Kennzeichnung** hoch (Beschreibung: Tipp, Link zum Mix, Quellen, Hinweis „not medical advice“), legt ihn in Drive
   unter `AIX WALKER Mixe/_tip_shorts/<Datum – id>` ab und schreibt `tip_shorts` ins Gedächtnis. Kein E-Mail-Bericht
   (Rolf will keine Mail-Flut) – Abschluss im Chat der Tages-Routine.

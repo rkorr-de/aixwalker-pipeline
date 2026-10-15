@@ -20,7 +20,7 @@ import time
 from datetime import date
 from pathlib import Path
 
-from pipeline import config, costs, images, memory, shorts, tipshorts
+from pipeline import config, costs, images, memory, shorts, tipcalm, tipshorts
 
 CLIP_SEC = 25
 GROUP = {"Chillout Sleep": ("Chillout Sleep", "Dark Ambient Spa", "Mediterranean Spa Lounge"),
@@ -110,38 +110,36 @@ def produce(kind: str, args) -> int:
     else:
         wav = fetch_track(mix, out, entry["id"])
     total = duration(wav)
-    try:
-        p = shorts.find_passages(wav, [0.0], total, CLIP_SEC, 1)[0]
-        start = p["start"]
-    except Exception as e:  # noqa: BLE001
-        log(f"Passagensuche fehlgeschlagen ({e}) – Start bei 20 s")
-        start = min(20.0, max(0.0, total - CLIP_SEC - 1))
-    end = start + CLIP_SEC
+
+    def passage(sec: float) -> float:
+        try:
+            return shorts.find_passages(wav, [0.0], total, int(sec) + 1, 1)[0]["start"]
+        except Exception as e:  # noqa: BLE001
+            log(f"Passagensuche fehlgeschlagen ({e}) – Start bei 20 s")
+            return min(20.0, max(0.0, total - sec - 1))
 
     # Bild (9:16, Stil des Ziel-Genres; Italien mit sanftem Orange-&-Teal-Look)
     style = images.style_for(entry["music_genre"])
     if args.dry_run:
         art = images.procedural_art("9:16", seed=7)
     else:
-        art = images.generate_art(entry["scene"] + " Vertical 9:16 composition, the upper half calm and uncluttered.",
-                                  aspect="9:16", style=style)
+        art = images.generate_art(entry["scene"] + " Vertical 9:16 composition, calm and uncluttered in the middle, "
+                                  "cinematic, inviting, peaceful.", aspect="9:16", style=style)
     art = images.color_grade(art, entry["music_genre"])
     art.save(out / "art.jpg", quality=92)
 
-    # Video im modernen Look (Rolf 15.10.2026): Ebenen + Zoom + nacheinander einblendende Tipp-Boxen
+    # Video im RUHIGEN Wellness-Look (Rolf 15.10.2026, 21:57: „chillig, schön, zum Betrachten einladen“) –
+    # ein Text nach dem anderen, je ~6 s, Cinzel/Manrope, sanfte Kamerafahrt, Atem-Kreis bei Box-Atmung
     clip_path = out / f"{entry['id']}.mp4"
     try:
-        layers = tipshorts.build_layers(art, entry, out / "layers")
-        frame = layers["preview"]
-        try:
-            clip = tipshorts.render_smooth(layers, wav, start, CLIP_SEC, clip_path)   # flüssig (Rolf 15.10.)
-        except Exception as e:  # noqa: BLE001
-            log(f"Flüssiger Renderer fehlgeschlagen ({str(e)[:160]}); ffmpeg-Renderer")
-            clip = tipshorts.render_video(layers, wav, start, CLIP_SEC, clip_path)
+        built = tipcalm.build(art, entry, out / "layers", album=(mix or {}).get("album"))
+        frame = built["preview"]
+        clip = tipcalm.render(built, wav, passage(built["dur"]), clip_path)
     except Exception as e:  # noqa: BLE001 – im Zweifel der einfache Standbild-Short statt gar keiner
-        log(f"Moderner Short fehlgeschlagen ({str(e)[:200]}); Fallback auf Standbild-Short")
+        log(f"Ruhiger Short fehlgeschlagen ({str(e)[:200]}); Fallback auf Standbild-Short")
+        start = passage(CLIP_SEC)
         frame = tipshorts.make_tip_frame(art, entry["label"], entry["hook"], entry["lines"], out / "frame.png")
-        clip = shorts.build_short(frame, wav, start, end, clip_path)
+        clip = shorts.build_short(frame, wav, start, start + CLIP_SEC, clip_path)
 
     title = tipshorts.short_title(entry)
     desc = tipshorts.short_description(entry, mix)
