@@ -165,7 +165,12 @@ def main() -> int:
             c1, c2 = d / "clip_1.mp4", d / "clip_2.mp4"
             sfx: list = []
             if kling:
-                fal.kling_clip(story_mod.kling_prompt(st), kf1, c1, seconds=15, audio=config.KLING_AUDIO)
+                kp = story_mod.kling_prompt(st)
+                with open(out / "kling_prompt.txt", "a", encoding="utf-8") as fh:   # zum Nachlesen (auch in Drive)
+                    fh.write(f"=== Versuch {d.name} – {datetime.now(BERLIN).strftime('%d.%m.%Y %H:%M')} – Kling 3.0 "
+                             f"{config.KLING_TIER}, 15 s, Ton {'an' if config.KLING_AUDIO else 'aus'}, cfg_scale 0.5 ===\n"
+                             f"PROMPT ({len(kp)} Zeichen):\n{kp}\n\nNEGATIV-PROMPT:\n{fal.negative_prompt()}\n\n")
+                fal.kling_clip(kp, kf1, c1, seconds=15, audio=config.KLING_AUDIO)
                 log(f"Kling-Clip fertig (Kling 3.0 {config.KLING_TIER}, 15 s, {'mit' if config.KLING_AUDIO else 'ohne'} Ton)")
             if kling and config.KLING_AUDIO:
                 st["sfx_cues"] = []    # Kling-Ton ist schon synchron – keine nachträglichen Geräusche

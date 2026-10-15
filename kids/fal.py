@@ -64,6 +64,10 @@ def _download(url: str, out: Path) -> Path:
     return out
 
 
+def negative_prompt() -> str:
+    return (config.NEGATIVE_PROMPT + ", human voice, talking, babbling, gibberish language, chipmunk voice, music")[:500]
+
+
 def kling_clip(prompt: str, first_frame: Image.Image, out: Path, seconds: int = 15,
                tier: str | None = None, audio: bool = False) -> Path:
     """Ein durchgehender Kling-3.0-Clip (3–15 s) ab dem Startbild."""
@@ -73,7 +77,7 @@ def kling_clip(prompt: str, first_frame: Image.Image, out: Path, seconds: int = 
     app = f"fal-ai/kling-video/v3/{tier}/image-to-video"
     res = run(app, {"prompt": prompt[:2500], "start_image_url": _data_uri(first_frame), "duration": str(seconds),
                     "generate_audio": audio, "cfg_scale": 0.5,
-                    "negative_prompt": (config.NEGATIVE_PROMPT + ", human voice, talking, babbling, gibberish language, chipmunk voice, music")[:500]})
+                    "negative_prompt": negative_prompt()})
     costs.count(key, seconds)
     return _download(res["video"]["url"], out)
 

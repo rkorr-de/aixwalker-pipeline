@@ -382,6 +382,12 @@ def _clean_action(text: str) -> str:
     return re.sub(r"\s{2,}", " ", _CAMERA_WORDS.sub("", text or "")).strip()
 
 
+def _sentence(text: str) -> str:
+    """Genau ein Satzzeichen am Ende (verhindert „nearby..“ und fehlende Punkte vor dem nächsten Satz)."""
+    t = (text or "").strip().rstrip(".").rstrip()
+    return t + ("" if t.endswith(("!", "?")) else ".") if t else ""
+
+
 def kling_prompt(story: dict) -> str:
     """Ein durchgehender 15-s-Clip in EINER Einstellung. Keine Zeitmarken (0–8 s / 8–15 s) und keine Kamerabegriffe
     mehr – beides hat Kling als Schnitt gelesen. Harte Regeln gegen die typischen Fehler der Videoprüfung."""
@@ -392,7 +398,7 @@ def kling_prompt(story: dict) -> str:
            "clearly different bodies")
     head = (f"Pixar-style 3D animation for toddlers. ONE single continuous camera take: static camera at child eye "
             f"level, no cuts, no zoom, no pan, no scene change from the first to the last frame. {_cast(story)} "
-            f"Place: {story['setting']}. ")
+            f"Place: {_sentence(story['setting'])} ")
     rules = (f"Rules for the whole clip: {who} in the scene, no other animals or people. Each character keeps exactly "
             f"the same body, face, colors and accessories in every frame, with the correct number of legs, paws, ears "
             f"and tail for its species – never extra limbs, never hands or fingers. Clapping means the two front paws "
@@ -415,7 +421,8 @@ def kling_prompt(story: dict) -> str:
         cut = text[:limit]
         return cut[:cut.rfind(". ") + 1] if ". " in cut else cut
 
-    a1, a2, end = _clean_action(s1["action"]), _clean_action(s2["action"]), _clean_action(s2["ends_with"])
+    a1, a2 = _sentence(_clean_action(s1["action"])), _sentence(_clean_action(s2["action"]))
+    end = _sentence(_clean_action(s2["ends_with"]))
     fixed = len("First:  Then, in the same take:  Last image:  ") + len(end)
     per = max(150, (budget - fixed) // 2)
     action = f"First: {fit(a1, per)} Then, in the same take: {fit(a2, per)} Last image: {end} "
