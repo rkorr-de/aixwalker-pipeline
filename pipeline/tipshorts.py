@@ -416,27 +416,37 @@ def build_layers(art: Image.Image, entry: dict, out_dir: Path, pill_label: str =
     tsize = 46
     while True:
         ft = _mont(tsize, "Bold")
-        blocks = [_balanced(probe, t, ft, 640) for t in entry["lines"]]
+        blocks = [_balanced(probe, t, ft, 600) for t in entry["lines"]]
         lhh = int(ft.size * 1.22)
         heights = [len(bl) * lhh + 2 * 16 for bl in blocks]
         bottom = y + sum(heights) + 18 * (len(blocks) - 1)
         widest = max(probe.textlength(s, font=ft) for bl in blocks for s in bl)
-        if (bottom <= limit and widest <= 640) or tsize <= 34:
+        if (bottom <= limit and widest <= 600) or tsize <= 34:
             break
         tsize -= 2
     tips = []
+    fb = _mont(30, "Black")
     for k, (bl, hh) in enumerate(zip(blocks, heights)):
-        bw = int(max(probe.textlength(s, font=ft) for s in bl) + 2 * 26)
+        # Schritt-Badge (goldener Kreis mit Nummer) links in der Box – wirkt wie eine Anleitung (1, 2, 3)
+        bd = 50
+        tw = int(max(probe.textlength(s, font=ft) for s in bl))
+        bw = tw + 2 * 26 + bd + 16
         bx0 = (w - bw) // 2
         layer = _layer(w, h)
-        _soft_shadow(layer, lambda md: md.rounded_rectangle((bx0, y, bx0 + bw, y + hh), radius=20, fill=255),
-                     radius=16, alpha=110, offset=(0, 6))
+        _soft_shadow(layer, lambda md: md.rounded_rectangle((bx0, y, bx0 + bw, y + hh), radius=22, fill=255),
+                     radius=16, alpha=120, offset=(0, 7))
         dd = ImageDraw.Draw(layer)
-        dd.rounded_rectangle((bx0, y, bx0 + bw, y + hh), radius=20, fill=(255, 255, 255, 240))
+        dd.rounded_rectangle((bx0, y, bx0 + bw, y + hh), radius=22, fill=(255, 255, 255, 245))
+        bcx, bcy = bx0 + 22 + bd // 2, y + hh // 2
+        dd.ellipse((bcx - bd // 2, bcy - bd // 2, bcx + bd // 2, bcy + bd // 2), fill=GOLD + (255,))
+        num = str(k + 1)
+        nb = probe.textbbox((0, 0), num, font=fb)
+        dd.text((bcx - (nb[0] + nb[2]) / 2, bcy - (nb[1] + nb[3]) / 2), num, font=fb, fill=INK + (255,))
+        tx_left = bx0 + 22 + bd + 16
         for i, s in enumerate(bl):
             sb = probe.textbbox((0, 0), s, font=ft)
-            dd.text(((w - (sb[2] - sb[0])) / 2 - sb[0], y + 16 + i * lhh - sb[1] + (lhh - (sb[3] - sb[1])) / 2 - 2),
-                    s, font=ft, fill=INK + (255,))
+            dd.text((tx_left + (tw - (sb[2] - sb[0])) / 2 - sb[0],
+                     y + 16 + i * lhh - sb[1] + (lhh - (sb[3] - sb[1])) / 2 - 2), s, font=ft, fill=INK + (255,))
         boxes.append((bx0, y, bx0 + bw, y + hh))
         p = out_dir / f"L4_tip{k + 1}.png"
         layer.save(p)
@@ -511,4 +521,108 @@ def render_video(layers: dict, wav: Path, start: float, dur: float, out: Path, f
            "-map", "[v]", "-map", "[aout]", "-t", f"{dur:.2f}", "-r", str(fps), "-c:v", "libx264", "-preset", "veryfast",
            "-crf", "20", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", str(out)]
     subprocess.run(cmd, check=True, capture_output=True)
+    return out
+
+
+# ---------------------------------------------------------------- Flüssiger Renderer (Rolf 15.10.2026, 21:48)
+# „Zu langweilig, das Zoomen ruckelt“: ffmpeg-scale rundet je Bild auf ganze Pixel → Ruckeln. Hier wird jedes Bild in
+# Python mit Sub-Pixel-Genauigkeit (affine Transformation, bikubisch) berechnet und roh an ffmpeg gegeben: butterweiche
+# Kamerafahrt (Zoom + leichter Schwenk mit Ease-in-out), Hook „schlägt“ ins Bild, Label und Tipp-Boxen poppen mit
+# Überschwinger, der Knopf pulsiert.
+
+def _clamp(x: float) -> float:
+    return 0.0 if x < 0 else 1.0 if x > 1 else x
+
+
+def _ease_out_cubic(x: float) -> float:
+    x = _clamp(x)
+    return 1 - (1 - x) ** 3
+
+
+def _ease_in_out(x: float) -> float:
+    x = _clamp(x)
+    return x * x * (3 - 2 * x)
+
+
+def _ease_out_back(x: float, s: float = 1.9) -> float:
+    x = _clamp(x) - 1
+    return 1 + (s + 1) * x ** 3 + s * x ** 2
+
+
+def _sprite(path: Path) -> tuple[Image.Image, tuple[int, int]]:
+    im = Image.open(path).convert("RGBA")
+    bb = im.getbbox() or (0, 0, 1, 1)
+    return im.crop(bb), (bb[0], bb[1])
+
+
+def _place(frame: Image.Image, spr: Image.Image, origin: tuple[int, int], scale: float = 1.0, alpha: float = 1.0,
+           dy: float = 0.0) -> None:
+    if alpha <= 0.01:
+        return
+    sp = spr
+    if abs(scale - 1.0) > 0.002:
+        sw, sh = max(1, round(spr.width * scale)), max(1, round(spr.height * scale))
+        sp = spr.resize((sw, sh), Image.BICUBIC)
+    if alpha < 0.999:
+        a = sp.getchannel("A").point(lambda v: int(v * alpha))
+        sp = sp.copy()
+        sp.putalpha(a)
+    cx, cy = origin[0] + spr.width / 2, origin[1] + spr.height / 2
+    x, y = round(cx - sp.width / 2), round(cy - sp.height / 2 + dy)
+    frame.alpha_composite(sp, dest=(max(0, x), max(0, y)),
+                          source=(max(0, -x), max(0, -y)))
+
+
+def render_smooth(layers: dict, wav: Path, start: float, dur: float, out: Path, fps: int = 30) -> Path:
+    import math
+    import subprocess
+    W, H = 1080, 1920
+    out.parent.mkdir(parents=True, exist_ok=True)
+    bg = Image.open(layers["bg"]).convert("RGB")
+    k = bg.width / W                      # Hintergrund ist 1,08× so groß wie das Bild
+    shade = Image.open(layers["shade"]).convert("RGBA")
+    label, lo = _sprite(layers["label"])
+    hook, ho = _sprite(layers["hook"])
+    tips = [(*_sprite(t["file"]), t["at"]) for t in layers["tips"]]
+    cta, co = _sprite(layers["cta"])
+    cmd = ["ffmpeg", "-hide_banner", "-nostats", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
+           "-r", str(fps), "-i", "-", "-ss", f"{start:.2f}", "-t", f"{dur:.2f}", "-i", str(wav),
+           "-filter_complex", f"[1:a]afade=t=in:d=0.3,afade=t=out:st={dur - 1.5:.2f}:d=1.5[aout]",
+           "-map", "0:v", "-map", "[aout]", "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-pix_fmt", "yuv420p",
+           "-c:a", "aac", "-b:a", "192k", "-t", f"{dur:.2f}", "-movflags", "+faststart", str(out)]
+    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+    try:
+        for n in range(int(round(dur * fps))):
+            t = n / fps
+            p = _ease_in_out(t / dur)
+            z = 1.0 + 0.12 * p                               # Zoom 1,00 → 1,12
+            pan = 26 * (p - 0.5) * 2                         # Schwenk −26 … +26 px
+            src_w, src_h = bg.width / (k * z), bg.height / (k * z)   # sichtbarer Ausschnitt in Quellpixeln
+            cx, cy = bg.width / 2 + pan, bg.height / 2 - 10 * p
+            sc = src_w / W
+            frame = bg.transform((W, H), Image.AFFINE, (sc, 0, cx - src_w / 2, 0, sc, cy - src_h / 2),
+                                 resample=Image.BICUBIC).convert("RGBA")
+            frame.alpha_composite(shade)
+            # Hook: schlägt ein (1,16 → 1,00), ab Bild 1 lesbar
+            _place(frame, hook, ho, scale=1.0 + 0.16 * (1 - _ease_out_cubic(t / 0.45)))
+            # Label: Pop mit Überschwinger
+            _place(frame, label, lo, scale=0.55 + 0.45 * _ease_out_back(t / 0.4), alpha=_clamp(t / 0.1 + 0.4))
+            for spr, o, at in tips:
+                dt = t - at
+                if dt < 0:
+                    continue
+                _place(frame, spr, o, scale=0.72 + 0.28 * _ease_out_back(dt / 0.38),
+                       alpha=_clamp(dt / 0.12), dy=26 * (1 - _ease_out_cubic(dt / 0.32)))
+            dt = t - CTA_AT
+            if dt >= 0:
+                pulse = 0.035 * max(0.0, math.sin(2 * math.pi * (t - CTA_AT) / 1.5)) if dt > 0.5 else 0.0
+                _place(frame, cta, co, scale=0.6 + 0.4 * _ease_out_back(dt / 0.45) + pulse, alpha=_clamp(dt / 0.12))
+            proc.stdin.write(frame.convert("RGB").tobytes())
+        proc.stdin.close()
+        err = proc.stderr.read().decode(errors="ignore")
+        if proc.wait() != 0:
+            raise RuntimeError(f"ffmpeg: {err[-400:]}")
+    except Exception:
+        proc.kill()
+        raise
     return out

@@ -133,7 +133,11 @@ def produce(kind: str, args) -> int:
     try:
         layers = tipshorts.build_layers(art, entry, out / "layers")
         frame = layers["preview"]
-        clip = tipshorts.render_video(layers, wav, start, CLIP_SEC, clip_path)
+        try:
+            clip = tipshorts.render_smooth(layers, wav, start, CLIP_SEC, clip_path)   # flüssig (Rolf 15.10.)
+        except Exception as e:  # noqa: BLE001
+            log(f"Flüssiger Renderer fehlgeschlagen ({str(e)[:160]}); ffmpeg-Renderer")
+            clip = tipshorts.render_video(layers, wav, start, CLIP_SEC, clip_path)
     except Exception as e:  # noqa: BLE001 – im Zweifel der einfache Standbild-Short statt gar keiner
         log(f"Moderner Short fehlgeschlagen ({str(e)[:200]}); Fallback auf Standbild-Short")
         frame = tipshorts.make_tip_frame(art, entry["label"], entry["hook"], entry["lines"], out / "frame.png")
