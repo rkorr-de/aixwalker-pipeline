@@ -1,0 +1,195 @@
+[
+  {
+    "id": "wellness-cool-bedroom",
+    "kind": "wellness",
+    "label": "SLEEP TIP",
+    "hook": "Your bedroom might be too warm",
+    "lines": [
+      "Most people sleep best in a cool room.",
+      "Aim for roughly 16-20 °C (65-68 °F)."
+    ],
+    "scene": "A serene open-air terrace of a luxury villa at blue hour, a low daybed with soft white linen and a light blanket, a gentle evening breeze moving sheer curtains, cool blue dusk sky with the first stars, a few warm lanterns, calm sea in the distance, no people.",
+    "music_genre": "Chillout Sleep",
+    "sources": [
+      {
+        "title": "Sleep Foundation – Best Temperature for Sleep",
+        "url": "https://www.sleepfoundation.org/bedroom-environment/best-temperature-for-sleep"
+      }
+    ],
+    "highlight": "WARM"
+  },
+  {
+    "id": "wellness-caffeine-cutoff",
+    "kind": "wellness",
+    "label": "SLEEP TIP",
+    "hook": "Coffee at 4 pm? Read this",
+    "lines": [
+      "In one study, caffeine 6 hours before bed",
+      "cut sleep by more than an hour.",
+      "Try your last coffee by early afternoon."
+    ],
+    "scene": "An elegant espresso cup on a stone table in a sunny Mediterranean garden in the early afternoon, olive trees and lemon trees, soft dappled light, a calm sea view in the background, no people.",
+    "music_genre": "Mediterranean Spa Lounge",
+    "sources": [
+      {
+        "title": "American Academy of Sleep Medicine – Late afternoon and early evening caffeine can disrupt sleep",
+        "url": "https://aasm.org/late-afternoon-and-early-evening-caffeine-can-disrupt-sleep-at-night/"
+      }
+    ],
+    "highlight": "COFFEE"
+  },
+  {
+    "id": "wellness-box-breathing",
+    "kind": "wellness",
+    "label": "RELAX TIP",
+    "hook": "Try this when your mind races",
+    "lines": [
+      "Box breathing: in for 4 seconds,",
+      "hold for 4, out for 4, hold for 4.",
+      "Repeat a few rounds and let go."
+    ],
+    "scene": "A tranquil outdoor spa pool at dusk surrounded by smooth stones, bamboo and soft candlelight, light steam over the water, warm golden glow against a deep blue evening sky, no people.",
+    "music_genre": "Dark Ambient Spa",
+    "sources": [
+      {
+        "title": "WebMD – What Is Box Breathing?",
+        "url": "https://www.webmd.com/balance/what-is-box-breathing"
+      }
+    ]
+  },
+  {
+    "id": "wellness-screens-hour",
+    "kind": "wellness",
+    "label": "SLEEP TIP",
+    "hook": "The one-hour rule for better sleep",
+    "lines": [
+      "Put phones and tablets away",
+      "about an hour before bed.",
+      "Their light can make it harder to fall asleep."
+    ],
+    "scene": "A cozy outdoor reading nook on a garden terrace at night, a soft armchair with a knitted throw, a warm lantern and an open paper book, starry sky above, calm and dim, no screens, no people.",
+    "music_genre": "Chillout Sleep",
+    "sources": [
+      {
+        "title": "NHS Every Mind Matters – How to fall asleep faster and sleep better",
+        "url": "https://www.nhs.uk/every-mind-matters/mental-wellbeing-tips/how-to-fall-asleep-faster-and-sleep-better/"
+      }
+    ]
+  },
+  {
+    "id": "wellness-same-time",
+    "kind": "wellness",
+    "label": "SLEEP TIP",
+    "hook": "Same time, every day",
+    "lines": [
+      "Going to bed and getting up at similar times",
+      "helps your body know when it is time to sleep.",
+      "Yes, even on weekends."
+    ],
+    "scene": "A peaceful lakeside garden at sunrise, soft pink and golden morning light over still water, a wooden jetty and gentle mist, calm and fresh, no people.",
+    "music_genre": "Chillout Sleep",
+    "sources": [
+      {
+        "title": "NHS Every Mind Matters – How to fall asleep faster and sleep better",
+        "url": "https://www.nhs.uk/every-mind-matters/mental-wellbeing-tips/how-to-fall-asleep-faster-and-sleep-better/"
+      }
+    ],
+    "highlight": "SAME"
+  },
+  {
+    "id": "wellness-twenty-minutes",
+    "kind": "wellness",
+    "label": "SLEEP TIP",
+    "hook": "Still awake after 20 minutes?",
+    "lines": [
+      "Get up and do something calm,",
+      "like reading or quiet music.",
+      "Go back to bed when you feel sleepy."
+    ],
+    "scene": "A quiet balcony of a seaside villa under a full moon, a soft lounge chair with a blanket, a cup of herbal tea on a small table, moonlight on the calm sea, deep blue night with warm candle glow, no people.",
+    "music_genre": "Chillout Sleep",
+    "sources": [
+      {
+        "title": "NHS Every Mind Matters – How to fall asleep faster and sleep better",
+        "url": "https://www.nhs.uk/every-mind-matters/mental-wellbeing-tips/how-to-fall-asleep-faster-and-sleep-better/"
+      }
+    ]
+  },
+  {
+    "id": "dolcevita-ravello",
+    "kind": "dolcevita",
+    "label": "DOLCE VITA",
+    "hook": "An evening in Ravello",
+    "lines": [
+      "About 350 m above the Amalfi Coast.",
+      "Villa Cimbrone's Terrace of the Infinite.",
+      "A music festival every summer since 1953."
+    ],
+    "scene": "An elegant woman in a flowing evening dress standing at a marble balustrade with classical busts on a clifftop garden terrace high above the Amalfi Coast at sunset, the sea far below, warm golden light.",
+    "music_genre": "Italian Chillout",
+    "sources": [
+      {
+        "title": "Wikipedia – Ravello",
+        "url": "https://en.wikipedia.org/wiki/Ravello"
+      }
+    ],
+    "highlight": "RAVELLO"
+  },
+  {
+    "id": "dolcevita-varenna",
+    "kind": "dolcevita",
+    "label": "DOLCE VITA",
+    "hook": "Sunset in Varenna, Lake Como",
+    "lines": [
+      "A village on the eastern shore of Lake Como.",
+      "Villa Monastero: gardens by the water.",
+      "Castello di Vezio watches from above."
+    ],
+    "scene": "An elegant woman in an evening dress at a candlelit table on a lakeside terrace in a colorful village on Lake Como at sunset, mountains and calm water behind her, warm afterglow.",
+    "music_genre": "Italian Chillout",
+    "sources": [
+      {
+        "title": "Wikipedia – Varenna",
+        "url": "https://en.wikipedia.org/wiki/Varenna"
+      }
+    ]
+  },
+  {
+    "id": "dolcevita-positano",
+    "kind": "dolcevita",
+    "label": "DOLCE VITA",
+    "hook": "Why Positano is called vertical",
+    "lines": [
+      "Pastel houses cascade down limestone cliffs.",
+      "Santa Maria Assunta has a majolica-tiled dome.",
+      "Spiaggia Grande sits at the foot of the town."
+    ],
+    "scene": "An elegant woman in a summer evening dress on a cliffside terrace overlooking pastel houses stacked down the hillside to the sea and a church with a tiled dome, Amalfi Coast at golden hour.",
+    "music_genre": "Italian Chillout",
+    "sources": [
+      {
+        "title": "Wikipedia – Positano",
+        "url": "https://en.wikipedia.org/wiki/Positano"
+      }
+    ]
+  },
+  {
+    "id": "dolcevita-bellagio",
+    "kind": "dolcevita",
+    "label": "DOLCE VITA",
+    "hook": "The Pearl of Lake Como",
+    "lines": [
+      "Bellagio sits where the lake's branches meet.",
+      "Villa Melzi has gardens along the water.",
+      "Flaubert wrote: one could live and die here."
+    ],
+    "scene": "An elegant woman in an evening gown walking along a lakeside garden promenade with cypress trees and an old villa on Lake Como at dusk, mountains across the water, soft warm light.",
+    "music_genre": "Italian Chillout",
+    "sources": [
+      {
+        "title": "Wikipedia – Bellagio, Lombardy",
+        "url": "https://en.wikipedia.org/wiki/Bellagio,_Lombardy"
+      }
+    ]
+  }
+]

@@ -175,7 +175,10 @@ DEFAULT_GENRE = "Mediterranean Spa Lounge"
 TARGET_LUFS = -14.0
 MIN_MIX_MINUTES = 60      # jeder Mix mindestens so lang
 DEFAULT_MINUTES_PER_TRACK = 5
-SHORTS_COUNT = 2
+# Wachstumsplan 2026/27 (Rolf 15.10.2026): 1 statt 2 Shorts je Mix – nur die stärkste Passage. Grund: ein Short brachte
+# im Schnitt ~25 Aufrufe, und sehr viele Shorts drücken laut AIR-Daten eher die langen Videos. Dafür kommen die
+# Tipp-Shorts (run_tip_short.py) dazu, die Zuschauer gezielt zu den Mixen schicken.
+SHORTS_COUNT = 1
 SHORT_CLIP_SEC = 45
 
 # Preise (USD) laut Google-Preisliste – bei Änderung hier pflegen (ai.google.dev/pricing)

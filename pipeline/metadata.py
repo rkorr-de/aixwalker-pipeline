@@ -83,7 +83,7 @@ def checklist(concept: dict, public: bool = False) -> str:
 [ ] Endscreen: letzten 20 s → Playlist + „Abonnieren“ (in Studio → Editor)
 [ ] Pinned Comment: „{concept['pinned_comment']}“
 [ ] Community-Beitrag posten (Text in metadata.txt)
-[ ] {'2 Shorts sind ÖFFENTLICH' if public else '2 Shorts sind PRIVAT hochgeladen – kurz prüfen, dann öffentlich stellen'}
+[ ] {'Short ist ÖFFENTLICH' if public else 'Short ist PRIVAT hochgeladen – kurz prüfen, dann öffentlich stellen'}
 [ ] Drive-Ordner „AIX WALKER Mixe/<Datum – Album>“ enthält MP3s, Cover, Video, Thumbnails, Metadaten, Shorts
 [ ] DistroKid-Release anlegen (Angaben im Bericht report.md / E-Mail)
 """

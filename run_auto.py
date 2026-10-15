@@ -152,7 +152,7 @@ def main() -> int:
         if not result.get("video_id"):
             problems.append("kein Video hochgeladen")
         if len([s for s in result.get("shorts", []) if s.get("video_id")]) < config.SHORTS_COUNT:
-            problems.append("weniger als 2 Shorts hochgeladen")
+            problems.append(f"weniger als {config.SHORTS_COUNT} Short(s) hochgeladen")
         if use_drive and "error" in (result.get("drive") or {}):
             problems.append("Drive-Ablage fehlgeschlagen")
     log("Prüfung: " + (", ".join(problems) if problems else "alles vorhanden"))

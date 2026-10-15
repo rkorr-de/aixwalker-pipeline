@@ -43,7 +43,7 @@ Zweimal pro Woche (Dienstag und Freitag) erscheint ein neuer Mix, der wie ein ku
 - **Hauptbild (Thumbnail + Album-Cover) immer OUTDOOR** (Rolf, 12.10.2026): Szene unter freiem Himmel – Terrasse, Garten,
   Strand, Pool, Seeufer –, nie ein Innenraum. pipeline/images.master_art hängt die Regel an jeden Bildauftrag an.
   Ausnahme Winter-Cabin: bleibt ganz innen (Hauptbild = Kaminfilm; von Rolf am 12.10.2026 so entschieden).
-- KI-Label beim Upload immer gesetzt. **Mix und beide Shorts werden sofort ÖFFENTLICH veröffentlicht.**
+- KI-Label beim Upload immer gesetzt. **Mix und Short werden sofort ÖFFENTLICH veröffentlicht** (seit 15.10.2026 1 Short je Mix, config.SHORTS_COUNT).
 - Paket (MP3s einzeln in `mp3/`, Album-Cover, Video, Thumbnails, Metadaten, Shorts) in Google Drive unter
   „AIX WALKER Mixe/<Datum – Album>“; die MP3s liegen dort fertig für DistroKid.
 - Gedächtnis: „AIX WALKER Mixe/_memory/memory.json“ (alle Mixe, Titel, Motive, Analytics, Lernsätze). Der Planer
@@ -71,7 +71,7 @@ Zweimal pro Woche (Dienstag und Freitag) erscheint ein neuer Mix, der wie ein ku
    `build/<slug>/raw` werden wiederverwendet. Liefert der Planer kein gültiges Konzept: schreibe es selbst nach
    `prompts/concept_prompt.md` (20 + 8 Tracks, keine Titel aus memory.json, Platzhalter `{MIN}`) nach
    `concepts/<Datum>-<slug>.json` und starte `python run_auto.py --concept concepts/<Datum>-<slug>.json`.
-5. Ergebnis prüfen: `build/<slug>/auto_summary.json` und `result.json` – Dauer ≥ 60 Min, Video-URL, 2 Short-URLs,
+5. Ergebnis prüfen: `build/<slug>/auto_summary.json` und `result.json` – Dauer ≥ 60 Min, Video-URL, Short-URL,
    Drive-Link, E-Mail `sent: true`. Fehlt etwas nach einem Neuversuch: alles liefern, was fertig ist, und den
    Fehler klar nennen. Keine Audiodateien vortäuschen.
 6. Abschluss im Chat (kurz): Album, Genre, BPM, Dauer, Video-Link, Short-Links, Drive-Link, Kosten (tatsächlich und
@@ -97,6 +97,11 @@ Wochentag: `TZ=Europe/Berlin date +%u`, Tag im Monat: `TZ=Europe/Berlin date +%d
 | Sa (6) | Italien-Wochen-Zusammenschnitt: `python run_weekly_compilation.py --genre "Italian Chillout"` |
 | So (7) | Italien |
 
+**Danach, als LETZTER Lauf des Tages (seit 15.10.2026, Wachstumsplan 2026/27):** ein Tipp-Short –
+Mo, Di, Do, Sa: `python run_tip_short.py --kind wellness` · Mi, So: `python run_tip_short.py --kind dolcevita` · Fr: keiner.
+Dauert ca. 3–5 Min, kostet ein Bild (ca. 0,04 $). Leere Warteschlange → endet sofort ohne Kosten (kurz melden).
+Details im Abschnitt „Tipp-Shorts“ unten.
+
 Pausiert seit 13.10.2026 (nicht starten, bis Rolf es wieder freigibt): Auto-Mix `python run_auto.py`, Ibiza
 `--genre "Ibiza Sunset Lounge"`, Sonntags-Lang-Mix `python run_auto.py --long`.
 
@@ -113,7 +118,7 @@ API – alle Formularangaben stehen im Bericht).
 ## Sonntags-Lauf: Lang-Format (Sleep/Spa)
 
 Die Sonntags-Routine startet statt `python run_auto.py` den Befehl **`python run_auto.py --long`**. Alles andere
-(Gedächtnis, Kostenlimit, Upload öffentlich, 2 Shorts, Drive, Bericht per E-Mail) ist identisch. Unterschiede:
+(Gedächtnis, Kostenlimit, Upload öffentlich, 1 Short, Drive, Bericht per E-Mail) ist identisch. Unterschiede:
 - Genre nur Chillout Sleep oder Dark Ambient Spa; Mindestlänge `LONG_MIN_MINUTES` (Standard 180 Min).
 - Mehr Tracks (ca. 60–70), ein Cover-Bild je 4 Tracks, Zusammenschnitt in Batches, Video mit 10 fps.
 - Der Lauf dauert deutlich länger (Lyria-Erzeugung der Tracks ca. 1–2 Stunden); bei Abbruch denselben Befehl erneut
@@ -130,7 +135,7 @@ Eigene Linie, alles **echtes 4K**, kein DistroKid. Konzept und Testergebnisse: `
   Log `build/auto_cabin.log`). run_auto leitet an `run_cabin.py` weiter: Lyria-Tracks (Cozy Lofi Ambient / Smooth Jazz
   Fireplace, 58–64 BPM, −16 LUFS, keine Tempoprüfung), EIN Hauptbild 4K, 2 Veo-Clips 4K (seit 13.10.2026, vorher 3) (Start = Ende = Hauptbild,
   automatisch geprüft), nahtloser Kaminfilm mit gemeinfreiem Kaminknistern, **Streaming-Upload** (das Video liegt nie
-  komplett auf der Platte), Thumbnail C, 2 Shorts S1 v2 (15-s-Loops mit Frage), Playlist „Cozy Winter Cabin · Relaxing
+  komplett auf der Platte), Thumbnail C, 1 Short S1 v2 (15-s-Loop mit Frage), Playlist „Cozy Winter Cabin · Relaxing
   Fireplace Chillout 4K“, Drive (MP3s, Hauptbild, Loop-Clips, Thumbnail, Metadaten, Shorts – nicht das lange Video),
   Gedächtnis, E-Mail. Dauer ca. 1–1,5 Std. Kosten ca. 8,90 $ (Grenze 15 $).
 - **Sonntag 09:45 (alle 2 Wochen)** – **`python run_cabin_compilation.py --period biweekly --if-due`**: alle noch
@@ -143,7 +148,7 @@ Eigene Linie, alles **echtes 4K**, kein DistroKid. Konzept und Testergebnisse: `
 
 ## Ibiza-Linie „Ibiza Sunset Lounge“ (seit 09.10.2026)
 
-Eigene Linie neben den Di/Fr-Mixen, gleicher Ablauf wie oben (≥ 60 Min, 2 Shorts, sofort öffentlich, Drive, Gedächtnis,
+Eigene Linie neben den Di/Fr-Mixen, gleicher Ablauf wie oben (≥ 60 Min, 1 Short, sofort öffentlich, Drive, Gedächtnis,
 Kostenvoranschlag, Bericht per E-Mail). Startbefehl: **`python run_auto.py --genre "Ibiza Sunset Lounge"`**
 (im Hintergrund, Log `build/auto_ibiza.log`). Von Rolf nach drei Testrunden freigegeben (`test_ibiza.py`).
 - Musik: klassischer Balearic Sunset Chillout (Café-del-Mar-Gefühl), 88–96 BPM, ruhiger Downtempo-Groove, Nylongitarre,
@@ -160,7 +165,7 @@ Kostenvoranschlag, Bericht per E-Mail). Startbefehl: **`python run_auto.py --gen
 
 ## Italien-Linie „Italian Chillout Music“ (Mo/Mi/Fr/So, seit 08.10.2026)
 
-Eigene Linie neben den Di/Fr-Mixen, gleicher Ablauf wie oben (≥ 60 Min, 2 Shorts, sofort öffentlich, Drive, Gedächtnis,
+Eigene Linie neben den Di/Fr-Mixen, gleicher Ablauf wie oben (≥ 60 Min, 1 Short, sofort öffentlich, Drive, Gedächtnis,
 Kostenvoranschlag, Bericht per E-Mail). Startbefehl statt `python run_auto.py`:
 **`python run_auto.py --genre "Italian Chillout"`** (im Hintergrund, Log `build/auto_italian.log`).
 - Musik: Italian Riviera Chillout Lounge (Bossa, Nylongitarre, Mandoline, Piano, Filmmusik-Streicher, Meer/Zikaden,
@@ -182,3 +187,23 @@ Kostenvoranschlag, Bericht per E-Mail). Startbefehl statt `python run_auto.py`:
   KEINE neue Musik (nie `run_auto.py --long` für Italien), kein DistroKid, keine Shorts.
 - Monats-Mix (am 1.): Italien ist ein eigenes Themengebiet und bekommt automatisch einen eigenen Monats-Mix
   (Zusammenschnitt der Tages-Mixe, Video mit atmendem Licht, Italien-Motiv, kein DistroKid).
+
+## Tipp-Shorts „Sleep & Relax Tips“ und „Dolce Vita“ (seit 15.10.2026, Wachstumsplan 2026/27)
+
+Ziel: mehr Zuschauer in die langen Mixe bringen (Wiedergabestunden fürs Partnerprogramm). Rolf will das **autark, ohne
+Rückfragen**. Plan-Dokument: „Aix Walker – Wachstums- und Einnahmenplan 2026/27“ (Claude Docs).
+- Skript: `python run_tip_short.py --kind wellness|dolcevita` – nimmt den nächsten offenen Eintrag aus der Warteschlange
+  `AIX WALKER Mixe/_memory/tip_queue.json` (beim ersten Lauf aus `tips/seed.json` angelegt), holt einen Track aus dem
+  neuesten Mix des Eintrags-Genres (Drive), erzeugt EIN 9:16-Bild (Nano Banana, Bildstil des Genres), rendert 25 s im
+  modernen Short-Look (Rolf 15.10.2026: Label-Chip, Hook in Montserrat Black mit Kontur + goldenem Schlüsselwort, Tipp-Zeilen
+  als weiße Boxen, die nacheinander einblenden, langsamer Zoom, Knopf „FULL MIX · LINK BELOW“), lädt ihn **öffentlich mit
+  KI-Kennzeichnung** hoch (Beschreibung: Tipp, Link zum Mix, Quellen, Hinweis „not medical advice“), legt ihn in Drive
+  unter `AIX WALKER Mixe/_tip_shorts/<Datum – id>` ab und schreibt `tip_shorts` ins Gedächtnis. Kein E-Mail-Bericht
+  (Rolf will keine Mail-Flut) – Abschluss im Chat der Tages-Routine.
+- Probelauf ohne Kosten: `python run_tip_short.py --kind wellness --dry-run`. Warteschlange ansehen: `--list`.
+- Regeln: keine Heilversprechen, keine Medikamente, nur allgemeine Wellness mit seriöser Quelle (NHS, Sleep Foundation,
+  AASM, CDC …); Orte nur mit echten, belegten Fakten (z. B. Wikipedia), KI-Stimmungsbilder ohne echte Hotel-/Markennamen.
+  Text im Bild Englisch, je Zeile höchstens 46 Zeichen (`tipshorts.validate_entry` prüft das).
+- Nachschub: Routine „AIX WALKER Tipp-Recherche (So)“ recherchiert sonntags 4 Wellness-Tipps + 2 Orte mit Websuche,
+  schreibt sie als JSON und hängt sie mit `python run_tip_short.py --add <datei.json>` an (ungültige/doppelte Einträge
+  werden übersprungen).
