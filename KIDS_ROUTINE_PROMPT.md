@@ -65,7 +65,7 @@ solange er noch läuft. Schritt 4b und 4c dagegen OHNE nohup: Die beiden Befehle
 Das Skript macht alles selbst: Tier + Lehrinhalt wählen, die laut Verlauf (`Giggle Meadow Shorts/_verlauf.json`
 in Drive) lange nicht dran waren, Story schreiben und von einem strengeren Modell prüfen lassen (Logik, Lerninhalt,
 Drehbarkeit, Neuheit – bis zu 3 Tier/Lektion-Kombinationen à 3 Runden), Charakter-Sheet, Keyframe, **ein 15-s-Clip
-mit Kling 3.0 Pro über fal.ai inkl. synchronem Ton** (`FAL_KEY`), Musik leise darunter, **Videoprüfung auf KI-Fehler**
+mit Kling 3.0 Pro über fal.ai, OHNE Kling-Ton** (`FAL_KEY`; seit 15.10.2026: Geräusche aus der eigenen Bibliothek `assets/kids_sfx`, passend zu den sichtbaren Aktionen platziert, Musik leise darunter – `KIDS_KLING_AUDIO` nicht auf 1 setzen), **Videoprüfung auf KI-Fehler**
 (schwere Fehler wie verschwindende Gegenstände, falsche Gliedmaßen, unmögliche Physik, echte Wörter → kein Upload), Thumbnail, Upload als „für Kinder“ mit geplanter
 Veröffentlichung um 16:00 Uhr Berlin, und legt den kompletten Short-Ordner (Video, Thumbnail, Story, Kosten,
 Quellclips) in Google Drive unter **„Giggle Meadow Shorts/<Datum – Titel>“** ab (`DRIVE_REFRESH_TOKEN`). Normale Kosten ca. 3,30 $ je Short. Harte Budgetgrenze: `KIDS_BUDGET_USD` (Standard 10 $) – bei
