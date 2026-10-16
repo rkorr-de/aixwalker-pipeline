@@ -219,7 +219,8 @@ def upload_drive(out: Path, e: dict, files: list[Path]) -> str:
     base = drive.ensure_folder(svc, "_shorts2", root)
     folder = drive.ensure_folder(svc, f"{date.today().isoformat()} – {e['id']}", base)
     for f in files:
-        drive._upload(svc, f, folder)
+        # Nur das Video wird für „Jeder mit dem Link“ freigegeben (Metricool holt es für Instagram/TikTok ab)
+        drive._upload(svc, f, folder, public=f.suffix.lower() == ".mp4")
     return f"https://drive.google.com/drive/folders/{folder}"
 
 
