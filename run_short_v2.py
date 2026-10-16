@@ -2,7 +2,7 @@
 """Shorts 2.0 erzeugen und veröffentlichen (Rolf 15./16.10.2026) – ersetzt die Tipp-Shorts.
 
 Ein Short = Personen-Bild (Nano Banana Pro) → 15-s-Clip am Stück (Kling 3.0 Standard, ruckelfrei) → Text in
-Kaushan Script, der sich Wort für Wort aufbaut → Schluss „Full-length <Genre> mix ↓“ → Musik aus dem Ziel-Mix.
+Kaushan Script, der sich Wort für Wort aufbaut → Schluss „Open full mix here · <Genre> ↓“ → Musik aus dem Ziel-Mix.
 
   python run_short_v2.py                       # nächster offener Eintrag der Warteschlange → öffentlich
   python run_short_v2.py --genre "Italian Chillout"   # nächster offener Eintrag dieses Genres
