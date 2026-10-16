@@ -29,15 +29,9 @@ WEEK_AIX = {
 # Je Mix kommen 2 Shorts automatisch dazu (Zusammenschnitt/Cabin-Compilation: keine bzw. eigene).
 SHORTS_AIX_NOTE = "je Mix 2 Shorts (nicht beim Samstags-Zusammenschnitt)"
 WEEK_KIDS = {
-    0: [("Kids-Short", "kid", "16:00"), ("Zusammenschnitt 16:9", "kid2", "nach 16:00"), ("Langer Short (Bau)", "kid2", "für Di 09:00")],
-    1: [("Kids-Short", "kid", "16:00"), ("Zusammenschnitt 16:9", "kid2", "nach 16:00"), ("Langer Short online", "kid2", "09:00")],
-    2: [("Kids-Short", "kid", "16:00"), ("Zusammenschnitt 16:9", "kid2", "nach 16:00"), ("Langer Short (Bau)", "kid2", "für Do 09:00")],
-    3: [("Kids-Short", "kid", "16:00"), ("Zusammenschnitt 16:9", "kid2", "nach 16:00"), ("Langer Short online", "kid2", "09:00")],
-    4: [("Kids-Short", "kid", "16:00"), ("Zusammenschnitt 16:9", "kid2", "nach 16:00"), ("Langer Short (Bau)", "kid2", "für Sa 09:00")],
-    5: [("Kids-Short", "kid", "16:00"), ("Zusammenschnitt 16:9", "kid2", "nach 16:00"), ("Langer Short online", "kid2", "09:00")],
-    6: [("Kids-Short", "kid", "16:00"), ("Best of the Week 16:9", "kid2", "nach 16:00")],
+    6: [("Kids-Short (Giggle Meadow)", "kid", "09:00"), ("Best of the Week 16:9", "kid2", "nach 09:00")],
 }
-SOCIAL_KIDS = "Instagram 17:00 · TikTok 18:00 (täglich, Kids-Short)"
+SOCIAL_KIDS = "Instagram 10:00 · TikTok 11:00 (nur sonntags, Kids-Short)"
 
 
 def monthly(d: date):
@@ -45,7 +39,7 @@ def monthly(d: date):
     if d.day != 1:
         return [], []
     return ([("Monats-Mix (zuerst)", "mon", "11:04"), ("Cabin-Monats-Zusammenschnitt", "cab", "07:45")],
-            [("Monthly Marathon 16:9", "kid2", "nach 16:00")])
+            ([("Monthly Marathon 16:9", "kid2", "nach 09:00")] if d.weekday() == 6 else []))
 
 
 def items(table, d: date):

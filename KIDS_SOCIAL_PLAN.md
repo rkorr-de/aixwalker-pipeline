@@ -3,7 +3,7 @@
 Rolf startet in Claude Code (Repo `rkorr-de/aixwalker-pipeline`, Umgebung **AixWalker**) einen Chat mit
 **„Los geht's mit dem Social-Plan“**. Antworten auf Deutsch, Anweisungen an Rolf in Anfänger-Sprache.
 
-Vereinbart am 04.10.2026: Instagram Reel täglich 17:00 und TikTok täglich 18:00 mit dem Short des Tages, über
+Vereinbart am 04.10.2026: Instagram Reel 10:00 und TikTok 11:00 (seit 16.10.2026 nur sonntags, vorher täglich 17:00/18:00) mit dem Short der Woche, über
 Metricool (Marke 7233482, Konto 5602673). Facebook bewusst weggelassen. Konten: Instagram `gigglemeadowshorts`,
 TikTok vorerst `giggle.meadow` (Namensänderung erst ab 04.11.2026 wieder möglich).
 Rolfs Anleitung zum Anlegen der Konten steht im Claude-Doc „Giggle Meadow – Instagram & TikTok einrichten“.
@@ -48,12 +48,12 @@ Entwürfe ansehen (Instagram, TikTok). Passt der Text? Antworte mit ‚passt‘ 
 Nach „passt“: die Entwürfe in Metricool löschen lassen (Rolf: Planung → Entwurf öffnen → Löschen) oder per API
 entfernen. Dann einmal echt: `python -m kids.social build/kids/<Datum>` (ohne DRAFT) – die Posts gehen zur nächsten
 freien Zeit (mindestens 15 Minuten in der Zukunft) raus. Rolf die beiden Planner-Links schicken. Ab dem nächsten
-16:00-Lauf passiert es automatisch (Schritt 4d der Routine), ohne weiteres Zutun.
+Sonntags-Lauf passiert es automatisch (Schritt 4d der Routine), ohne weiteres Zutun.
 
 ## Schritt 4 – Abschluss
 
 - Änderungen committen/pushen.
-- Rolf in Anfängersprache zusammenfassen: was täglich wann passiert, wo er die Posts sieht (Metricool → Planung;
+- Rolf in Anfängersprache zusammenfassen: was sonntags wann passiert, wo er die Posts sieht (Metricool → Planung;
   Instagram/TikTok-Profil), wie er es pausiert (Umgebungsvariable `KIDS_SOCIAL_NETWORKS` leeren oder Metricool-
   Verbindung trennen), dass die Mail beide Planner-Links enthält.
 
@@ -63,6 +63,6 @@ freien Zeit (mindestens 15 Minuten in der Zukunft) raus. Rolf die beiden Planner
   `https://drive.google.com/uc?export=download&id=<id>`. Lehnt Metricool den Link ab, Alternative: Datei über
   Metricool-Upload-Endpunkt hochladen (API-Doku) oder Google Drive in Metricool verknüpfen (Einstellungen).
 - Texte: Gemini (≈ 0,5 Cent) mit fester Vorlage als Fallback; Hashtags fest in `HASHTAGS`.
-- Zeiten: `KIDS_SOCIAL_TIMES` (Standard `instagram=17:00,tiktok=18:00`), Netzwerke `KIDS_SOCIAL_NETWORKS`.
+- Zeiten: `KIDS_SOCIAL_TIMES` (Standard `instagram=10:00,tiktok=11:00`), Netzwerke `KIDS_SOCIAL_NETWORKS`.
 - Instagram-Posts werden als KI-Inhalt gekennzeichnet (`isAiGenerated`), TikTok ebenso (`isAigc`), TikTok-Kommentare
   aus – bewusst, Kinder-Inhalt.

@@ -515,10 +515,10 @@ def build(mode: str, today: str, out: Path, today_out: Path | None = None, dry_s
         v = segment_short(sh["path"], seg_dir / f"{i:02d}_short.mp4", col)
         segments.append(v)
         t += render.duration(v)
-    outro = _card_image("See you tomorrow!", "a new story every day at 4 pm  •  Giggle Meadow", PASTELS[3],
+    outro = _card_image("See you next Sunday!", "a new story every Sunday at 9 am  •  Giggle Meadow", PASTELS[3],
                         seg_dir / "99_outro.png", logo=True)
     segments.append(segment_card(outro, seg_dir / "99_outro.mp4", OUTRO_SEC, chime))
-    chapters.append((t, "See you tomorrow"))
+    chapters.append((t, "See you next Sunday"))
     final = concat(segments, out / "compilation.mp4")
     dur = render.duration(final)
     today_art = None
@@ -591,7 +591,7 @@ def build_vertical(today: str, out: Path, today_out: Path | None = None, dry_sho
         chapters.append((t, "Giggle Meadow"))
         t += render.duration(s_)
     else:
-        outro = _card_image("Giggle Meadow", "a new story every day at 4 pm", PASTELS[3], seg_dir / "v99_outro.png",
+        outro = _card_image("Giggle Meadow", "a new story every Sunday at 9 am", PASTELS[3], seg_dir / "v99_outro.png",
                             logo=True, size=VS)
         segments.append(segment_card(outro, seg_dir / "v99_outro.mp4", 3.0, chime, size=VS))
         chapters.append((t, "Giggle Meadow"))
@@ -628,7 +628,7 @@ def metadata_vertical(info: dict) -> dict:
     desc = (f"{n} tiny cute cartoons in one go – {animals or 'baby animals'} and their little adventures. 🌼\n"
             f"For toddlers and preschoolers (ages 1–5): no talking, no scary moments, just sweet sounds and happy endings.\n\n"
             f"📖 Stories\n{lines}\n\n"
-            f"🐥 New story every day at 4 pm (CET) on Giggle Meadow – subscribe for a smile a day!\n"
+            f"🐥 New story every Sunday at 9 am (CET) on Giggle Meadow – subscribe for a smile every week!\n"
             f"All characters and stories are original creations.\n\n"
             f"cute cartoon for toddlers · baby animals · calm video for kids · no talking · bedtime cartoon · preschool cartoon\n\n"
             f"#shorts #kids #toddlers #cutecartoon #babyanimals #kidsvideos #3danimation #gigglemeadow")
@@ -668,7 +668,7 @@ def metadata(info: dict, today: str) -> dict:
         f"Perfect for a calm minute, a car ride or bedtime.\n\n"
         f"⏱️ Chapters\n{info['chapters']}\n\n"
         f"📖 Stories in this video\n{stories_lines}\n\n"
-        f"🐥 New 15-second story every day at 4 pm (CET) – and a fresh compilation every day too!\n"
+        f"🐥 New 15-second story every Sunday at 9 am (CET) – and a fresh compilation every week too!\n"
         f"All characters and stories are original creations by Giggle Meadow.\n\n"
         f"cute cartoon for toddlers · baby animals compilation · calm video for kids · toddler video no talking · "
         f"bedtime cartoon · preschool cartoon · 3D animation for kids · cute animal stories\n\n"
