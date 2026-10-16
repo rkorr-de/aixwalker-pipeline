@@ -7,6 +7,7 @@ Kaushan Script, der sich Wort für Wort aufbaut → Schluss „Full 1-hour <Genr
   python run_short_v2.py                       # nächster offener Eintrag der Warteschlange → öffentlich
   python run_short_v2.py --genre "Italian Chillout"   # nächster offener Eintrag dieses Genres
   python run_short_v2.py --id 03-breathe       # genau dieser Eintrag
+  python run_short_v2.py --free-only --publish-at 16:00   # Routine: nur bezahlte Clips, öffentlich um 16 Uhr
   python run_short_v2.py --dry-run             # ohne API/Upload: Platzhalter-Clip, synthetische Musik
   python run_short_v2.py --add neue.json       # Einträge prüfen und an die Warteschlange (Drive) anhängen
   python run_short_v2.py --list                # Warteschlange anzeigen
@@ -187,6 +188,30 @@ def get_clip(e: dict, suffix: str, out: Path, dry: bool) -> Path:
     return clip
 
 
+def prepaid(e: dict) -> bool:
+    """Liegen alle Clips des Eintrags schon (bezahlt) in Drive?"""
+    from pipeline import drive
+    svc = drive.service()
+    folder = drive.ensure_folder(svc, CLIP_FOLDER, drive.ensure_folder(svc, drive.ROOT_FOLDER))
+    have = {f["name"] for f in drive.list_children(svc, folder, folders=False)}
+    need = [e["id"]] + ([e["id"] + "-b"] if e.get("split") else [])
+    return all(f"{c}.mp4" in have for c in need)
+
+
+def publish_time(hhmm: str | None) -> str | None:
+    """„16:00“ → RFC3339 (UTC) für heute in Berlin; liegt die Zeit < 15 Min. in der Zukunft: None (sofort)."""
+    if not hhmm:
+        return None
+    from datetime import datetime, timedelta, timezone
+    from zoneinfo import ZoneInfo
+    h, m = (int(x) for x in hhmm.split(":"))
+    now = datetime.now(ZoneInfo("Europe/Berlin"))
+    at = now.replace(hour=h, minute=m, second=0, microsecond=0)
+    if at - now < timedelta(minutes=15):
+        return None
+    return at.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def upload_drive(out: Path, e: dict, files: list[Path]) -> str:
     from pipeline import drive
     svc = drive.service()
@@ -236,6 +261,10 @@ def produce(args) -> int:
         log(f"Passagensuche fehlgeschlagen ({ex}) – Start bei 20 s")
         start = min(20.0, max(0.0, total - 21))
 
+    if args.free_only and not args.dry_run and not prepaid(e):
+        log(f"Nächster Eintrag {e['id']} hätte keinen bezahlten Clip – heute kein Short (--free-only, keine Kosten). "
+            f"Rolf muss neue Shorts (ca. 1,40 $ je Stück) erst freigeben.")
+        return 0
     clip_a = get_clip(e, "", out, args.dry_run)
     clip_b = get_clip(e, "-b", out, args.dry_run) if e.get("split") else None
     video = shortsv2.render(clip_a, e["beats"], e["mix"], wav, start, out / f"Short2_{e['id']}.mp4", clip_b=clip_b,
@@ -253,9 +282,11 @@ def produce(args) -> int:
     if not args.dry_run and not args.no_upload and os.environ.get("YT_REFRESH_TOKEN"):
         from pipeline import youtube
         privacy = "private" if args.private else "public"
-        vid = youtube.upload_video(video, title, desc, tags, category_id="10", privacy=privacy, ai_generated=True)
-        result["video_id"], result["url"] = vid, f"https://youtube.com/shorts/{vid}"
-        log(f"Hochgeladen ({privacy}, KI-gekennzeichnet): {result['url']}")
+        at = None if args.private else publish_time(args.publish_at)
+        vid = youtube.upload_video(video, title, desc, tags, category_id="10", privacy=privacy, ai_generated=True,
+                                   publish_at=at)
+        result["video_id"], result["url"], result["publish_at"] = vid, f"https://youtube.com/shorts/{vid}", at
+        log(f"Hochgeladen ({'geplant ' + at if at else privacy}, KI-gekennzeichnet): {result['url']}")
     if use_drive:
         try:
             result["drive"] = upload_drive(out, e, [video, out / "metadata.txt"])
@@ -290,6 +321,8 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--private", action="store_true")
     ap.add_argument("--no-upload", action="store_true")
+    ap.add_argument("--free-only", action="store_true", help="nur Einträge mit schon bezahltem Clip (keine Kosten)")
+    ap.add_argument("--publish-at", default=None, help="Uhrzeit Berlin, z. B. 16:00 (geplant veröffentlichen)")
     args = ap.parse_args()
     use_drive = not args.dry_run and bool(os.environ.get("DRIVE_REFRESH_TOKEN"))
     if args.add:
