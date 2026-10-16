@@ -4,7 +4,7 @@
 - Text: ein Satz nach dem anderen, Wort für Wort (sanft einblenden + leicht aufsteigen); *Wort* = Schlüsselwort in
   Kaushan Script (größer, warmes Creme), Rest Kaushan Script weiß; weicher Schatten, keine Kästen
 - Formate: normal, „breathing“ (atmender Kreis: breathe in · hold · breathe out), „split“ (A oben, B unten)
-- Schluss: „Full-length“ + Genre-Mix (Schlüsselwort-Stil) + Pfeil nach unten (zum verknüpften Video)
+- Schluss: „Open full mix here“ + Genre-Mix (Schlüsselwort-Stil) + Pfeil nach unten (zum verknüpften Video)
 Jedes Bild wird in Python zusammengesetzt (sub-pixel-genau) und roh an ffmpeg gegeben.
 """
 import math
@@ -25,9 +25,9 @@ CREAM = (255, 232, 196)
 BREATH = (3.5, 1.0, 3.5)          # Sekunden: ein, halten, aus (passt in einen 15-s-Clip)
 BREATH_START = 3.4
 TEXT_CY = 560                     # Mitte der Textzone (oberes Drittel, Gesichter liegen meist tiefer)
-GENRE_CTA = {"Mediterranean Spa Lounge": "Chillout Lounge mix", "Dark Ambient Spa": "Spa & Relax mix",
-             "Chillout Sleep": "Sleep Music mix", "Italian Chillout": "Italian Chillout mix",
-             "Cozy Winter Cabin": "Cozy Cabin mix"}
+GENRE_CTA = {"Mediterranean Spa Lounge": "Chillout Lounge", "Dark Ambient Spa": "Spa & Relax",
+             "Chillout Sleep": "Sleep Music", "Italian Chillout": "Italian Chillout",
+             "Cozy Winter Cabin": "Cozy Cabin"}
 
 
 def _sans(size: int, weight: str = "SemiBold"):
@@ -149,10 +149,10 @@ def _check(words: list[dict]) -> None:
 
 
 def layout_cta(genre: str, cy: int = 640) -> list[dict]:
-    """Schluss: kleine Zeile „Full-length“, darunter der Genre-Mix als Schlüsselwort, darunter ein feiner Pfeil."""
+    """Schluss: kleine Zeile „Open full mix here“, darunter der Genre-Mix als Schlüsselwort, darunter ein feiner Pfeil."""
     probe = ImageDraw.Draw(Image.new("L", (10, 10)))
     items = []
-    small = "Full-length"
+    small = "Open full mix here"
     fs = _sans(60)
     track = 0.02 * fs.size
     sw = sum(probe.textlength(c, font=fs) for c in small) + track * (len(small) - 1)
@@ -171,7 +171,7 @@ def layout_cta(genre: str, cy: int = 640) -> list[dict]:
         d.text((x, 40), c, font=fs, fill=WHITE + (235,))
         x += probe.textlength(c, font=fs) + track
     items.append({"img": img, "x": (W - img.width) / 2, "y": cy - 175})
-    big = layout_sentence(f"*{GENRE_CTA.get(genre, 'chillout mix')}*", cy=cy + 14, size=74, max_w=880)
+    big = layout_sentence(f"*{GENRE_CTA.get(genre, 'Chillout')}*", cy=cy + 14, size=74, max_w=880)
     items += big
     # Pfeil
     ar = Image.new("RGBA", (120, 140), (0, 0, 0, 0))
