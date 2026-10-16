@@ -188,7 +188,20 @@ Kostenvoranschlag, Bericht per E-Mail). Startbefehl statt `python run_auto.py`:
 - Monats-Mix (am 1.): Italien ist ein eigenes Themengebiet und bekommt automatisch einen eigenen Monats-Mix
   (Zusammenschnitt der Tages-Mixe, Video mit atmendem Licht, Italien-Motiv, kein DistroKid).
 
+## Shorts 2.0 (seit 16.10.2026 live, von Rolf freigegeben – täglich als letzter Lauf der Tages-Routine)
+
+Ersetzt die Tipp-Shorts (Stil von Rolf abgelehnt, seit 16.10.2026 pausiert). Ein Short = Personen-Bild → 15-s-Clip
+am Stück (Kling 3.0 Standard, keine Zeitlupe) → Text in Kaushan Script, Wort für Wort → Schluss „Full 1-hour
+<Genre> mix ↓“ → Musik aus dem neuesten Mix des Genres. Befehl in der Routine: `nohup python run_short_v2.py --free-only --publish-at 16:00 > build/short2.log 2>&1 &`
+(`--free-only`: nur Einträge mit schon bezahltem Clip – neue, kostenpflichtige Shorts erst nach Rolfs Freigabe;
+`--publish-at 16:00`: geplant öffentlich um 16 Uhr Berlin, laut Metricool die stärkste Zeit). Warteschlange in Drive `_memory/shorts2_queue.json` (`--list`, `--add datei.json`).
+Die 10 freigegebenen Beispiele verwenden ihre schon bezahlten Clips (0 $); neue Einträge ca. 1,40 $, A/B ca. 2,80 $,
+harte Grenze 3,50 $ je Lauf. Öffentlich, KI-gekennzeichnet, Kategorie Musik. Danach in Studio als „Related Video“
+den Ziel-Mix setzen (steht in metadata.txt; Beschreibungslinks sind in Shorts nicht klickbar).
+
 ## Tipp-Shorts „Sleep & Relax Tips“ und „Dolce Vita“ (seit 15.10.2026, Wachstumsplan 2026/27)
+
+**PAUSIERT seit 16.10.2026** (Rolf: Stil abgelehnt) – ersetzt durch „Shorts 2.0“ oben. `run_tip_short.py` nicht starten.
 
 Ziel: mehr Zuschauer in die langen Mixe bringen (Wiedergabestunden fürs Partnerprogramm). Rolf will das **autark, ohne
 Rückfragen**. Plan-Dokument: „Aix Walker – Wachstums- und Einnahmenplan 2026/27“ (Claude Docs).
