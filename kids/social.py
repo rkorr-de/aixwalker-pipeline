@@ -1,4 +1,4 @@
-"""Social-Posts zu jedem Short: Instagram Reel (17:00) und TikTok (18:00) über Metricool.
+"""Social-Posts zu jedem Short: Instagram Reel (10:00) und TikTok (11:00) über Metricool – seit 16.10.2026 sonntags nach dem 9:00-Short.
 
 Zwei Wege, je nachdem was in der Umgebung vorhanden ist:
 
@@ -20,7 +20,7 @@ Ablauf in beiden Fällen (nach dem YouTube-Upload):
 
 Umgebungsvariablen: METRICOOL_TOKEN (nur Weg A), METRICOOL_USER_ID (Standard 5602673), METRICOOL_BLOG_ID
 (Standard 7233482), KIDS_SOCIAL_NETWORKS (Standard "instagram,tiktok"), KIDS_SOCIAL_TIMES
-(Standard "instagram=17:00,tiktok=18:00"), KIDS_SOCIAL_DRAFT=1 → nur als Entwurf anlegen (nur Weg A, Test).
+(Standard "instagram=10:00,tiktok=11:00"), KIDS_SOCIAL_DRAFT=1 → nur als Entwurf anlegen (nur Weg A, Test).
 """
 import json
 import os
@@ -38,7 +38,7 @@ API = "https://app.metricool.com/api"
 USER_ID = os.environ.get("METRICOOL_USER_ID", "5602673")
 BLOG_ID = os.environ.get("METRICOOL_BLOG_ID", "7233482")
 NETWORKS = [n.strip() for n in os.environ.get("KIDS_SOCIAL_NETWORKS", "instagram,tiktok").split(",") if n.strip()]
-TIMES = dict(p.split("=") for p in os.environ.get("KIDS_SOCIAL_TIMES", "instagram=17:00,tiktok=18:00").split(",") if "=" in p)
+TIMES = dict(p.split("=") for p in os.environ.get("KIDS_SOCIAL_TIMES", "instagram=10:00,tiktok=11:00").split(",") if "=" in p)
 DRAFT = os.environ.get("KIDS_SOCIAL_DRAFT", "0") == "1"
 HANDLE = os.environ.get("KIDS_SOCIAL_HANDLE", "gigglemeadowshorts")
 YT_URL = "https://www.youtube.com/@GiggleMeadowShorts"
@@ -87,8 +87,8 @@ def _fallback_texts(story: dict) -> dict:
     theme = story.get("summary") or story.get("theme") or "a tiny adventure"
     hook = f"{name} the {species}: {theme}".rstrip(".") + " 🌼"
     ig = (f"{hook}\nA calm 15-second cartoon for toddlers – no talking, just giggles. Perfect for a quiet minute. 💛\n"
-          f"New story every day at 4 pm CET → YouTube: Giggle Meadow (link in bio)\n\n{HASHTAGS['instagram']}")
-    tt = (f"{hook} A calm little cartoon for toddlers – no talking, just giggles. 💛 New story daily on YouTube: "
+          f"New story every Sunday at 9 am CET → YouTube: Giggle Meadow (link in bio)\n\n{HASHTAGS['instagram']}")
+    tt = (f"{hook} A calm little cartoon for toddlers – no talking, just giggles. 💛 New story every Sunday on YouTube: "
           f"Giggle Meadow\n{HASHTAGS['tiktok']}")
     return {"instagram": ig[:2200], "tiktok": tt[:2200], "tiktok_title": (f"{name} & the {theme}"[:80])}
 
@@ -103,9 +103,9 @@ def texts(story: dict) -> dict:
             "PARENTS of children aged 1–5 (the platforms are not for kids). English, warm, no brand names, no known "
             f"characters.\nStory: {json.dumps({k: story.get(k) for k in ('title', 'theme', 'summary', 'character', 'lesson')})}\n"
             "Return JSON {\"instagram\": str (hook line with the character's name + what happens, 1 emoji; line 2: who it is "
-            "for + why parents love it; line 3: 'New story every day at 4 pm CET → YouTube: Giggle Meadow (link in bio)'; "
+            "for + why parents love it; line 3: 'New story every Sunday at 9 am CET → YouTube: Giggle Meadow (link in bio)'; "
             f"blank line; then exactly these hashtags: {HASHTAGS['instagram']}), "
-            "\"tiktok\": str (2 short lines + 'New story daily on YouTube: Giggle Meadow' + these hashtags: "
+            "\"tiktok\": str (2 short lines + 'New story every Sunday on YouTube: Giggle Meadow' + these hashtags: "
             f"{HASHTAGS['tiktok']}; under 300 characters before hashtags), "
             "\"tiktok_title\": str (< 80 chars, the story in a few words)}"
         )
@@ -123,7 +123,7 @@ def texts(story: dict) -> dict:
 
 # ---------------------------------------------------------------- Metricool --------------------------------------------
 def _when(network: str, today: datetime) -> datetime:
-    hh, mm = (int(x) for x in TIMES.get(network, "17:00").split(":"))
+    hh, mm = (int(x) for x in TIMES.get(network, "10:00").split(":"))
     t = today.replace(hour=hh, minute=mm, second=0, microsecond=0)
     if t < datetime.now(BERLIN) + timedelta(minutes=10):
         t = datetime.now(BERLIN) + timedelta(minutes=15)
@@ -224,7 +224,7 @@ def plan_longshort(meta: dict, drive_links: dict, when: datetime) -> dict:
         raise RuntimeError("longshort.mp4 nicht im Drive-Ordner gefunden – kein TikTok-Plan für den langen Short")
     title = str(meta.get("title", "Giggle Meadow"))
     caption = (f"{title}\nA cozy string of cute cartoons for toddlers – no talking, just giggles. 💛\n"
-              f"New story every day at 4 pm CET on YouTube: Giggle Meadow\n{HASHTAGS['tiktok']}")[:2200]
+              f"New story every Sunday at 9 am CET on YouTube: Giggle Meadow\n{HASHTAGS['tiktok']}")[:2200]
     info = _build_info("tiktok", caption, urls["longshort.mp4"], urls.get("thumbnail_vertical.jpg"), title[:80])
     info["publicationDate"] = {"dateTime": when.strftime("%Y-%m-%dT%H:%M:%S"), "timezone": "Europe/Berlin"}
     post = {"network": "tiktok", "date": when.isoformat(timespec="seconds"), "blogId": BLOG_ID, "info": info}

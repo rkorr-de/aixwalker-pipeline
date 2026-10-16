@@ -296,7 +296,7 @@ def main() -> int:
                                     for i, a in enumerate(tried)]
         if not best["review"]["passed"]:
             msg = (f"Videoprüfung bei keinem von {len(tried)} Versuch(en) bestanden – das BESTE Video wird trotzdem "
-                   f"veröffentlicht (Vorgabe: täglich ein Short). Gefundene Fehler: "
+                   f"veröffentlicht (Vorgabe: sonntags ein Short). Gefundene Fehler: "
                    + "; ".join(best["review"].get("errors", []))[:300])
             result["warnings"].append(msg)
             log(msg)
