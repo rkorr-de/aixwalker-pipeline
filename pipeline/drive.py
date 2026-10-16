@@ -75,6 +75,14 @@ def upload_mix_package(folder_name: str, files: list[Path], subfolders: dict[str
         for f in sub_files:
             if f.exists():
                 links[f"{sub}/{f.name}"] = _upload(svc, f, sub_id)
+    # Alle Nano-Banana-Bilder ohne Text, die seit dem letzten Upload entstanden sind, immer mit in den Mix-Ordner (Rolf 16.10.)
+    from . import images as _images
+    raw = [p for p in _images.RAW_ART if p.exists()]
+    if raw:
+        raw_id = ensure_folder(svc, "ohne_text", folder)
+        for p in raw:
+            links[f"ohne_text/{p.name}"] = _upload(svc, p, raw_id)
+        _images.RAW_ART.clear()
     return links
 
 
