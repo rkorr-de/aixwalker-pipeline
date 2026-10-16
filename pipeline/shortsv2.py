@@ -57,6 +57,11 @@ def _tokens(text: str) -> list[tuple[str, bool]]:
         if not part:
             continue
         hl = part.startswith("*") and part.endswith("*")
+        if not hl and out and part[0] in ".,!?…:;":       # Satzzeichen direkt hinter *Wort* ohne Leerzeichen
+            punct = part.split()[0] if part.split() else ""
+            lead = len(punct) - len(punct.lstrip(".,!?…:;"))
+            out[-1] = (out[-1][0] + punct[:lead], out[-1][1])
+            part = part[lead:]
         for w in part.strip("*").split():
             out.append((w, hl))
     return out

@@ -24,7 +24,11 @@
       "Bash(python run_tip_short.py:*)",
       "Bash(/usr/bin/python run_tip_short.py:*)",
       "Bash(nohup python run_tip_short.py:*)",
-      "Bash(nohup /usr/bin/python run_tip_short.py:*)"
+      "Bash(nohup /usr/bin/python run_tip_short.py:*)",
+      "Bash(python run_short_v2.py:*)",
+      "Bash(/usr/bin/python run_short_v2.py:*)",
+      "Bash(nohup python run_short_v2.py:*)",
+      "Bash(nohup /usr/bin/python run_short_v2.py:*)"
     ]
   }
 }
