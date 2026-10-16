@@ -197,6 +197,9 @@ am Stück (Kling 3.0 Standard, keine Zeitlupe) → Text in Kaushan Script, Wort 
 Die 10 freigegebenen Beispiele verwenden ihre schon bezahlten Clips (0 $); neue Einträge ca. 1,40 $, A/B ca. 2,80 $,
 harte Grenze 3,50 $ je Lauf. Öffentlich, KI-gekennzeichnet, Kategorie Musik. Danach in Studio als „Related Video“
 den Ziel-Mix setzen (steht in metadata.txt; Beschreibungslinks sind in Shorts nicht klickbar).
+Das Short-Video in Drive (`_shorts2/<Datum> – <id>/Short2_<id>.mp4`) wird beim Hochladen automatisch für „Jeder mit dem
+Link“ (Betrachter) freigegeben (`drive.make_public`, Rolf 16.10.2026) – Metricool holt es so für Instagram/TikTok ab; die
+metadata.txt bleibt privat.
 
 ## Tipp-Shorts „Sleep & Relax Tips“ und „Dolce Vita“ (seit 15.10.2026, Wachstumsplan 2026/27)
 

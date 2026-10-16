@@ -38,13 +38,22 @@ def ensure_folder(svc, name: str, parent: str | None = None) -> str:
     return svc.files().create(body=body, fields="id").execute()["id"]
 
 
-def _upload(svc, f: Path, parent: str) -> str:
+def make_public(svc, file_id: str) -> None:
+    """Gibt eine Datei für „Jeder mit dem Link“ (Betrachter) frei – nötig, damit Metricool das Video für
+    Instagram/TikTok über https://drive.google.com/uc?export=download&id=<id> abholen kann."""
+    svc.permissions().create(fileId=file_id, body={"type": "anyone", "role": "reader"},
+                             fields="id").execute()
+
+
+def _upload(svc, f: Path, parent: str, public: bool = False) -> str:
     media = MediaFileUpload(str(f), chunksize=8 * 1024 * 1024, resumable=True)
     req = svc.files().create(body={"name": f.name, "parents": [parent]}, media_body=media,
                              fields="id,webViewLink")
     resp = None
     while resp is None:
         status, resp = req.next_chunk()
+    if public:
+        make_public(svc, resp["id"])
     return resp.get("webViewLink", f"https://drive.google.com/file/d/{resp['id']}/view")
 
 
