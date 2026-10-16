@@ -39,6 +39,22 @@ def _find_inline_image(obj):
     return None
 
 
+# Alle Nano-Banana-Rohbilder dieses Laufs (ohne Schrift, ohne Farbkorrektur). upload_mix_package legt sie in Drive ab.
+RAW_ART: list = []
+RAW_DIR = Path(__file__).resolve().parent.parent / "build" / "raw_art"
+
+
+def _save_raw(img: Image.Image, tag: str) -> Path:
+    """Sichert ein Rohbild lokal (build/raw_art) und merkt es für den Drive-Upload vor."""
+    import datetime as _dt
+    RAW_DIR.mkdir(parents=True, exist_ok=True)
+    stamp = _dt.datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+    path = RAW_DIR / f"{stamp}_{str(tag).replace(':', 'x')}.png"
+    img.save(path, "PNG")
+    RAW_ART.append(path)
+    return path
+
+
 def generate_art(prompt: str, aspect: str = "1:1", pro: bool = False, timeout: int = 180,
                  style: str | None = None, image_size: str | None = None) -> Image.Image:
     """Erzeugt ein Bildmotiv. Ohne API-Key wird ein prozedurales Fallback-Bild erzeugt."""
@@ -72,7 +88,9 @@ def generate_art(prompt: str, aspect: str = "1:1", pro: bool = False, timeout: i
                 raise RuntimeError(f"kein Bild in Antwort: {r.text[:300]}")
             sized = "imageSize" in body["generationConfig"]["imageConfig"]
             costs.count(("image_pro_4k" if sized and image_size == "4K" else "image_pro") if pro else "image_flash")
-            return Image.open(io.BytesIO(base64.b64decode(data))).convert("RGB")
+            img = Image.open(io.BytesIO(base64.b64decode(data))).convert("RGB")
+            _save_raw(img, aspect)   # Rohbild von Nano Banana (noch ohne Farbkorrektur) sichern → Drive
+            return img
         except Exception as e:  # noqa: BLE001
             last = e
             print(f"[images] Versuch {attempt + 1} fehlgeschlagen: {e}")
@@ -113,7 +131,9 @@ def remove_text(img: Image.Image, timeout: int = 240) -> Image.Image:
             if not data:
                 raise RuntimeError(f"kein Bild in Antwort: {r.text[:300]}")
             costs.count("image_pro_4k" if "imageSize" in body["generationConfig"]["imageConfig"] else "image_pro")
-            return Image.open(io.BytesIO(base64.b64decode(data))).convert("RGB")
+            img = Image.open(io.BytesIO(base64.b64decode(data))).convert("RGB")
+            _save_raw(img, "ohne-schrift")   # Ergebnis der Schrift-Entfernung ebenfalls sichern
+            return img
         except Exception as e:  # noqa: BLE001
             last = e
             print(f"[images] Schrift entfernen, Versuch {attempt + 1} fehlgeschlagen: {e}")
