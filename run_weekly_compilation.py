@@ -254,7 +254,7 @@ def main() -> int:
             log(f"Kommentar fehlgeschlagen: {e}")
     # Ordnername passt bewusst NICHT zum Tages-Mix-Muster → der Monats-Mix nimmt nur die Tages-Mixe, keine Dopplung
     links = drive.upload_mix_package(f"{today.isoformat()} – WEEKEND {genre} – {name} ({total_min} Min)",
-                                     [thumb, cover, base / "metadata.txt", mp4])
+                                     [thumb, cover, base / "master.jpg", base / "metadata.txt", mp4])  # Grundbild (Nano Banana, ohne Text) immer in Drive
     res["drive_folder"] = links.get("_folder")
     mem.setdefault("weekly", []).append({"week": week, "genre": genre, "name": name, "video_id": vid,
                                          "title": texts["title"], "duration_min": total_min, "albums": res["albums"],
