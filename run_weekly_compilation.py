@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Samstags-Lang-Mix einer eigenen Linie (Rolf, 08.10.2026): die Mixe der laufenden Woche (Italien: Mo, Mi, Fr) werden
-aus Google Drive geladen und zu EINEM ca. 3-Stunden-Mix zusammengeschnitten – Überblendungen, Kapitel, Video mit
+aus Google Drive geladen und zu EINEM ca. 6-Stunden-Mix (seit 16.10.2026: Mixe der letzten 2 Wochen) zusammengeschnitten – Überblendungen, Kapitel, Video mit
 atmendem Licht aus den Album-Covern der Tages-Mixe. Neu erzeugt wird nur EIN Hauptbild für Album-Cover und Thumbnail
 (Nano Banana, ca. 0,24 $). Keine Lyria-Kosten, kein DistroKid, keine Shorts (die Tages-Mixe haben schon Shorts; doppelte
 Clips würde YouTube als wiederverwendeten Inhalt werten).
@@ -25,7 +25,7 @@ from PIL import Image
 from monthly_mix import collect_folders, fetch_mix, synthetic
 from pipeline import audio, config, drive, images, memory, metadata, monthly, planner
 
-DAYS_BACK = 6          # Samstag → Sonntag davor bis Freitag; Italien: Mo, Mi, Fr (der So-Mix gehört zur Vorwoche)
+DAYS_BACK = 13         # seit 16.10.2026 (Rolf): 2 Wochen statt 1 → ca. 6 Std. (vorher 6 Tage = ca. 3 Std.); Samstag-13 = Sonntag vor 2 Wochen
 MIN_MIXES = 2
 
 # Name des Wochenend-Releases (steht in Schreibschrift auf Cover/Thumbnail und vorne im Titel); rotiert, keine Dopplung
