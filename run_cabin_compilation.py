@@ -91,7 +91,7 @@ def texts(period: str, name: str, total_min: int, albums: list[dict], chapter_te
 🔥 Real crackling fire sounds · no vocals · no interruptions · mastered quietly for background listening
 🎵 All music produced by {config.ARTIST} (AI-assisted, original music)
 ▶️ Full playlist: https://www.youtube.com/playlist?list={playlist_id}
-🔔 A new cozy cabin film every Friday – subscribe and hit the bell!
+🔔 New cozy cabin films regularly – subscribe and hit the bell!
 
 👇 What are you doing while the snow falls outside?
 
