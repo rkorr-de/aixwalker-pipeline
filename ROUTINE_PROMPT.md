@@ -191,8 +191,8 @@ Kostenvoranschlag, Bericht per E-Mail). Startbefehl statt `python run_auto.py`:
 ## Shorts 2.0 (seit 16.10.2026 live, von Rolf freigegeben – täglich als letzter Lauf der Tages-Routine)
 
 Ersetzt die Tipp-Shorts (Stil von Rolf abgelehnt, seit 16.10.2026 pausiert). Ein Short = Personen-Bild → 15-s-Clip
-am Stück (Kling 3.0 Standard, keine Zeitlupe) → Text in Kaushan Script, Wort für Wort → Schluss „Full 1-hour
-<Genre> mix ↓“ → Musik aus dem neuesten Mix des Genres. Befehl in der Routine: `nohup python run_short_v2.py --free-only --publish-at 16:00 > build/short2.log 2>&1 &`
+am Stück (Kling 3.0 Standard, keine Zeitlupe) → Text in Kaushan Script, Wort für Wort → Schluss „Full-length
+<Genre> mix ↓“ → Musik aus dem neuesten Mix des Genres. Befehl in der Routine: `nohup python run_short_v2.py --free-only --private > build/short2.log 2>&1 &`
 (`--free-only`: nur Einträge mit schon bezahltem Clip – neue, kostenpflichtige Shorts erst nach Rolfs Freigabe;
 `--publish-at 16:00`: geplant öffentlich um 16 Uhr Berlin, laut Metricool die stärkste Zeit). Warteschlange in Drive `_memory/shorts2_queue.json` (`--list`, `--add datei.json`).
 Die 10 freigegebenen Beispiele verwenden ihre schon bezahlten Clips (0 $); neue Einträge ca. 1,40 $, A/B ca. 2,80 $,

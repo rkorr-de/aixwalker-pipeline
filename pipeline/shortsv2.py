@@ -4,7 +4,7 @@
 - Text: ein Satz nach dem anderen, Wort für Wort (sanft einblenden + leicht aufsteigen); *Wort* = Schlüsselwort in
   Kaushan Script (größer, warmes Creme), Rest Kaushan Script weiß; weicher Schatten, keine Kästen
 - Formate: normal, „breathing“ (atmender Kreis: breathe in · hold · breathe out), „split“ (A oben, B unten)
-- Schluss: „Full 1-hour“ + Genre-Mix (Schlüsselwort-Stil) + Pfeil nach unten (zum verknüpften Video)
+- Schluss: „Full-length“ + Genre-Mix (Schlüsselwort-Stil) + Pfeil nach unten (zum verknüpften Video)
 Jedes Bild wird in Python zusammengesetzt (sub-pixel-genau) und roh an ffmpeg gegeben.
 """
 import math
@@ -149,10 +149,10 @@ def _check(words: list[dict]) -> None:
 
 
 def layout_cta(genre: str, cy: int = 640) -> list[dict]:
-    """Schluss: kleine Zeile „Full 1-hour“, darunter der Genre-Mix als Schlüsselwort, darunter ein feiner Pfeil."""
+    """Schluss: kleine Zeile „Full-length“, darunter der Genre-Mix als Schlüsselwort, darunter ein feiner Pfeil."""
     probe = ImageDraw.Draw(Image.new("L", (10, 10)))
     items = []
-    small = "Full 1-hour"
+    small = "Full-length"
     fs = _sans(60)
     track = 0.02 * fs.size
     sw = sum(probe.textlength(c, font=fs) for c in small) + track * (len(small) - 1)
