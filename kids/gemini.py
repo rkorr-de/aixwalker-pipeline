@@ -118,6 +118,11 @@ def image(prompt: str, aspect: str = "9:16", pro: bool = False, references: list
         raise RuntimeError(f"Nano Banana: kein Bild in Antwort: {json.dumps(data)[:400]}")
     costs.count(key)
     img = Image.open(io.BytesIO(base64.b64decode(b64))).convert("RGB")
+    try:   # Rohbild sichern (Rolf 16.10.: alle Rohdaten immer sichern)
+        from pipeline import images as _images
+        _images._save_raw(img, aspect)
+    except Exception as e:  # noqa: BLE001
+        print(f"[kids] Rohbild konnte nicht gesichert werden: {e}")
     if out:
         out.parent.mkdir(parents=True, exist_ok=True)
         img.save(out, "PNG")

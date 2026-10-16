@@ -52,7 +52,28 @@ def _save_raw(img: Image.Image, tag: str) -> Path:
     path = RAW_DIR / f"{stamp}_{str(tag).replace(':', 'x')}.png"
     img.save(path, "PNG")
     RAW_ART.append(path)
+    global _ATEXIT_SET
+    if not _ATEXIT_SET:
+        import atexit
+        atexit.register(_flush_raw_to_drive)
+        _ATEXIT_SET = True
     return path
+
+
+_ATEXIT_SET = False
+
+
+def _flush_raw_to_drive() -> None:
+    """Am Programmende: Rohbilder, die noch nicht in Drive liegen (z. B. Shorts-, Banner- oder Kids-Läufe), in _rohdaten ablegen."""
+    if not RAW_ART:
+        return
+    try:
+        from pipeline import drive
+        import datetime as _dt
+        drive.upload_mix_package(f"_rohdaten {_dt.date.today().isoformat()} (Nano Banana, ohne Text)", [])
+        print(f"[images] {len(RAW_ART) or 'alle'} Rohbilder nach Drive _rohdaten gesichert")
+    except Exception as e:  # noqa: BLE001
+        print(f"[images] Rohbilder NICHT in Drive gesichert (lokal in {RAW_DIR}): {e}")
 
 
 def generate_art(prompt: str, aspect: str = "1:1", pro: bool = False, timeout: int = 180,
