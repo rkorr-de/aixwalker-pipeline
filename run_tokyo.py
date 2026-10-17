@@ -311,8 +311,12 @@ def short_text_layers(lines: list[str], w: int = 1080, h: int = 1920) -> list[Im
     return layers
 
 
-def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: float, out: Path, sec: int = 20) -> Path:
-    """Ausschnitt 9:16 mit der kompletten Bildhöhe (1215×2160), sehr langsame Kamerafahrt nach rechts, Text zentriert."""
+def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: float, out: Path, sec: int = 20,
+               xf: float = 2.0) -> Path:
+    """Short als nahtlose Schleife (Rolf 17.10.2026: nicht ein-/ausblenden, soll sich unbemerkt wiederholen).
+    Bild: Ausschnitt 9:16 mit der kompletten Bildhöhe (1215×2160), die Kamerafahrt läuft als Cosinus und endet exakt am Anfang.
+    Text: baut sich Zeile für Zeile auf und löst sich kurz vor dem Ende weich auf (Bild bleibt durchgehend sichtbar).
+    Ton: Ausschnitt, dessen Ende (xf Sekunden) in den Anfang überblendet wird, damit die Wiederholung nicht hörbar ist."""
     out.mkdir(parents=True, exist_ok=True)
     cw = round(H * 9 / 16)
     base = out / "short_base.png"
@@ -325,23 +329,30 @@ def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: fl
         paths.append(pth)
     x0 = int(W * 0.17)
     dst = out / "short.mp4"
-    # Aufbau: Verlauf (0,3 s), feine Linie (1,0 s), jede Zeile nacheinander im Abstand von 1,5 s, zuletzt der Hinweis auf den Mix
-    t0 = [0.3, 1.0] + [1.8 + 1.5 * k for k in range(len(layers) - 3)] + [1.8 + 1.5 * (len(layers) - 3) + 0.4]
+    n_el = len(layers)
+    # Aufbau: Verlauf, feine Linie, jede Zeile im Abstand von 1,5 s, zuletzt der Hinweis auf den Mix; Auflösen in den letzten 1,5 s
+    t0 = [0.3, 0.9] + [1.6 + 1.4 * k for k in range(n_el - 3)] + [1.6 + 1.4 * (n_el - 3) + 0.3]
     t_out = sec - 1.6
     cmd = ["ffmpeg", "-v", "error", "-y", "-loop", "1", "-framerate", 25, "-t", sec, "-i", base]
     for pth in paths:
         cmd += ["-loop", "1", "-framerate", 25, "-t", sec, "-i", pth]
-    cmd += ["-ss", f"{start:.2f}", "-t", sec, "-i", final_audio]
-    fc = f"[0:v]crop=w={cw}:h={H}:x='{x0}+120*t/{sec}':y=0,scale=1080:1920:flags=lanczos[b0];"
-    for i in range(len(paths)):
-        dur = 1.0 if i == 0 else 0.9
+    cmd += ["-ss", f"{start:.2f}", "-t", sec + xf, "-i", final_audio]
+    fc = (f"[0:v]crop=w={cw}:h={H}:x='{x0}+110*(1-cos(2*PI*t/{sec}))/2':y=0,scale=1080:1920:flags=lanczos[b0];")
+    for i in range(n_el):
+        dur = 0.9
         fc += (f"[{i + 1}:v]format=rgba,fade=t=in:st={t0[i]:.2f}:d={dur}:alpha=1,"
-               f"fade=t=out:st={t_out:.2f}:d=1.2:alpha=1[t{i}];[b{i}][t{i}]overlay=0:0[b{i + 1}];")
-    n = len(paths)
-    fc += f"[b{n}]fade=t=in:st=0:d=0.5,fade=t=out:st={sec - 0.6}:d=0.6,format=yuv420p[o]"
-    cmd += ["-filter_complex", fc, "-map", "[o]", "-map", f"{n + 1}:a", "-af", f"afade=t=in:d=0.8,afade=t=out:st={sec - 1.5}:d=1.5",
-            "-c:v", "libx264", "-crf", "18", "-preset", "medium", "-c:a", "aac", "-b:a", "192k", "-t", sec,
-            "-movflags", "+faststart", dst]
+               f"fade=t=out:st={t_out:.2f}:d=1.4:alpha=1[t{i}];[b{i}][t{i}]overlay=0:0[b{i + 1}];")
+    fc += f"[b{n_el}]format=yuv420p[o];"
+    ai = n_el + 1
+    fc += (f"[{ai}:a]asplit=3[ab][at][ah];"
+           f"[ab]atrim=start={xf}:end={sec},asetpts=PTS-STARTPTS[abd];"
+           f"[at]atrim=start={sec}:end={sec + xf},asetpts=PTS-STARTPTS[atl];"
+           f"[ah]atrim=start=0:end={xf},asetpts=PTS-STARTPTS[ahd];"
+           f"[atl]afade=t=out:d={xf}:curve=qsin[af1];[ahd]afade=t=in:d={xf}:curve=qsin[af2];"
+           f"[af1][af2]amix=inputs=2:duration=longest:normalize=0[acf];"
+           f"[abd][acf]concat=n=2:v=0:a=1[ao]")
+    cmd += ["-filter_complex", fc, "-map", "[o]", "-map", "[ao]", "-c:v", "libx264", "-crf", "18", "-preset", "medium",
+            "-c:a", "aac", "-b:a", "192k", "-t", sec, "-movflags", "+faststart", dst]
     run(cmd)
     return dst
 
@@ -368,6 +379,32 @@ def short_texts(lines: list[str], video_url: str) -> tuple[str, str, list[str]]:
     return title, desc, ["tokyo work lounge", "slow jazz", "productivity", "coding music", "focus music", "shorts", "aix walker"]
 
 
+# ---------------------------------------------------------------- nur Short
+def short_only(args, out: Path, lines: list[str]) -> int:
+    from pipeline import drive, youtube
+    art = fetch_main_image(args.room, out, False)
+    svc = drive.service()
+    root = drive.ensure_folder(svc, drive.ROOT_FOLDER)
+    folders = [f for f in drive.list_children(svc, root, folders=True) if "Tokyo Work Lounge" in f["name"] and args.room in f["name"]]
+    if not folders:
+        raise RuntimeError("Drive-Ordner des Tokyo-Mixes nicht gefunden")
+    folder = folders[-1]
+    mp3_dir = [f for f in drive.list_children(svc, folder["id"], folders=True) if f["name"] == "mp3"][0]
+    mp3s = [f for f in drive.list_children(svc, mp3_dir["id"], folders=False) if f["name"].endswith(".mp3")]
+    pick = mp3s[min(2, len(mp3s) - 1)]
+    song = drive.download(svc, pick["id"], out / "work" / "short_song.mp3")
+    log(f"Short-Ton aus „{pick['name']}“ (Ordner {folder['name']})")
+    short = make_short(art, lines, song, 35, out / "short")
+    url = f"https://youtu.be/{args.mix_video_id}" if args.mix_video_id else "(Link zum Mix)"
+    s_title, s_desc, s_tags = short_texts(lines, url)
+    sid = youtube.upload_video(short, s_title, s_desc, s_tags, privacy="private", location=youtube.TOKYO)
+    log(f"Short hochgeladen (privat): https://youtube.com/shorts/{sid}")
+    (out / "short_result.json").write_text(json.dumps({"short_id": sid, "mix_video_id": args.mix_video_id,
+                                                        "title": s_title, "track": pick["name"]}, indent=2))
+    log("Fertig: Short")
+    return 0
+
+
 # ---------------------------------------------------------------- Ablauf
 def main() -> int:
     ap = argparse.ArgumentParser()
@@ -379,6 +416,8 @@ def main() -> int:
     ap.add_argument("--drive", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--workers", type=int, default=3)
+    ap.add_argument("--short-only", action="store_true", help="nur den Short neu bauen (Musik aus dem Drive-Ordner des Mixes)")
+    ap.add_argument("--mix-video-id", default="", help="YouTube-ID des Mixes (für den Link in der Short-Beschreibung)")
     args = ap.parse_args()
     out = Path(args.out or f"build/tokyo-{args.room}")
     for sub in ("raw", "wav", "mp3", "img", "work", "short", "thumb"):
@@ -387,6 +426,8 @@ def main() -> int:
         config.GOOGLE_API_KEY = ""
     costs.start(out / "costs.json")
     lines = QUOTES[args.quote % len(QUOTES)]
+    if args.short_only:
+        return short_only(args, out, lines)
     log(f"Tokyo Work Lounge, Raum {args.room}, Spruch: {' '.join(lines)}, dry_run={args.dry_run}")
 
     art = fetch_main_image(args.room, out, args.dry_run)
