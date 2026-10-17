@@ -38,8 +38,8 @@ VARIANT = ("provence-atelier-dusk", "PROVENCE ATELIER",
            "with one lit candle and a ceramic cup, arched window with deep blue twilight, dried olive branch in a "
            "terracotta vase, warm single spot light, very calm")
 
-SUBS = {"provence-atelier": "DEEP WORK JAZZ", "milan-reading-room": "STUDY & READING JAZZ",
-        "lisbon-tile-cafe": "MORNING START JAZZ", "provence-atelier-dusk": "LATE SHIFT JAZZ"}
+SUBS = {"provence-atelier": "JAZZ FOR WORK & CODING", "milan-reading-room": "STUDY & READING JAZZ",
+        "lisbon-tile-cafe": "MORNING START JAZZ", "provence-atelier-dusk": "CODING AFTER DARK"}
 
 TRACKS = {
     "provence-atelier": ("Quiet Atelier", "felt piano, warm upright bass, soft nylon guitar, brushed shaker barely audible"),
