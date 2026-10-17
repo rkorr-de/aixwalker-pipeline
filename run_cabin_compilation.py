@@ -34,8 +34,8 @@ FOLDER_RE = re.compile(r"^(\d{4}-\d{2}-\d{2}) – (.+) \(" + GENRE + r", 4K\)$")
 CRACKLE = config.ASSETS / "ambience" / "fireplace_crackle_loop.m4a"
 MAX_SEC = 11 * 3600 + 50 * 60
 NAMES = {
-    "biweekly": ["Snowbound Nights", "Hearth and Snowfall", "Long Winter Evenings", "Fireside Hours", "Deep Snow Hours",
-                 "Candlelit Cabin Nights", "Embers and Pines", "Quiet Blizzard Nights", "Woodsmoke Evenings",
+    "biweekly": ["Snowbound Nights", "Long Winter Evenings", "Fireside Hours", "Deep Snow Hours",
+                 "Candlelit Cabin Nights", "Embers and Pines", "Woodsmoke Evenings",
                  "Frost and Firelight", "Northern Cabin Nights", "Warm Hearth Hours"],
 }
 
@@ -78,7 +78,7 @@ def texts(period: str, name: str, total_min: int, albums: list[dict], chapter_te
     title = f"{name} · Cozy Winter Cabin · {hrs} Relaxing Fireplace Chillout 4K"[:100]
     src = "\n".join(f"• {a['album']}" + (f" – https://youtu.be/{a['video_id']}" if a.get("video_id") else "")
                     for a in albums)
-    desc = f"""🎧 {hrs} in a cozy winter cabin: a crackling fireplace, candlelight and heavy snow falling outside – with warm lofi jazz and ambient chillout, in 4K.
+    desc = f"""🎧 {hrs} in a cozy winter cabin: a crackling fireplace, candlelight and a quiet, snow-covered landscape outside – with warm lofi jazz and ambient chillout, in 4K.
 
 {what.capitalize()} in one long, uninterrupted session – perfect to leave running while you read, work, study or fall asleep on a cold winter night.
 
@@ -93,15 +93,15 @@ def texts(period: str, name: str, total_min: int, albums: list[dict], chapter_te
 ▶️ Full playlist: https://www.youtube.com/playlist?list={playlist_id}
 🔔 New cozy cabin films regularly – subscribe and hit the bell!
 
-👇 What are you doing while the snow falls outside?
+👇 What are you doing while the snow lies quiet outside?
 
 #CozyWinterCabin #FireplaceAmbience #CozyCabin #WinterAmbience #AixWalker
 """
     tags = ["cozy winter cabin", "fireplace ambience 4k", "cozy cabin ambience", "winter cabin fireplace",
-            "relaxing fireplace music", "snowfall ambience", "lofi jazz fireplace", f"{hrs.lower()} fireplace",
+            "relaxing fireplace music", "snowy cabin ambience", "lofi jazz fireplace", f"{hrs.lower()} fireplace",
             "long fireplace video", "sleep music winter", "study music cozy", "aixwalker", "aix walker"]
     comment = f"❄️🔥 {hrs} by the fire – which chapter is your favourite? Drop the timestamp below 👇"
-    community = (f"Neu: {name} – {hrs} Kaminfeuer, Schneefall und ruhige Musik in 4K 🔥❄️\n"
+    community = (f"Neu: {name} – {hrs} Kaminfeuer, ruhige Schneelandschaft und ruhige Musik in 4K 🔥❄️\n"
                  f"Perfekt zum Laufenlassen an einem langen Winterabend.")
     return {"title": title, "description": desc[:5000], "tags": tags, "comment": comment, "community_de": community}
 

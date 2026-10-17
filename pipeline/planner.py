@@ -181,7 +181,7 @@ GENRES = {
                   "hypnotic; a bridge without percussion, just pads, fire and a nostalgic melodic piano; outro fading "
                   "to a warm synth tail and the fire. Instrumental, {BPM} BPM."),
         "purposes": ["cozy winter night by the fireplace", "reading with a blanket on a snowy evening",
-                     "studying and working on a cold winter day", "falling asleep while it snows outside",
+                     "studying and working on a cold winter day", "falling asleep on a quiet snowy night",
                      "slow Sunday morning coffee in the cabin", "unwinding after a long winter day"],
         "motifs": [
             "modern luxury log cabin living room in Montana with a cognac leather sofa and a stone fireplace, "
@@ -195,7 +195,7 @@ GENRES = {
             "Scandinavian modern cabin with warm oak walls, a round hanging fireplace and big windows onto a snowy "
             "birch forest",
             "rustic log cabin with a large fieldstone hearth, a leather armchair with a knitted blanket and a big "
-            "window onto a blizzard in the pines",
+            "window onto the still, snow-covered pines",
         ],
         "moods": ["warm, intimate, comforting", "melancholic, nostalgic, cozy", "calm, hypnotic, dreamy",
                   "soft, safe, slow"],
@@ -235,9 +235,9 @@ LIGHTS = {
     "Ibiza Sunset Lounge": ["deep red sun touching the horizon", "sun half below the horizon under a crimson sky",
                             "last minutes of sunset with a burnt-orange afterglow", "fiery red sky reflected on the darkening sea",
                             "dark amber afterglow just after sunset with the first lanterns glowing"],
-    "Cozy Winter Cabin": ["deep blue snowy night with a warm amber fireplace glow", "starry winter night with heavy snowfall",
+    "Cozy Winter Cabin": ["deep blue snowy night with a warm amber fireplace glow", "starry winter night over deep, calm snow",
                           "blue hour turning to night with candlelight inside", "moonlit snow outside, firelight inside",
-                          "dark blizzard night with a glowing hearth"],
+                          "dark, calm snowy night with a glowing hearth"],
 }
 
 

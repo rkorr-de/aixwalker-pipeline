@@ -94,7 +94,7 @@ Wochentag: `TZ=Europe/Berlin date +%u`, Tag im Monat: `TZ=Europe/Berlin date +%d
 | Mi (3) | Italien |
 | Do (4) | **nur in geraden Kalenderwochen** (`TZ=Europe/Berlin date +%V` gerade): Gym `python run_auto.py --genre "Slow Gym Beats"`; sonst kein Lauf |
 | Fr (5) | Italien (der Cabin-Freitags-Mix läuft in seiner eigenen Routine um 08:45) |
-| Sa (6) | Italien-Wochen-Zusammenschnitt: `python run_weekly_compilation.py --genre "Italian Chillout"` |
+| Sa (6) | **Samstags-Mega-Mix** (seit 17.10.2026): `python run_megamix.py --genre auto` (Genre-Rotation Italian → Cabin → Lounge; bis 8 Std., geplant öffentlich um 14:00; siehe Abschnitt „Samstags-Mega-Mix“). Ersetzt den bisherigen Italien-Wochen-Zusammenschnitt `run_weekly_compilation.py`. Ab ca. 11:04 gestartet, dauert je nach Genre 1–3 Std. |
 | So (7) | Italien |
 
 **Danach, als LETZTER Lauf des Tages (seit 15.10.2026, Wachstumsplan 2026/27):** ein Tipp-Short –
@@ -125,12 +125,37 @@ Die Sonntags-Routine startet statt `python run_auto.py` den Befehl **`python run
   starten – fertige Tracks (build/<slug>/raw) und das Konzept des Tages werden wiederverwendet.
 - Kein DistroKid-Release für Lang-Mixe (steht so im Bericht).
 
+## Samstags-Mega-Mix (seit 17.10.2026, Rolf)
+
+Konzept: `KONZEPT_SAMSTAG_MEGAMIX.md`. Befehl in der Tages-Routine am Samstag: **`nohup python run_megamix.py --genre auto > build/megamix.log 2>&1 &`**
+(Log verfolgen, bis „fertig“; Dauer Italian/Lounge ca. 1 Std., Cabin ca. 2–3 Std.). Test ohne Kosten: `--dry-run`.
+- **Genre-Rotation** (`pipeline/megamix.py`): Italian Chillout → Cozy Winter Cabin → Mediterranean Lounge (Lounge, Ibiza, Dark Spa
+  zusammen; nur wenn mind. 4 Quell-Mixe der letzten 28 Tage da sind). Hat ein Genre zu wenig Material, kommt das nächste.
+- **Musik**: nur vorhandene Songs aus den Genre-Mixen (Drive), Zufallsreihenfolge, **pro Mega-Mix kein Song doppelt**
+  (gleicher Titel oder gleicher Dateiinhalt), nie zwei Songs desselben Albums direkt hintereinander, bis 8 Std. (Überblendung 1,5 s).
+  Keine neue Musik, kein DistroKid.
+- **Veröffentlichung geplant 14:00 Berlin** (`youtube.schedule_publish`); ist es später als 13:45, sofort öffentlich. Danach wartet
+  das Skript auf „öffentlich“ und postet den Kommentar mit Trackliste (Kapitel in der Beschreibung höchstens ca. 60 Zeilen).
+- **Italian/Lounge**: kein neues Video (atmendes Licht aus den vorhandenen Track-Covern), nur EIN Hauptbild (Nano Banana, ca. 0,24 $,
+  outdoor) → Thumbnail mit großer Schrift + Album-Cover 3000×3000 + unbeschriftetes `master.jpg` in den Drive-Ordner.
+- **Cozy Winter Cabin**: neues Hauptbild 4K + **2 neue Veo-Clips 4K** (ca. 5 $ gesamt), nahtlos wie bei den Cabin-Mixen,
+  Streaming-Upload. **Seit 17.10.2026 schneit es in den Cabin-Videos nicht mehr** – nur ruhig liegender Schnee draußen, kein
+  fallender Schnee, keine Flocken (Veo-Prompt, Negativ-Prompt, Bild-Prompt, Texte angepasst; Clip-Prüfung: relativer Sprung-Faktor 1,6).
+- **Shorts**: 2 je Mega-Mix. Short 1 gehört zum **Samstag**, Short 2 zum **Sonntag** (Gedächtnis-Eintrag `shorts2` mit dem Datum
+  des Tages, `megamix: true`, `mix_video_id` = Mega-Mix). Beide werden PRIVAT hochgeladen; die Abendaufgabe (19:45) setzt das
+  „Related Video“ und schaltet öffentlich, Instagram/TikTok plant Metricool (liest dieselben Einträge).
+  Cabin: Ausschnitte (Kamin bzw. Fenster/Sofa) aus dem neuen 4K-Material → normale Cabin-Short-Erstellung (S1 v2).
+  Sonst: `run_short_v2.py --free-only --megamix --target-video-id <Mega-Mix> --audio <Auszug> --date <Tag>` (nur bezahlte Kling-Clips).
+- **Tages-Short**: `run_short_v2.py` (ohne `--megamix`) überspringt den Tag, wenn für ihn schon ein Mega-Mix-Short existiert
+  (je Tag nur EIN Eintrag, damit die Folgeaufgaben sie nicht verwechseln).
+- Die Sonntags-Aufgabe „Cabin 2-Wochen-Mix“ (09:45) und der Monats-Mix bleiben unverändert.
+
 ## Winter-Cabin-Linie „Cozy Winter Cabin“ (seit 09.10.2026) – 4K-Kaminfilm
 
 **Seit 13.10.2026 zwei Cabin-Mixe pro Woche** (Rolf): Freitag in der eigenen Routine (08:45) und Dienstag in der
 Tages-Routine – gleicher Befehl, gleicher Ablauf.
 
-Eigene Linie, alles **echtes 4K**, kein DistroKid. Konzept und Testergebnisse: `KONZEPT_WINTER_CABIN.md`.
+Eigene Linie, alles **echtes 4K**, kein DistroKid. **Seit 17.10.2026: kein Schneien mehr im Video** (Rolf) – nur ruhig liegender Schnee draußen; gilt für alle Cabin-Clips und -Bilder. Konzept und Testergebnisse: `KONZEPT_WINTER_CABIN.md`.
 - **Freitag 08:45** – Freitags-Mix (≥ 120 Min): **`python run_auto.py --genre "Cozy Winter Cabin"`** (im Hintergrund,
   Log `build/auto_cabin.log`). run_auto leitet an `run_cabin.py` weiter: Lyria-Tracks (Cozy Lofi Ambient / Smooth Jazz
   Fireplace, 58–64 BPM, −16 LUFS, keine Tempoprüfung), EIN Hauptbild 4K, 2 Veo-Clips 4K (seit 13.10.2026, vorher 3) (Start = Ende = Hauptbild,

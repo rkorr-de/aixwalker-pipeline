@@ -187,3 +187,34 @@ if __name__ == "__main__":
     print("Wiedergabestunden 365 Tage:", round(channel_watch_hours(), 1))
     for row in recent_performance():
         print(row)
+
+
+def schedule_publish(video_id: str, publish_at: str) -> None:
+    """Setzt ein schon hochgeladenes (privates) Video auf geplante Veröffentlichung (publish_at = RFC3339, UTC).
+    Liest den aktuellen Status und ändert nur privacyStatus/publishAt – die übrigen Felder (z. B. KI-Kennzeichnung)
+    bleiben erhalten, weil videos.update den ganzen Status-Teil ersetzt."""
+    yt = service()
+    cur = yt.videos().list(part="status", id=video_id).execute()["items"][0]["status"]
+    cur.pop("publishAt", None)
+    cur["privacyStatus"] = "private"
+    cur["publishAt"] = publish_at
+    yt.videos().update(part="status", body={"id": video_id, "status": cur}).execute()
+
+
+def privacy_of(video_id: str) -> str | None:
+    items = service().videos().list(part="status", id=video_id).execute().get("items", [])
+    return items[0]["status"]["privacyStatus"] if items else None
+
+
+def wait_until_public(video_id: str, timeout_s: int = 1500, poll_s: int = 30, log=print) -> bool:
+    """Wartet, bis ein geplantes Video öffentlich ist (für Kommentar, der nur auf öffentlichen Videos klappt)."""
+    import time
+    t0 = time.time()
+    while time.time() - t0 < timeout_s:
+        try:
+            if privacy_of(video_id) == "public":
+                return True
+        except Exception as e:  # noqa: BLE001
+            log(f"Statusabfrage fehlgeschlagen: {str(e)[:120]}")
+        time.sleep(poll_s)
+    return False

@@ -141,7 +141,7 @@ def make_clips(frame: Image.Image, out: Path, n: int, dry: bool) -> list[Path]:
 
 def short_center(frame: Image.Image, k: int) -> float:
     """Bildmitte (0–1) des senkrechten Ausschnitts. Rolf 09.10.: Shorts müssen sich sichtbar unterscheiden –
-    Short 1 = Kamin, Short 2 = Fensterfront mit Schneefall, Sofa und Kerzentisch (gut 0,4 Bildbreiten vom Feuer weg)."""
+    Short 1 = Kamin, Short 2 = Fensterfront mit Schneelandschaft, Sofa und Kerzentisch (gut 0,4 Bildbreiten vom Feuer weg)."""
     fx = cabin_art.fire_x(frame)
     if k % 2 == 0:
         return fx

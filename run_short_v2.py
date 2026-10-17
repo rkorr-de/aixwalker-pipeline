@@ -212,12 +212,12 @@ def publish_time(hhmm: str | None) -> str | None:
     return at.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def upload_drive(out: Path, e: dict, files: list[Path]) -> str:
+def upload_drive(out: Path, e: dict, files: list[Path], day: str | None = None) -> str:
     from pipeline import drive
     svc = drive.service()
     root = drive.ensure_folder(svc, drive.ROOT_FOLDER)
     base = drive.ensure_folder(svc, "_shorts2", root)
-    folder = drive.ensure_folder(svc, f"{date.today().isoformat()} – {e['id']}", base)
+    folder = drive.ensure_folder(svc, f"{day or date.today().isoformat()} – {e['id']}", base)
     for f in files:
         # Nur das Video wird für „Jeder mit dem Link“ freigegeben (Metricool holt es für Instagram/TikTok ab)
         drive._upload(svc, f, folder, public=f.suffix.lower() == ".mp4")
@@ -228,6 +228,16 @@ def upload_drive(out: Path, e: dict, files: list[Path]) -> str:
 
 def produce(args) -> int:
     use_drive = not args.dry_run and bool(os.environ.get("DRIVE_REFRESH_TOKEN"))
+    day = args.date or date.today().isoformat()
+    if not args.megamix and not args.dry_run:
+        # Am Wochenende ersetzen die Mega-Mix-Shorts das Tages-Short (je Tag nur EIN Eintrag, sonst verwechseln die
+        # Folgeaufgaben „Related Video“ und Instagram/TikTok die Einträge)
+        try:
+            if any(x.get("megamix") and x.get("date") == day for x in memory.load(use_drive=use_drive).get("shorts2", [])):
+                log(f"Für {day} gibt es schon ein Mega-Mix-Short – kein zusätzliches Tages-Short.")
+                return 0
+        except Exception as ex:  # noqa: BLE001
+            log(f"Gedächtnis-Prüfung fehlgeschlagen ({str(ex)[:120]}) – weiter wie gewohnt")
     queue = load_queue(use_drive)
     e = next_entry(queue, args.genre, args.id)
     if not e:
@@ -239,17 +249,23 @@ def produce(args) -> int:
         e["used"] = f"skipped {date.today().isoformat()}"
         save_queue(queue, use_drive)
         return 1
-    out = config.ROOT / "build" / "shorts2" / f"{date.today().isoformat()}-{e['id']}"
+    out = config.ROOT / "build" / "shorts2" / f"{day}-{e['id']}"
     out.mkdir(parents=True, exist_ok=True)
     from kids import costs as kcosts
     kcosts.start(out / "costs.json")
     log(f"Eintrag: {e['id']} – „{' / '.join(e['beats'])}“ (Genre {e['mix']})")
 
     mem = memory.load(use_drive=use_drive)
-    mix = pick_mix(mem, e["mix"])
+    if args.target_video_id:     # Mega-Mix: Ziel ist das neue lange Video, Musik kommt aus dem Mega-Mix selbst
+        mix = {"video_id": args.target_video_id, "yt_title": "Mega-Mix", "album": "Mega-Mix"}
+    else:
+        mix = pick_mix(mem, e["mix"])
     log(f"Ziel-Mix: {mix.get('yt_title') if mix else '(keiner gefunden – Link auf den Kanal)'}")
 
-    if args.dry_run or not mix:
+    if args.audio:
+        wav = out / "track.wav"
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", args.audio, "-ac", "2", "-ar", "44100", str(wav)], check=True)
+    elif args.dry_run or not mix:
         from run_mix import synthetic_track
         wav = synthetic_track(out / "track.wav", 70, 80, 7)
     else:
@@ -290,7 +306,7 @@ def produce(args) -> int:
         log(f"Hochgeladen ({'geplant ' + at if at else privacy}, KI-gekennzeichnet): {result['url']}")
     if use_drive:
         try:
-            result["drive"] = upload_drive(out, e, [video, out / "metadata.txt"])
+            result["drive"] = upload_drive(out, e, [video, out / "metadata.txt"], day)
             log(f"Drive: {result['drive']}")
         except Exception as ex:  # noqa: BLE001
             log(f"Drive-Ablage fehlgeschlagen: {str(ex)[:160]}")
@@ -299,10 +315,10 @@ def produce(args) -> int:
 
     if not args.dry_run:
         if result["video_id"] or args.no_upload:
-            e["used"], e["video_id"] = date.today().isoformat(), result["video_id"]
+            e["used"], e["video_id"] = day, result["video_id"]
             save_queue(queue, use_drive)
-        mem.setdefault("shorts2", []).append({"date": date.today().isoformat(), **{k: result[k] for k in (
-            "id", "title", "video_id", "mix_video_id", "cost_usd")}})
+        mem.setdefault("shorts2", []).append({"date": day, **{k: result[k] for k in (
+            "id", "title", "video_id", "mix_video_id", "cost_usd")}, **({"megamix": True} if args.megamix else {})})
         try:
             memory.save(mem, use_drive=use_drive)
         except Exception as ex:  # noqa: BLE001
@@ -324,6 +340,10 @@ def main() -> int:
     ap.add_argument("--no-upload", action="store_true")
     ap.add_argument("--free-only", action="store_true", help="nur Einträge mit schon bezahltem Clip (keine Kosten)")
     ap.add_argument("--publish-at", default=None, help="Uhrzeit Berlin, z. B. 16:00 (geplant veröffentlichen)")
+    ap.add_argument("--megamix", action="store_true", help="Short gehört zu einem Samstags-Mega-Mix (Gedächtnis-Markierung)")
+    ap.add_argument("--target-video-id", default=None, help="YouTube-ID des Ziel-Videos (Related Video) statt des letzten Tages-Mixes")
+    ap.add_argument("--audio", default=None, help="Audiodatei als Musik des Shorts (statt eines Songs aus dem Ziel-Mix)")
+    ap.add_argument("--date", default=None, help="JJJJ-MM-TT für Ordner, Drive und Gedächtnis (Standard heute) – z. B. Sonntags-Short")
     args = ap.parse_args()
     use_drive = not args.dry_run and bool(os.environ.get("DRIVE_REFRESH_TOKEN"))
     if args.add:

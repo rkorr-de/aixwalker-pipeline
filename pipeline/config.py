@@ -53,7 +53,7 @@ PLAYLIST_TITLES = {   # für Playlists, die die Pipeline selbst findet/anlegt (y
               "Ibiza Sunset Lounge – Balearic chillout mixes with dreamy, breathy vocal hums for golden-hour beach "
               "club vibes, relaxing summer evenings and sunset lounging. By Aix Walker."),
     "cabin": ("Cozy Winter Cabin · Relaxing Fireplace Chillout 4K",
-              "Cozy winter cabin ambience in 4K: a crackling fireplace, candlelight and heavy snowfall outside the window, "
+              "Cozy winter cabin ambience in 4K: a crackling fireplace, candlelight and a quiet snow-covered landscape outside the window, "
               "with warm lofi jazz and ambient chillout music by Aix Walker. Long fireplace films for relaxing, reading, "
               "studying and sleeping on cold winter nights."),
 }
@@ -160,12 +160,12 @@ IMAGE_STYLE = {
                             "magazine look, advertiser-friendly. Moody cinematic orange and teal colour grading: the "
                             "sun, sunset glow and warm lights in strong orange and gold, while the upper sky, the sea "
                             "and the shadows fall into contrasting teal and turquoise tones." + _NO_TEXT),
-    # Winter-Cabin-Linie (Rolf 09.10.2026): Rolfs Bildprompt – Luxus-Blockhütte bei Nacht, Kamin, Panoramafenster, Schneefall
+    # Winter-Cabin-Linie (Rolf 09.10.2026): Rolfs Bildprompt – Luxus-Blockhütte bei Nacht, Kamin, Panoramafenster, ruhige Schneelandschaft (kein Schneien)
     "Cozy Winter Cabin": (" Cinematic wide-angle interior photograph, professional architectural interior photography, "
                           "shot on a 35mm lens at f/2.8, hyper-realistic, photorealistic textures, clean static "
                           "composition, balanced 16:9 framing, cinematic color grading. Night: perfect contrast between the "
-                          "freezing blue night outside the large windows with heavy falling snow and the warm amber glow "
-                          "inside. The burning fireplace with clearly visible flames and the windows with falling snow are "
+                          "freezing blue night outside the large windows with a calm snow-covered landscape (snow lies on the ground and branches, it is NOT snowing: no falling snow, no snowflakes in the air) and the warm amber glow "
+                          "inside. The burning fireplace with clearly visible flames and the windows onto the still, snowy night are "
                           "both prominent; the upper part of the frame is calm. No people, no animals, no hands; any "
                           "magazines or books show no readable text. Real photograph, not CGI, not a render, not an "
                           "illustration." + _NO_TEXT),

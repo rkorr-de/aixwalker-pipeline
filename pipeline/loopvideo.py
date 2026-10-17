@@ -38,16 +38,20 @@ VEO_SEC = 8
 
 LOOP_PROMPT = (
     "Static locked-off tripod shot of exactly this photograph, absolutely no camera movement: no zoom, no pan, no tilt, "
-    "no dolly, no parallax. The room stays exactly as it is. Only three things move: the fire in the stone fireplace "
+    "no dolly, no parallax. The room stays exactly as it is. Only two things move: the fire in the stone fireplace "
     "burns and flickers naturally with gently dancing flames and glowing embers, its warm golden light softly pulsing on "
-    "the nearby stone; the small candle flames flicker softly; outside the panoramic windows heavy snow falls "
-    "continuously and steadily at a constant gentle speed in front of the dark snowy pine forest. Everything else is "
-    "completely still: no people, no animals, no objects moving, no blankets moving, no change of light or exposure, no "
-    "time-of-day change, nothing appears or disappears. Calm, cozy, cinematic, photorealistic, real footage. The video "
-    "starts and ends on exactly the same frame so it loops seamlessly. Sound: only the soft crackling of the fireplace.")
+    "the nearby stone; and the small candle flames flicker softly. Outside the panoramic windows the snow-covered "
+    "landscape and the dark snowy pine forest are completely still and frozen in a calm winter night: the snow lies "
+    "quietly on the ground and on the branches, and it is NOT snowing – no falling snow, no snowflakes in the air, no "
+    "drifting flakes, no blizzard, no moving branches. Everything else is completely still: no people, no animals, no "
+    "objects moving, no blankets moving, no change of light or exposure, no time-of-day change, nothing appears or "
+    "disappears. Calm, cozy, cinematic, photorealistic, real footage. The video starts and ends on exactly the same "
+    "frame so it loops seamlessly. Sound: only the soft crackling of the fireplace.")
 LOOP_NEGATIVE = (
-    "camera movement, zoom, pan, tilt, shake, dolly, people, person, hands, animals, text, letters, logo, watermark, "
-    "morphing, warping, flicker of the whole image, exposure change, light change, objects moving or appearing, music")
+    "falling snow, snowfall, snowflakes, snowing, blizzard, drifting snow, snow particles in the air, wind-blown snow, "
+    "moving branches, camera movement, zoom, pan, tilt, shake, dolly, people, person, hands, animals, text, letters, "
+    "logo, watermark, morphing, warping, flicker of the whole image, exposure change, light change, objects moving or "
+    "appearing, music")
 
 
 def frame_16x9(img: Image.Image) -> Image.Image:
@@ -182,8 +186,9 @@ def check_clip(path: Path) -> dict:
         reasons.append("zu kurz")
     if res["static_share"] < 0.45:
         reasons.append("zu viel Bewegung im Raum (Kamera?)")
-    # relativ zum Median: dichter Schneefall hebt alle Werte (09.10.: Median 0,73, Max 0,84 ohne sichtbaren Sprung)
-    if res["jump_max"] > 0.95 or res["jump_max"] > 1.35 * res["jump_median"]:
+    # relativ zum Median (09.10.: Median 0,73, Max 0,84 ohne sichtbaren Sprung). Seit 17.10.2026 schneit es im Clip nicht
+    # mehr – bewegt sich nur noch Feuer/Kerzen, dessen Flackern unregelmäßiger ist → relativer Faktor 1,6 statt 1,35.
+    if res["jump_max"] > 0.95 or res["jump_max"] > 1.6 * res["jump_median"]:
         reasons.append("Sprung im Schnee/Feuer")
     if res["flake_frames"] >= 3:
         reasons.append("riesige Schneeflocken")
