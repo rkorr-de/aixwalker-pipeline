@@ -38,6 +38,9 @@ VARIANT = ("provence-atelier-dusk", "PROVENCE ATELIER",
            "with one lit candle and a ceramic cup, arched window with deep blue twilight, dried olive branch in a "
            "terracotta vase, warm single spot light, very calm")
 
+SUBS = {"provence-atelier": "DEEP WORK JAZZ", "milan-reading-room": "STUDY & READING JAZZ",
+        "lisbon-tile-cafe": "MORNING START JAZZ", "provence-atelier-dusk": "LATE SHIFT JAZZ"}
+
 TRACKS = {
     "provence-atelier": ("Quiet Atelier", "felt piano, warm upright bass, soft nylon guitar, brushed shaker barely audible"),
     "milan-reading-room": ("Reading Room", "felt piano and warm upright bass, soft vibraphone, long gaps of silence"),
@@ -81,11 +84,11 @@ def main() -> int:
     arts[vkey] = (vtitle, vart)
 
     for key, (title, art) in arts.items():
-        thumb(art, title, OUT / "thumbs" / f"thumb-{key}.jpg")
+        thumb(art, title, OUT / "thumbs" / f"thumb-{key}.jpg", sub=SUBS.get(key, "FOCUS JAZZ FOR WORK"))
 
     mp3s = []
     for key, (name, instr) in TRACKS.items():
-        prompt = lyria.build_prompt("quiet focus cafe jazz for deep work", 60,
+        prompt = lyria.build_prompt("quiet cafe jazz for focused work and deep concentration", 60,
                                     "calm, warm, unobtrusive, spacious, intimate",
                                     f"{instr}; no drums, no cymbals, no vocals, no melodic climax, very steady and gentle, "
                                     "long stretches of near silence between phrases",
