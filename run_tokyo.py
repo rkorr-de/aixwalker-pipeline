@@ -257,11 +257,12 @@ def build_video(main: Path, qpng: Path, starts: list[float], total: float, work:
 
 
 # ---------------------------------------------------------------- Short (9:16 aus dem Hauptbild)
-def short_text_layers(lines: list[str], w: int = 1080, h: int = 1920) -> list[Image.Image]:
+def short_text_layers(lines: list[str], w: int = 1080, h: int = 1920) -> tuple[list[Image.Image], list[tuple[int, int]], int]:
     """Zentrierter Spruch: feine goldene Linie, Aussage groß in Cinzel (cremeweiß), Musik-Bezug in Gold, darunter klein ein
     Hinweis auf den Mix (ohne Zeit-/Längenangabe); weicher dunkler Verlauf dahinter."""
     lay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(lay)
+    spots: list[tuple[int, int]] = []     # Mitte (x, y) jeder Zeile bzw. des Hinweises: dort laufen vorher die drei Punkte
     layers = [lay]                       # 0 = Verlauf, danach je Element eine Ebene (Linie, Zeilen, Hinweis)
 
     def new_layer() -> ImageDraw.ImageDraw:
@@ -301,14 +302,18 @@ def short_text_layers(lines: list[str], w: int = 1080, h: int = 1920) -> list[Im
     y += int(size * 1.0)
     for i, (t, w_) in enumerate(zip(texts, widths)):
         col = (255, 246, 228) if i < len(texts) - 1 or len(texts) == 1 else (232, 190, 130)
+        bb = d.textbbox((0, 0), "A", font=f)
+        spots.append((w // 2, y + (bb[1] + bb[3]) // 2))
         images._draw_tracked(new_layer(), ((w - w_) // 2, y), t, f, col, tr)
         y += lh
     y += int(size * 0.35)
     dc = new_layer()                      # Hinweis auf den Mix: beide Zeilen auf einer Ebene
+    bb = d.textbbox((0, 0), "A", font=small)
+    spots.append((w // 2, y + (bb[1] + bb[3]) // 2))
     for t, w_ in zip(cta_lines, cws):
         images._draw_tracked(dc, ((w - w_) // 2, y), t, small, (245, 232, 208), ctr)
         y += int(ssz * 1.6)
-    return layers
+    return layers, spots, size
 
 
 def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: float, out: Path, sec: int = 20,
@@ -321,7 +326,13 @@ def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: fl
     cw = round(H * 9 / 16)
     base = out / "short_base.png"
     main.save(base)
-    layers = short_text_layers(lines)
+    layers, spots, fsize = short_text_layers(lines)
+    r = max(4, int(fsize * 0.085))
+    dot = Image.new("RGBA", (2 * r, 2 * r), (0, 0, 0, 0))
+    ImageDraw.Draw(dot).ellipse([0, 0, 2 * r - 1, 2 * r - 1], fill=(232, 190, 130, 255))
+    dot_path = out / "short_dot.png"
+    dot.save(dot_path)
+    gap = int(fsize * 0.50)
     paths = []
     for i, l in enumerate(layers):
         pth = out / f"short_text_{i}.png"
@@ -336,14 +347,34 @@ def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: fl
     cmd = ["ffmpeg", "-v", "error", "-y", "-loop", "1", "-framerate", 25, "-t", sec, "-i", base]
     for pth in paths:
         cmd += ["-loop", "1", "-framerate", 25, "-t", sec, "-i", pth]
+    cmd += ["-loop", "1", "-framerate", 25, "-t", sec, "-i", dot_path]
     cmd += ["-ss", f"{start:.2f}", "-t", sec + xf, "-i", final_audio]
     fc = (f"[0:v]crop=w={cw}:h={H}:x='{x0}+110*(1-cos(2*PI*t/{sec}))/2':y=0,scale=1080:1920:flags=lanczos[b0];")
     for i in range(n_el):
         dur = 1.2
         fc += (f"[{i + 1}:v]format=rgba,fade=t=in:st={t0[i]:.2f}:d={dur}:alpha=1,"
                f"fade=t=out:st={t_out:.2f}:d=1.4:alpha=1[t{i}];[b{i}][t{i}]overlay=0:0[b{i + 1}];")
-    fc += f"[b{n_el}]format=yuv420p[o];"
-    ai = n_el + 1
+    # laufende Punkte "..." an der Stelle des nächsten Textes, solange er noch nicht da ist (Neugier: es kommt mehr)
+    n_sp = len(spots)
+    n_dots = 3 * n_sp
+    di = n_el + 1                                  # Eingang des Punkt-Bildes
+    fc += f"[{di}:v]format=rgba,split={n_dots}" + "".join(f"[dd{k}]" for k in range(n_dots)) + ";"
+    prev = f"b{n_el}"
+    k = 0
+    P = 1.2                                        # Dauer eines Punkte-Zyklus
+    for si, (cx, cy) in enumerate(spots):
+        el = 2 + si                                # Ebene dieses Textes
+        a = 1.9 if si == 0 else t0[el - 1] + 1.3   # nach dem Erscheinen der vorigen Zeile
+        e = t0[el]
+        for j in range(3):
+            x = cx + (j - 1) * gap - r
+            y = cy - r
+            en = f"between(t,{a:.2f},{e:.2f})*gte(mod(t-{a:.2f},{P}),{(j + 1) * P / 4:.2f})"
+            fc += f"[{prev}][dd{k}]overlay=x={x}:y={y}:enable='{en}'[p{k}];"
+            prev = f"p{k}"
+            k += 1
+    fc += f"[{prev}]format=yuv420p[o];"
+    ai = di + 1
     fc += (f"[{ai}:a]asplit=3[ab][at][ah];"
            f"[ab]atrim=start={xf}:end={sec},asetpts=PTS-STARTPTS[abd];"
            f"[at]atrim=start={sec}:end={sec + xf},asetpts=PTS-STARTPTS[atl];"
