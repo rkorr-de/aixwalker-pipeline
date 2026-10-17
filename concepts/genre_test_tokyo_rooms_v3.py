@@ -34,8 +34,8 @@ DESK = ("The home-office zone is only a part of the picture and sits in the {sid
 COZY = ("The loft is cozy and inviting: two or three lush green indoor plants (for example a leafy plant in a ceramic pot and a small "
         "bonsai), a soft wool throw on a low modular designer sofa, a warm textured rug, a wooden shelf with a few books and a ceramic vase. ")
 PERSON = {
-    "woman": "In the background by the large window, strongly blurred, stands a modern Asian businesswoman in elegant smart casual clothes, seen from behind at three-quarter angle, holding a tea cup and looking out of the window during her work break. ",
-    "man": "In the background by the large window, strongly blurred, stands a modern Western European man in a relaxed dark sweater, seen from behind at three-quarter angle, holding a tea cup and looking out of the window during his work break. ",
+    "woman": "In the background by the large window, strongly blurred, stands a modern Asian woman in super-modern designer homewear (soft oversized knit loungewear in dark neutral tones, no business clothes, no suit, no blazer), seen from behind at three-quarter angle, holding a Japanese tea cup and looking out of the window during her work break. ",
+    "man": "In the background by the large window, strongly blurred, stands a modern Western European man in super-modern designer homewear (a soft premium dark loungewear set, no business clothes, no suit, no shirt and tie), seen from behind at three-quarter angle, holding a Japanese tea cup and looking out of the window during his work break. ",
 }
 INTRO = "A very wide, huge open-plan ultra-modern Tokyo loft apartment photographed from a wide-angle eye-level view. "
 
