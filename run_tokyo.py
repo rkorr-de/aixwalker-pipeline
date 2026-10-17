@@ -329,7 +329,7 @@ def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: fl
     layers, spots, fsize = short_text_layers(lines)
     r = max(4, int(fsize * 0.085))
     dot = Image.new("RGBA", (2 * r, 2 * r), (0, 0, 0, 0))
-    ImageDraw.Draw(dot).ellipse([0, 0, 2 * r - 1, 2 * r - 1], fill=(232, 190, 130, 255))
+    ImageDraw.Draw(dot).ellipse([0, 0, 2 * r - 1, 2 * r - 1], fill=(232, 190, 130, 120))
     dot_path = out / "short_dot.png"
     dot.save(dot_path)
     gap = int(fsize * 0.50)
@@ -356,15 +356,15 @@ def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: fl
                f"fade=t=out:st={t_out:.2f}:d=1.4:alpha=1[t{i}];[b{i}][t{i}]overlay=0:0[b{i + 1}];")
     # laufende Punkte "..." an der Stelle des nächsten Textes, solange er noch nicht da ist (Neugier: es kommt mehr)
     n_sp = len(spots)
-    n_dots = 3 * max(1, n_sp - 1)
+    n_dots = 3 * max(1, n_sp - 2)
     di = n_el + 1                                  # Eingang des Punkt-Bildes
     fc += f"[{di}:v]format=rgba,split={n_dots}" + "".join(f"[dd{k}]" for k in range(n_dots)) + ";"
     prev = f"b{n_el}"
     k = 0
     P = 1.2                                        # Dauer eines Punkte-Zyklus
     for si, (cx, cy) in enumerate(spots):
-        if si == 0:
-            continue                               # vor der ersten Zeile keine Punkte (Rolf 18.10.)
+        if si == 0 or si == n_sp - 1:
+            continue                               # keine Punkte vor der ersten Zeile und vor dem Mix-Hinweis (Rolf 18.10.)
         el = 2 + si                                # Ebene dieses Textes
         e = t0[el]
         for j in range(3):                         # nur ein Durchlauf: Punkt 1, 2, 3 erscheinen nacheinander und bleiben
