@@ -38,7 +38,9 @@ PERSON = {
     "woman": "In the background by the large window, strongly blurred, stands a modern Asian woman in super-modern designer homewear (soft oversized knit loungewear in dark neutral tones, no business clothes, no suit, no blazer), seen from behind at three-quarter angle, holding a Japanese tea cup and looking out of the window during her work break. ",
     "man": "In the background by the large window, strongly blurred, stands a modern Western European man in super-modern designer homewear (a soft premium dark loungewear set, no business clothes, no suit, no shirt and tie), seen from behind at three-quarter angle, holding a Japanese tea cup and looking out of the window during his work break. ",
 }
-INTRO = "A very wide, huge open-plan ultra-modern Tokyo loft apartment photographed from a wide-angle eye-level view. "
+INTRO = ("A very wide, huge open-plan ultra-modern Tokyo loft apartment photographed with a 16mm ultra-wide-angle lens from far back in the room, "
+         "camera pulled back and slightly elevated, strong depth and perspective with converging lines, so that a large part of the loft is visible: "
+         "the long living area with sofa and rug, an open kitchen with a dark island, a dining table, a shelf wall and the big windows, the workplace is only a small part of it. ")
 
 ROOMS = {
     "shinjuku-sky-loft": INTRO + DESK.format(side="left") + COZY + PERSON["woman"] +
