@@ -257,11 +257,18 @@ def build_video(main: Path, qpng: Path, starts: list[float], total: float, work:
 
 
 # ---------------------------------------------------------------- Short (9:16 aus dem Hauptbild)
-def short_text_layer(lines: list[str], w: int = 1080, h: int = 1920) -> Image.Image:
+def short_text_layers(lines: list[str], w: int = 1080, h: int = 1920) -> list[Image.Image]:
     """Zentrierter Spruch: feine goldene Linie, Aussage groß in Cinzel (cremeweiß), Musik-Bezug in Gold, darunter klein ein
     Hinweis auf den Mix (ohne Zeit-/Längenangabe); weicher dunkler Verlauf dahinter."""
     lay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(lay)
+    layers = [lay]                       # 0 = Verlauf, danach je Element eine Ebene (Linie, Zeilen, Hinweis)
+
+    def new_layer() -> ImageDraw.ImageDraw:
+        l = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        layers.append(l)
+        return ImageDraw.Draw(l)
+
     F = config.ASSETS / "fonts" / "Cinzel.ttf"
     texts = [l.upper() for l in lines]
     size = 70
@@ -290,17 +297,18 @@ def short_text_layer(lines: list[str], w: int = 1080, h: int = 1920) -> Image.Im
         if a:
             d.line([(0, yy), (w, yy)], fill=(8, 5, 3, a))
     y = cy - block // 2
-    d.line([((w - 140) // 2, y), ((w + 140) // 2, y)], fill=(222, 170, 110, 255), width=3)
+    new_layer().line([((w - 140) // 2, y), ((w + 140) // 2, y)], fill=(222, 170, 110, 255), width=3)
     y += int(size * 1.0)
     for i, (t, w_) in enumerate(zip(texts, widths)):
         col = (255, 246, 228) if i < len(texts) - 1 or len(texts) == 1 else (232, 190, 130)
-        images._draw_tracked(d, ((w - w_) // 2, y), t, f, col, tr)
+        images._draw_tracked(new_layer(), ((w - w_) // 2, y), t, f, col, tr)
         y += lh
     y += int(size * 0.35)
+    dc = new_layer()                      # Hinweis auf den Mix: beide Zeilen auf einer Ebene
     for t, w_ in zip(cta_lines, cws):
-        images._draw_tracked(d, ((w - w_) // 2, y), t, small, (245, 232, 208), ctr)
+        images._draw_tracked(dc, ((w - w_) // 2, y), t, small, (245, 232, 208), ctr)
         y += int(ssz * 1.6)
-    return lay
+    return layers
 
 
 def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: float, out: Path, sec: int = 20) -> Path:
@@ -309,18 +317,32 @@ def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: fl
     cw = round(H * 9 / 16)
     base = out / "short_base.png"
     main.save(base)
-    layer = out / "short_text.png"
-    short_text_layer(lines).save(layer)
+    layers = short_text_layers(lines)
+    paths = []
+    for i, l in enumerate(layers):
+        pth = out / f"short_text_{i}.png"
+        l.save(pth)
+        paths.append(pth)
     x0 = int(W * 0.17)
     dst = out / "short.mp4"
-    run(["ffmpeg", "-v", "error", "-y", "-loop", "1", "-framerate", 25, "-t", sec, "-i", base, "-loop", "1", "-framerate", 25,
-         "-t", sec, "-i", layer, "-ss", f"{start:.2f}", "-t", sec, "-i", final_audio, "-filter_complex",
-         f"[0:v]crop=w={cw}:h={H}:x='{x0}+120*t/{sec}':y=0,scale=1080:1920:flags=lanczos[b];"
-         f"[1:v]format=rgba,fade=t=in:st=0.6:d=1.2:alpha=1,fade=t=out:st={sec - 1.6}:d=1.2:alpha=1[t];"
-         f"[b][t]overlay=0:0,fade=t=in:st=0:d=0.5,fade=t=out:st={sec - 0.6}:d=0.6,format=yuv420p[o]",
-         "-map", "[o]", "-map", "2:a", "-af", f"afade=t=in:d=0.8,afade=t=out:st={sec - 1.5}:d=1.5",
-         "-c:v", "libx264", "-crf", "18", "-preset", "medium", "-c:a", "aac", "-b:a", "192k", "-t", sec,
-         "-movflags", "+faststart", dst])
+    # Aufbau: Verlauf (0,3 s), feine Linie (1,0 s), jede Zeile nacheinander im Abstand von 1,5 s, zuletzt der Hinweis auf den Mix
+    t0 = [0.3, 1.0] + [1.8 + 1.5 * k for k in range(len(layers) - 3)] + [1.8 + 1.5 * (len(layers) - 3) + 0.4]
+    t_out = sec - 1.6
+    cmd = ["ffmpeg", "-v", "error", "-y", "-loop", "1", "-framerate", 25, "-t", sec, "-i", base]
+    for pth in paths:
+        cmd += ["-loop", "1", "-framerate", 25, "-t", sec, "-i", pth]
+    cmd += ["-ss", f"{start:.2f}", "-t", sec, "-i", final_audio]
+    fc = f"[0:v]crop=w={cw}:h={H}:x='{x0}+120*t/{sec}':y=0,scale=1080:1920:flags=lanczos[b0];"
+    for i in range(len(paths)):
+        dur = 1.0 if i == 0 else 0.9
+        fc += (f"[{i + 1}:v]format=rgba,fade=t=in:st={t0[i]:.2f}:d={dur}:alpha=1,"
+               f"fade=t=out:st={t_out:.2f}:d=1.2:alpha=1[t{i}];[b{i}][t{i}]overlay=0:0[b{i + 1}];")
+    n = len(paths)
+    fc += f"[b{n}]fade=t=in:st=0:d=0.5,fade=t=out:st={sec - 0.6}:d=0.6,format=yuv420p[o]"
+    cmd += ["-filter_complex", fc, "-map", "[o]", "-map", f"{n + 1}:a", "-af", f"afade=t=in:d=0.8,afade=t=out:st={sec - 1.5}:d=1.5",
+            "-c:v", "libx264", "-crf", "18", "-preset", "medium", "-c:a", "aac", "-b:a", "192k", "-t", sec,
+            "-movflags", "+faststart", dst]
+    run(cmd)
     return dst
 
 
