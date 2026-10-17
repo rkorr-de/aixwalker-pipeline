@@ -141,7 +141,8 @@ def fetch_main_image(room: str, out: Path, dry: bool, folder: str = ROOM_DRIVE_F
     log(f"Quellbild {art.size[0]}×{art.size[1]}")
     if art.size != (W, H):
         art = images._cover_crop(art, W, H) if hasattr(images, "_cover_crop") else art.resize((W, H), Image.LANCZOS)
-        art = art.filter(ImageFilter.UnsharpMask(radius=2, percent=60, threshold=2))
+        if art.size[0] < W:                       # nur beim Hochrechnen nachschärfen
+            art = art.filter(ImageFilter.UnsharpMask(radius=2, percent=60, threshold=2))
     art.save(out / "img" / "main_4k.png")
     art.save(out / "img" / "master.jpg", "JPEG", quality=92)
     return art
@@ -436,7 +437,7 @@ def reuse_music(room: str, out: Path) -> list[Path]:
     from pipeline import drive
     svc = drive.service()
     root = drive.ensure_folder(svc, drive.ROOT_FOLDER)
-    folders = [f for f in drive.list_children(svc, root, folders=True) if "Tokyo Work Lounge" in f["name"] and room in f["name"]]
+    folders = [f for f in drive.list_children(svc, root, folders=True) if "Tokyo Work Lounge" in f["name"] and room in f["name"] and "v2" not in f["name"]]
     if not folders:
         raise RuntimeError("Drive-Ordner des ersten Tokyo-Mixes nicht gefunden")
     mp3_dir = [f for f in drive.list_children(svc, folders[-1]["id"], folders=True) if f["name"] == "mp3"][0]
@@ -458,7 +459,7 @@ def short_only(args, out: Path, lines: list[str]) -> int:
     art = fetch_main_image(args.room, out, False, args.image_folder, args.image_file)
     svc = drive.service()
     root = drive.ensure_folder(svc, drive.ROOT_FOLDER)
-    folders = [f for f in drive.list_children(svc, root, folders=True) if "Tokyo Work Lounge" in f["name"] and args.room in f["name"]]
+    folders = [f for f in drive.list_children(svc, root, folders=True) if "Tokyo Work Lounge" in f["name"] and args.room in f["name"] and "v2" not in f["name"]]
     if not folders:
         raise RuntimeError("Drive-Ordner des Tokyo-Mixes nicht gefunden")
     folder = folders[-1]
@@ -524,6 +525,8 @@ def main() -> int:
     cover = out / "img" / "cover.jpg"
     images.crop_aspect(art, 1, 1).resize((1400, 1400), Image.LANCZOS).save(cover, "JPEG", quality=90)
     for i, (n, w_) in enumerate(zip(names, wavs), 1):
+        if args.reuse_music:
+            break                                  # Musik unverändert, MP3s liegen schon im Drive-Ordner des ersten Laufs
         audio.export_mp3(w_, out / "mp3" / f"{i:02d} - {config.ARTIST} - {n}.mp3", n, "Tokyo Work Lounge", i, len(wavs),
                          cover, "Jazz", date.today().year)
 
@@ -563,7 +566,7 @@ def main() -> int:
     if args.drive and not args.dry_run:
         try:
             from pipeline import drive
-            folder = f"{date.today().isoformat()} – Tokyo Work Lounge – {args.room} ({total_min} Min, 4K)"
+            folder = f"{date.today().isoformat()} – Tokyo Work Lounge – {args.room} ({total_min} Min, 4K{', v2' if args.reuse_music else ''})"
             drive_links = drive.upload_mix_package(folder, [thumb, out / "img" / "master.jpg", meta],
                                                    {"mp3": sorted((out / "mp3").glob("*.mp3")), "short": [short]})
             log(f"Drive: {drive_links.get('_folder')}")
