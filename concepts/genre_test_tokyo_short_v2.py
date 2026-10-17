@@ -21,7 +21,7 @@ SCENE = ("ONE single continuous vertical photograph, not a collage, not a split 
          "an office chair in a spacious ultra-modern Tokyo loft at night: in the lower middle of the frame a long slim desk with exactly TWO "
          "modern widescreen coding monitors side by side, both facing the chair and the camera with their screens fully visible, the left "
          "screen a dark-theme code editor with colorful abstract syntax lines, the right a dark dashboard, a slim monitor light bar above; "
-         + v.CHAIR + ", seen from behind; behind the desk floor-to-ceiling windows with the Tokyo skyline in deep blue and amber, in the "
+         + v.CHAIR + ", seen from behind; behind the desk floor-to-ceiling windows with a warm golden-amber glow of the Tokyo night skyline, no cold blue light, in the "
          "foreground a low designer sofa and a floor lamp, the dark ceiling with a warm cove light fills the top fifth")
 
 
