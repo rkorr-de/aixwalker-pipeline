@@ -330,8 +330,8 @@ def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: fl
     x0 = int(W * 0.17)
     dst = out / "short.mp4"
     n_el = len(layers)
-    # Aufbau: Verlauf, feine Linie, jede Zeile im Abstand von 1,5 s, zuletzt der Hinweis auf den Mix; Auflösen in den letzten 1,5 s
-    t0 = [0.3, 0.9] + [1.6 + 1.4 * k for k in range(n_el - 3)] + [1.6 + 1.4 * (n_el - 3) + 0.3]
+    # Aufbau über die ganze Länge (Rolf 17.10.: nicht alles am Anfang): Verlauf 0,5 s, Linie 1,5 s, Zeilen bei 3 / 7 / 11 s, Hinweis auf den Mix bei 14,5 s; Auflösen in den letzten 1,5 s
+    t0 = [0.5, 1.5] + [3.0 + 4.0 * k for k in range(n_el - 3)] + [3.0 + 4.0 * (n_el - 3) - 0.5]
     t_out = sec - 1.6
     cmd = ["ffmpeg", "-v", "error", "-y", "-loop", "1", "-framerate", 25, "-t", sec, "-i", base]
     for pth in paths:
@@ -339,7 +339,7 @@ def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: fl
     cmd += ["-ss", f"{start:.2f}", "-t", sec + xf, "-i", final_audio]
     fc = (f"[0:v]crop=w={cw}:h={H}:x='{x0}+110*(1-cos(2*PI*t/{sec}))/2':y=0,scale=1080:1920:flags=lanczos[b0];")
     for i in range(n_el):
-        dur = 0.9
+        dur = 1.2
         fc += (f"[{i + 1}:v]format=rgba,fade=t=in:st={t0[i]:.2f}:d={dur}:alpha=1,"
                f"fade=t=out:st={t_out:.2f}:d=1.4:alpha=1[t{i}];[b{i}][t{i}]overlay=0:0[b{i + 1}];")
     fc += f"[b{n_el}]format=yuv420p[o];"
