@@ -94,7 +94,7 @@ def text_layer(w: int, h: int, top: float, s1: float, s2: float, s3: float, cent
 
 def make_thumb(art: Image.Image, out: Path, w: int = 1280, h: int = 720) -> Path:
     img = images._cover_crop(art, w, h).convert("RGBA")
-    img = Image.alpha_composite(img, text_layer(w, h, 0.05, 0.085, 0.043, 0.032, center=0.40)).convert("RGB")
+    img = Image.alpha_composite(img, text_layer(w, h, 0.05, 0.085, 0.043, 0.032, center=0.48)).convert("RGB")
     out.parent.mkdir(parents=True, exist_ok=True)
     img.save(out, "JPEG", quality=92)
     return out
