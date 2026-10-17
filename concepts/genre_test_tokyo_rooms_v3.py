@@ -18,11 +18,13 @@ REPO = HERE / "genre-test-tokyo-lounge-v3"
 
 STYLE = (" Photorealistic architectural interior photograph, calm composition with long perspective, warm and cozy atmosphere, "
          "overall warm candle-like amber and golden light around 2700K, warm light pools and hidden warm cove LED strips on dark matte "
-         "surfaces, absolutely no cold blue light and no blue tint, ultra-modern contemporary Japanese loft design with concrete, dark "
-         "walnut, black stone and sculptural curved plaster, high-end architectural magazine quality, always an evening or night scene "
+         "surfaces, absolutely no cold blue light and no blue tint, ultra-modern contemporary Japanese loft design with dark walnut, black stone and dark "
+         "charcoal surfaces, straight clean lines and sharp right angles, high-end architectural magazine quality, "
+         "THE CEILING IS ALWAYS DARK (charcoal or dark walnut), never light plaster and never light concrete, no curved or rounded walls, "
+         "ceilings or corners, one single huge open-plan loft apartment without separate rooms or dividing walls,  always an evening or night scene "
          "with artificial warm light, never daylight, realistic proportions and materials, the monitors glow softly with abstract "
-         "dark-theme code that is not readable, the person in the background is strongly out of focus with shallow depth of field and "
-         "not recognizable in detail, no readable text, no logos, no watermark.")
+         "dark-theme code that is not readable, the person in the background is very strongly out of focus (heavy bokeh blur, only a soft silhouette) and "
+         "not recognizable in detail, the Eames chair is clearly cognac-brown leather in every image, no readable text, no logos, no watermark.")
 
 DESK = ("The home-office zone is only a part of the picture and sits in the {side} third of the frame, NOT in the center: a long slim "
         "designer desk with exactly TWO modern widescreen coding monitors side by side, both turned toward the chair so the screens are "
@@ -35,15 +37,15 @@ PERSON = {
     "woman": "In the background by the large window, strongly blurred, stands a modern Asian businesswoman in elegant smart casual clothes, seen from behind at three-quarter angle, holding a tea cup and looking out of the window during her work break. ",
     "man": "In the background by the large window, strongly blurred, stands a modern Western European man in a relaxed dark sweater, seen from behind at three-quarter angle, holding a tea cup and looking out of the window during his work break. ",
 }
-INTRO = "A wide, spacious ultra-modern Tokyo loft apartment photographed from a wide-angle eye-level view. "
+INTRO = "A very wide, huge open-plan ultra-modern Tokyo loft apartment photographed from a wide-angle eye-level view. "
 
 ROOMS = {
     "shinjuku-sky-loft": INTRO + DESK.format(side="left") + COZY + PERSON["woman"] +
         "Floor-to-ceiling windows show the Tokyo night skyline with warm golden-amber city lights, no blue sky.",
     "nakameguro-evening-loft": INTRO + DESK.format(side="right") + COZY + PERSON["man"] +
-        "A wide window shows a calm canal with cherry blossom branches lit by soft amber lanterns at night, slatted wood screens lit from behind by warm lamps.",
+        "A wide window shows a calm canal with cherry blossom branches lit by soft amber lanterns at night, slatted wood screens lit from behind by warm lamps, dark ceiling.",
     "azabu-rain-loft": INTRO + DESK.format(side="left") + COZY + PERSON["woman"] +
-        "A very large window with soft rain streaks and blurred warm amber and golden city lights, dark walnut wall panels, curved plaster ceiling.",
+        "A very large window with soft rain streaks and blurred warm amber and golden city lights, dark walnut wall panels, dark straight ceiling.",
 }
 
 
