@@ -94,7 +94,7 @@ Wochentag: `TZ=Europe/Berlin date +%u`, Tag im Monat: `TZ=Europe/Berlin date +%d
 | Mi (3) | Italien |
 | Do (4) | **nur in geraden Kalenderwochen** (`TZ=Europe/Berlin date +%V` gerade): Gym `python run_auto.py --genre "Slow Gym Beats"`; sonst kein Lauf |
 | Fr (5) | Italien (der Cabin-Freitags-Mix läuft in seiner eigenen Routine um 08:45) |
-| Sa (6) | **Samstags-Mega-Mix** (seit 17.10.2026): `python run_megamix.py --genre auto` (Genre-Rotation Italian → Cabin → Lounge; bis 8 Std., geplant öffentlich um 14:00; siehe Abschnitt „Samstags-Mega-Mix“). Ersetzt den bisherigen Italien-Wochen-Zusammenschnitt `run_weekly_compilation.py`. Ab ca. 11:04 gestartet, dauert je nach Genre 1–3 Std. |
+| Sa (6) | **Samstags-Mega-Mix** (seit 17.10.2026): `python run_megamix.py --genre all` (JEDEN Samstag ALLE Genres nacheinander: Italian, Lounge, zuletzt Cabin – je ein Mega-Mix; bis 8 Std., geplant öffentlich um 14:00; siehe Abschnitt „Samstags-Mega-Mix“). Ersetzt den bisherigen Italien-Wochen-Zusammenschnitt `run_weekly_compilation.py`. Ab ca. 11:04 gestartet, dauert je nach Genre 1–3 Std. |
 | So (7) | Italien |
 
 **Danach, als LETZTER Lauf des Tages (seit 15.10.2026, Wachstumsplan 2026/27):** ein Tipp-Short –
@@ -127,7 +127,7 @@ Die Sonntags-Routine startet statt `python run_auto.py` den Befehl **`python run
 
 ## Samstags-Mega-Mix (seit 17.10.2026, Rolf)
 
-Konzept: `KONZEPT_SAMSTAG_MEGAMIX.md`. Befehl in der Tages-Routine am Samstag: **`nohup python run_megamix.py --genre auto > build/megamix.log 2>&1 &`**
+Konzept: `KONZEPT_SAMSTAG_MEGAMIX.md`. Befehl in der Tages-Routine am Samstag: **`nohup python run_megamix.py --genre all > build/megamix.log 2>&1 &`** (Rolf 17.10.: ein Mega-Mix pro Genre, nicht nur eines; ca. 4–5 Std. gesamt, 6 Shorts: je Mix eines für Samstag und eines für Sonntag)
 (Log verfolgen, bis „fertig“; Dauer Italian/Lounge ca. 1 Std., Cabin ca. 2–3 Std.). Test ohne Kosten: `--dry-run`.
 - **Genre-Rotation** (`pipeline/megamix.py`): Italian Chillout → Cozy Winter Cabin → Mediterranean Lounge (Lounge, Ibiza, Dark Spa
   zusammen; nur wenn mind. 4 Quell-Mixe der letzten 28 Tage da sind). Hat ein Genre zu wenig Material, kommt das nächste.

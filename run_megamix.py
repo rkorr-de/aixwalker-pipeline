@@ -11,11 +11,13 @@
     Abend setzt den Link zum Mix und schaltet öffentlich, Instagram/TikTok plant Metricool). Cabin: Ausschnitte aus
     dem neuen 4K-Material; sonst: bereits bezahlte Kling-Clips der Warteschlange (run_short_v2.py --free-only).
 
+  python run_megamix.py --genre all                   # ALLE Genres nacheinander (Standard am Samstag)
   python run_megamix.py --genre auto                  # nächstes Genre der Rotation (Italian → Cabin → Lounge)
   python run_megamix.py --genre "Cozy Winter Cabin"
   python run_megamix.py --genre "Italian Chillout" --dry-run   # synthetisch, kein Drive/YouTube/Mail, keine Kosten
 """
 import argparse
+import re
 import base64
 import json
 import random
@@ -303,9 +305,27 @@ def build_order(pairs, seed: int, max_hours: float) -> list[dict]:
     return order
 
 
+def run_all(args) -> int:
+    """Alle Genres der Rotation nacheinander (Rolf 17.10.2026: jeden Samstag EIN Mega-Mix PRO Genre). Jedes Genre läuft als
+    eigener Prozess (eigener Arbeitsordner, eigenes Gedächtnis-Laden); fehlendes Material oder ein Fehler stoppt die anderen nicht.
+    Reihenfolge: Italian, Lounge, zuletzt Cabin (dauert am längsten)."""
+    order = ["Italian Chillout", "Mediterranean Lounge", "Cozy Winter Cabin"]
+    rc = {}
+    for g in order:
+        cmd = [sys.executable, "run_megamix.py", "--genre", g, "--max-hours", str(args.max_hours), "--publish-at", args.publish_at]
+        for flag in ("dry_run", "private", "no_email", "no_shorts"):
+            if getattr(args, flag):
+                cmd.append("--" + flag.replace("_", "-"))
+        log(f"=== {g} ===")
+        rc[g] = subprocess.run(cmd, cwd=config.ROOT).returncode
+        log(f"=== {g}: Rückgabecode {rc[g]} ===")
+    log("Ergebnis alle Genres: " + json.dumps(rc))
+    return 0 if all(v in (0, 2) for v in rc.values()) else 1
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--genre", default="auto", choices=("auto",) + megamix.ROTATION)
+    ap.add_argument("--genre", default="auto", choices=("auto", "all") + megamix.ROTATION)
     ap.add_argument("--max-hours", type=float, default=megamix.MAX_HOURS)
     ap.add_argument("--publish-at", default="14:00", help="Uhrzeit Berlin; 'now' = sofort öffentlich")
     ap.add_argument("--dry-run", action="store_true")
@@ -315,7 +335,9 @@ def main() -> int:
     args = ap.parse_args()
     today = date.today()
     sat, sun = megamix.weekend_dates(today)
-    base = config.ROOT / "build" / f"megamix-{today.isoformat()}"
+    if args.genre == "all":
+        return run_all(args)
+    base = config.ROOT / "build" / f"megamix-{today.isoformat()}-{re.sub(r'[^a-z0-9]+', '', args.genre.lower())}"
     shutil.rmtree(base, ignore_errors=True)
     base.mkdir(parents=True, exist_ok=True)
     costs.start(base / "costs.json")
