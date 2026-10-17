@@ -108,6 +108,16 @@ def main() -> int:
     except Exception as e:  # noqa: BLE001
         print("Video-Probe fehlgeschlagen:", e)
 
+    # Kopien ins Repo (kleine JPEGs), damit die Präsentation sie von dort holen kann
+    import shutil
+    repo_dir = Path("concepts/genre-test-quiet-rooms")
+    for sub in ("bilder", "thumbs", "musik", "video"):
+        (repo_dir / sub).mkdir(parents=True, exist_ok=True)
+    for f in (OUT / "bilder").glob("*.png"):
+        Image.open(f).convert("RGB").resize((1600, 900)).save(repo_dir / "bilder" / (f.stem + ".jpg"), quality=88)
+    for sub in ("thumbs", "musik", "video"):
+        for f in (OUT / sub).glob("*"):
+            shutil.copy(f, repo_dir / sub / f.name)
     files_by_sub = {sub: sorted((OUT / sub).glob("*")) for sub in ("bilder", "thumbs", "musik", "video")}
     links = drive.upload_mix_package("GENRE-TEST Quiet Rooms", [], files_by_sub)
     for k, v in links.items():
