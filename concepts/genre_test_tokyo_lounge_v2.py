@@ -59,18 +59,30 @@ def _tracked_fit(d, text, path, size, tr_ratio, max_w):
     return f, tr
 
 
-def text_layer(w: int, h: int, top: float, s1: float, s2: float, s3: float) -> Image.Image:
-    """Transparente Ebene: dunkler Verlauf oben + drei zentrierte Zeilen (heller als vorher). Größen relativ zur Höhe."""
+def text_layer(w: int, h: int, top: float, s1: float, s2: float, s3: float, center: float | None = None) -> Image.Image:
+    """Transparente Ebene: dunkler Verlauf + drei zentrierte Zeilen (heller). Größen relativ zur Höhe.
+    center=None: Block beginnt bei top (Short, oben); center=0.42: Block mittig auf der Höhe 0.42 (Thumbnails wie bei SANCTUM)."""
     lay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(lay)
-    band = h * (top + 0.28)
-    for y in range(int(band)):
-        d.line([(0, y), (w, y)], fill=(10, 6, 3, int(190 * (1 - y / band) ** 1.2)))
     F = config.ASSETS / "fonts" / "Cinzel.ttf"
-    y = int(h * top)
+    lines = []
     for text, rel, col, tr_ratio in ((LINE1, s1, (255, 252, 244), 0.30), (LINE2, s2, (255, 232, 185), 0.20),
                                      (LINE3, s3, (255, 244, 225), 0.30)):
         f, tr = _tracked_fit(d, text, F, int(h * rel), tr_ratio, w * 0.90)
+        lines.append((text, f, tr, col))
+    block = sum(int(f.size * 1.75) for _, f, _, _ in lines)
+    y = int(h * top) if center is None else int(h * center - block / 2)
+    if center is None:
+        band = h * (top + 0.28)
+        for yy in range(int(band)):
+            d.line([(0, yy), (w, yy)], fill=(10, 6, 3, int(190 * (1 - yy / band) ** 1.2)))
+    else:
+        half = block * 0.95
+        for yy in range(h):
+            a_ = int(185 * max(0.0, 1 - abs(yy - center * h) / half) ** 1.1)
+            if a_:
+                d.line([(0, yy), (w, yy)], fill=(10, 6, 3, a_))
+    for text, f, tr, col in lines:
         tw = images._tracked_width(d, text, f, tr)
         images._draw_tracked(d, ((w - tw) // 2, y), text, f, col, tr)
         y += int(f.size * 1.75)
@@ -79,7 +91,7 @@ def text_layer(w: int, h: int, top: float, s1: float, s2: float, s3: float) -> I
 
 def make_thumb(art: Image.Image, out: Path, w: int = 1280, h: int = 720) -> Path:
     img = images._cover_crop(art, w, h).convert("RGBA")
-    img = Image.alpha_composite(img, text_layer(w, h, 0.05, 0.085, 0.043, 0.032)).convert("RGB")
+    img = Image.alpha_composite(img, text_layer(w, h, 0.05, 0.085, 0.043, 0.032, center=0.40)).convert("RGB")
     out.parent.mkdir(parents=True, exist_ok=True)
     img.save(out, "JPEG", quality=92)
     return out
