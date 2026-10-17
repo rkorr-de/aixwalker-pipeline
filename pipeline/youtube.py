@@ -46,10 +46,15 @@ def my_channel() -> dict:
     return r["items"][0]
 
 
+# Aufnahmeort für die Tokyo-Work-Lounge-Mixe (Rolf 17.10.2026)
+TOKYO = {"description": "Tokyo, Japan", "latitude": 35.6762, "longitude": 139.6503}
+
+
 def upload_video(video: Path, title: str, description: str, tags: list[str], category_id: str = "10",
                  privacy: str = "private", publish_at: str | None = None, made_for_kids: bool = False,
-                 ai_generated: bool = True, default_language: str = "en") -> str:
-    """Lädt das Video hoch (Standard: privat). Liefert die Video-ID. publish_at = RFC3339 für geplante Veröffentlichung."""
+                 ai_generated: bool = True, default_language: str = "en", location: dict | None = None) -> str:
+    """Lädt das Video hoch (Standard: privat). Liefert die Video-ID. publish_at = RFC3339 für geplante Veröffentlichung.
+    location = Aufnahmeort, z. B. TOKYO (\"Aufnahmeort\" in YouTube Studio); None = keiner."""
     body = {
         "snippet": {"title": title[:100], "description": description[:5000], "tags": tags[:60],
                     "categoryId": category_id, "defaultLanguage": default_language},
@@ -59,8 +64,13 @@ def upload_video(video: Path, title: str, description: str, tags: list[str], cat
     }
     if publish_at:
         body["status"]["publishAt"] = publish_at
+    part = "snippet,status"
+    if location:
+        body["recordingDetails"] = {"locationDescription": location["description"],
+                                    "location": {"latitude": location["latitude"], "longitude": location["longitude"]}}
+        part += ",recordingDetails"
     media = MediaFileUpload(str(video), chunksize=8 * 1024 * 1024, resumable=True, mimetype="video/mp4")
-    req = service().videos().insert(part="snippet,status", body=body, media_body=media)
+    req = service().videos().insert(part=part, body=body, media_body=media)
     resp = None
     while resp is None:
         status, resp = req.next_chunk()
