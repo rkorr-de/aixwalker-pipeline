@@ -1,0 +1,4 @@
+[22:39:53] [tokyo] Kandidat 1: 5504×3072
+[22:40:43] [tokyo] Kandidat 2: 5504×3072
+[22:41:28] [tokyo] Kandidat 3: 5504×3072
+[22:41:53] [tokyo] Drive: https://drive.google.com/drive/folders/1wqGK0W_ZoGzzsCFYpbW4ZZk-zzCQwcTc
