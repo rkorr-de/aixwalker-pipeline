@@ -104,7 +104,7 @@ def make_music(out: Path, dry: bool, workers: int) -> list[Path]:
 
 
 # ---------------------------------------------------------------- Bild
-def fetch_main_image(room: str, out: Path, dry: bool) -> Image.Image:
+def fetch_main_image(room: str, out: Path, dry: bool, folder: str = ROOM_DRIVE_FOLDER, fname: str = "") -> Image.Image:
     """Das von Rolf gewählte Bild (PNG aus dem Drive-Ordner der Testläufe), auf 3840×2160 gebracht. Fehlt es, wird neu erzeugt."""
     png = out / "img" / "main_src.png"
     png.parent.mkdir(parents=True, exist_ok=True)
@@ -118,13 +118,13 @@ def fetch_main_image(room: str, out: Path, dry: bool) -> Image.Image:
             try:
                 from pipeline import drive
                 svc = drive.service()
-                q = (f"name = '{ROOM_DRIVE_FOLDER}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false")
+                q = (f"name = '{folder}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false")
                 folders = svc.files().list(q=q, fields="files(id,modifiedTime)", orderBy="modifiedTime desc").execute()["files"]
                 for f in folders:
                     subs = [s for s in drive.list_children(svc, f["id"], folders=True) if s["name"] == "bilder"]
                     if not subs:
                         continue
-                    pics = [c for c in drive.list_children(svc, subs[0]["id"], folders=False) if c["name"] == f"{room}.png"]
+                    pics = [c for c in drive.list_children(svc, subs[0]["id"], folders=False) if c["name"] == (fname or f"{room}.png")]
                     if pics:
                         drive.download(svc, pics[0]["id"], png)
                         log(f"Bild aus Drive geladen ({f['modifiedTime']})")
@@ -198,7 +198,7 @@ def fr(sec: float) -> int:
 
 
 def build_video(main: Path, qpng: Path, starts: list[float], total: float, work: Path, log=log) -> Path:
-    """Zeitlinie: 2,5 s Schwarz → Spruch blendet ein (2 s), steht 5 s, blendet aus (2 s) → 1 s Schwarz → Hauptbild blendet in 6 s ein
+    """Zeitlinie: 1,5 s Schwarz → Spruch blendet ein (2 s), steht 4,5 s, blendet aus (2 s) → 1 s Schwarz → Hauptbild blendet in 6 s ein
     und bleibt → bei jedem Songwechsel ca. 2 s zu Schwarz, 0,5 s schwarz, 3 s zurück → letzte 10 s zu Schwarz.
     Jedes Teil wird einzeln kodiert und danach ohne Neukodierung zusammengehängt."""
     work.mkdir(parents=True, exist_ok=True)
@@ -206,9 +206,9 @@ def build_video(main: Path, qpng: Path, starts: list[float], total: float, work:
     total_fr = fr(total)
     pos = 0                                 # Bildnummer, bis zu der das Video fertig ist
 
-    intro = seg(qpng, work / "intro.mp4", fr(12.5), "fade=t=in:st=2.5:d=2,fade=t=out:st=9.5:d=2")
+    intro = seg(qpng, work / "intro.mp4", fr(11.0), "fade=t=in:st=1.5:d=2,fade=t=out:st=8.0:d=2")
     parts.append(intro)
-    pos += fr(12.5)
+    pos += fr(11.0)
     fadein = seg(main, work / "fadein.mp4", fr(6), "fade=t=in:st=0:d=6")
     parts.append(fadein)
     pos += fr(6)
@@ -393,13 +393,13 @@ def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: fl
 def description(chapter_text: str, total_min: int) -> str:
     return (
         "Hang your coat on the hook. Leave the noise with it.\n\n"
-        "A quiet loft high above Tokyo at night. A long desk with two screens, a cognac leather Eames chair pushed back, "
+        "A quiet loft high above Tokyo at night. A long desk with two screens, a cognac leather office chair pushed back, "
         "a small black tea tray, one warm lamp and the city glowing amber outside the window. A breathy tenor saxophone, "
         "single felt piano notes, a deep warm sub-bass and a slow, soft groove. Nothing here pulls at your attention.\n\n"
         f"For deep work, coding, studying, writing and productivity. About {metadata.hours_wording(total_min)}, uninterrupted.\n\n"
         f"Chapters\n{chapter_text}\n\n"
         "Well done. Stand up, drink some water, and come back whenever you are ready. The lounge is always open.\n\n"
-        f"Music: {config.ARTIST} (AI-assisted, created with Lyria). Images: AI-generated.\n"
+        f"Music by {config.ARTIST}, created with AI. Images: AI-generated.\n"
         f"{HASHTAGS}")
 
 
@@ -411,10 +411,51 @@ def short_texts(lines: list[str], video_url: str) -> tuple[str, str, list[str]]:
     return title, desc, ["tokyo work lounge", "slow jazz", "productivity", "coding music", "focus music", "shorts", "aix walker"]
 
 
+# ---------------------------------------------------------------- Kandidaten fürs Hauptbild, Musik übernehmen
+def make_image_candidates(args, out: Path) -> int:
+    import genre_test_tokyo_rooms_v3 as r
+    from pipeline import drive
+    pngs = []
+    for i in range(1, args.make_image + 1):
+        art = images.generate_art(r.ROOMS[args.room], "16:9", pro=True, style=r.STYLE, image_size="4K")
+        p = out / "img" / f"kandidat_{i}.png"
+        p.parent.mkdir(parents=True, exist_ok=True)
+        art.convert("RGB").save(p)
+        art.convert("RGB").resize((1600, 900)).save(out / "img" / f"kandidat_{i}.jpg", quality=88)
+        log(f"Kandidat {i}: {art.size[0]}×{art.size[1]}")
+        pngs.append(p)
+    links = drive.upload_mix_package(args.image_folder, [], {"bilder": pngs})
+    log(f"Drive: {links.get('_folder')}")
+    (out / "kandidaten.json").write_text(json.dumps({"folder": args.image_folder, "files": [p.name for p in pngs],
+                                                    "sizes": [Image.open(p).size for p in pngs]}, indent=2))
+    return 0
+
+
+def reuse_music(room: str, out: Path) -> list[Path]:
+    """Die 22 Songs des ersten Mixes aus dem Drive-Ordner holen und als WAV bereitstellen (gleiche Musik, gleiche Reihenfolge)."""
+    from pipeline import drive
+    svc = drive.service()
+    root = drive.ensure_folder(svc, drive.ROOT_FOLDER)
+    folders = [f for f in drive.list_children(svc, root, folders=True) if "Tokyo Work Lounge" in f["name"] and room in f["name"]]
+    if not folders:
+        raise RuntimeError("Drive-Ordner des ersten Tokyo-Mixes nicht gefunden")
+    mp3_dir = [f for f in drive.list_children(svc, folders[-1]["id"], folders=True) if f["name"] == "mp3"][0]
+    mp3s = [f for f in drive.list_children(svc, mp3_dir["id"], folders=False) if f["name"].endswith(".mp3")]
+    wavs = []
+    for i, f in enumerate(mp3s, 1):
+        wav = out / "wav" / f"{i:02d}.wav"
+        if not wav.exists():
+            src = drive.download(svc, f["id"], out / "raw" / f"{i:02d}.mp3")
+            run(["ffmpeg", "-v", "error", "-y", "-i", src, "-ar", "44100", "-ac", "2", "-c:a", "pcm_s16le", wav])
+        wavs.append(wav)
+    log(f"{len(wavs)} Songs aus Drive übernommen ({folders[-1]['name']})")
+    return wavs
+
+
 # ---------------------------------------------------------------- nur Short
 def short_only(args, out: Path, lines: list[str]) -> int:
     from pipeline import drive, youtube
-    art = fetch_main_image(args.room, out, False)
+    art = fetch_main_image(args.room, out, False, args.image_folder, args.image_file)
     svc = drive.service()
     root = drive.ensure_folder(svc, drive.ROOT_FOLDER)
     folders = [f for f in drive.list_children(svc, root, folders=True) if "Tokyo Work Lounge" in f["name"] and args.room in f["name"]]
@@ -448,6 +489,10 @@ def main() -> int:
     ap.add_argument("--drive", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--workers", type=int, default=3)
+    ap.add_argument("--image-folder", default=ROOM_DRIVE_FOLDER, help="Drive-Ordner (Unterordner bilder) mit dem Hauptbild")
+    ap.add_argument("--image-file", default="", help="Dateiname des gewählten Hauptbildes (PNG)")
+    ap.add_argument("--make-image", type=int, default=0, help="nur N Kandidaten für das Hauptbild (4K) erzeugen und in Drive ablegen")
+    ap.add_argument("--reuse-music", action="store_true", help="Musik aus dem Drive-Ordner des ersten Mixes übernehmen (keine neue Erzeugung)")
     ap.add_argument("--short-only", action="store_true", help="nur den Short neu bauen (Musik aus dem Drive-Ordner des Mixes)")
     ap.add_argument("--mix-video-id", default="", help="YouTube-ID des Mixes (für den Link in der Short-Beschreibung)")
     args = ap.parse_args()
@@ -458,12 +503,14 @@ def main() -> int:
         config.GOOGLE_API_KEY = ""
     costs.start(out / "costs.json")
     lines = QUOTES[args.quote % len(QUOTES)]
+    if args.make_image:
+        return make_image_candidates(args, out)
     if args.short_only:
         return short_only(args, out, lines)
     log(f"Tokyo Work Lounge, Raum {args.room}, Spruch: {' '.join(lines)}, dry_run={args.dry_run}")
 
-    art = fetch_main_image(args.room, out, args.dry_run)
-    wavs = make_music(out, args.dry_run, args.workers)
+    art = fetch_main_image(args.room, out, args.dry_run, args.image_folder, args.image_file)
+    wavs = reuse_music(args.room, out) if args.reuse_music else make_music(out, args.dry_run, args.workers)
     mix, starts = monthly.join_tracks(wavs, out / "wav" / "mix.flac", xf=XF)
     total = audio.probe_duration(mix)
     total_min = int(round(total / 60))
