@@ -16,12 +16,12 @@ from pipeline import config, drive, images, lyria  # noqa: E402
 OUT = Path("build/genre-test-tokyo")
 STYLE = (" Photorealistic architectural interior photograph, 16:9, shot at eye level, calm composition with long perspective "
          "into the depth, completely empty of people, warm low amber light pools and recessed light strips on dark matte surfaces, "
-         "soft shadows, wabi-sabi Japanese minimalism, quiet luxury, premium editorial quality, no text, no logos, no watermark, "
+         "soft shadows, ultra-modern contemporary Japanese architecture, sleek designer minimalism with sculptural curved plaster, concrete, stone and dark wood, clean lines, high-end architectural magazine quality, no text, no logos, no watermark, "
          "no signage.")
 
 ROOMS = {
     "tokyo-quiet-cafe": ("TOKYO QUIET CAFÉ",
-        "A silent Tokyo specialty café interior: raw concrete and warm plaster walls, a low long wooden counter with a "
+        "A silent ultra-modern Tokyo specialty café interior designed by a top architect: raw concrete and warm plaster walls, a low long wooden counter with a "
         "small espresso machine behind glass, two low round stools, one old coat hanging on a black hook, a single dried "
         "branch in a clay vase on a stone ledge, large floor-to-ceiling window with soft blue dusk light from the street, "
         "polished concrete floor reflecting warm spot lights"),
