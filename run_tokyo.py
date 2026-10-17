@@ -290,7 +290,7 @@ def short_text_layers(lines: list[str], w: int = 1080, h: int = 1920) -> tuple[l
         if max(cws) <= w * 0.86 or ssz <= 20:
             break
         ssz -= 2
-    block = int(size * 1.0) + lh * len(texts) + int(size * 0.35) + int(ssz * 1.6) * len(cta_lines) + int(size * 0.5)
+    block = int(size * 1.0) + lh * len(texts) + int(size * 0.90) + int(ssz * 1.6) * len(cta_lines) + int(size * 0.5)
     cy = int(h * 0.50)
     half = block * 1.35
     for yy in range(h):
@@ -306,7 +306,7 @@ def short_text_layers(lines: list[str], w: int = 1080, h: int = 1920) -> tuple[l
         spots.append((w // 2, y + (bb[1] + bb[3]) // 2))
         images._draw_tracked(new_layer(), ((w - w_) // 2, y), t, f, col, tr)
         y += lh
-    y += int(size * 0.35)
+    y += int(size * 0.90)
     dc = new_layer()                      # Hinweis auf den Mix: beide Zeilen auf einer Ebene
     bb = d.textbbox((0, 0), "A", font=small)
     spots.append((w // 2, y + (bb[1] + bb[3]) // 2))
@@ -341,8 +341,8 @@ def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: fl
     x0 = int(W * 0.17)
     dst = out / "short.mp4"
     n_el = len(layers)
-    # Aufbau über die ganze Länge (Rolf 17.10.: nicht alles am Anfang): Verlauf 0,5 s, Linie 1,5 s, Zeilen bei 3 / 7 / 11 s, Hinweis auf den Mix bei 14,5 s; Auflösen in den letzten 1,5 s
-    t0 = [0.5, 1.5] + [3.0 + 4.0 * k for k in range(n_el - 3)] + [3.0 + 4.0 * (n_el - 3) - 0.5]
+    # Aufbau über die ganze Länge (Rolf 17.10.: nicht alles am Anfang): Verlauf 0,3 s, Linie 0,6 s, Zeilen bei 1,2 / 5,2 / 9,2 s, Hinweis auf den Mix bei 12,3 s; Auflösen in den letzten 1,5 s
+    t0 = [0.3, 0.6] + [1.2 + 4.0 * k for k in range(n_el - 3)] + [1.2 + 4.0 * (n_el - 3) - 0.9]
     t_out = sec - 1.6
     cmd = ["ffmpeg", "-v", "error", "-y", "-loop", "1", "-framerate", 25, "-t", sec, "-i", base]
     for pth in paths:
@@ -356,21 +356,22 @@ def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: fl
                f"fade=t=out:st={t_out:.2f}:d=1.4:alpha=1[t{i}];[b{i}][t{i}]overlay=0:0[b{i + 1}];")
     # laufende Punkte "..." an der Stelle des nächsten Textes, solange er noch nicht da ist (Neugier: es kommt mehr)
     n_sp = len(spots)
-    n_dots = 3 * n_sp
+    n_dots = 3 * max(1, n_sp - 1)
     di = n_el + 1                                  # Eingang des Punkt-Bildes
     fc += f"[{di}:v]format=rgba,split={n_dots}" + "".join(f"[dd{k}]" for k in range(n_dots)) + ";"
     prev = f"b{n_el}"
     k = 0
     P = 1.2                                        # Dauer eines Punkte-Zyklus
     for si, (cx, cy) in enumerate(spots):
+        if si == 0:
+            continue                               # vor der ersten Zeile keine Punkte (Rolf 18.10.)
         el = 2 + si                                # Ebene dieses Textes
-        a = 1.9 if si == 0 else t0[el - 1] + 1.3   # nach dem Erscheinen der vorigen Zeile
         e = t0[el]
-        for j in range(3):
+        for j in range(3):                         # nur ein Durchlauf: Punkt 1, 2, 3 erscheinen nacheinander und bleiben
+            aj = e - 1.6 + j * 0.4
             x = cx + (j - 1) * gap - r
             y = cy - r
-            en = f"between(t,{a:.2f},{e:.2f})*gte(mod(t-{a:.2f},{P}),{(j + 1) * P / 4:.2f})"
-            fc += f"[{prev}][dd{k}]overlay=x={x}:y={y}:enable='{en}'[p{k}];"
+            fc += f"[{prev}][dd{k}]overlay=x={x}:y={y}:enable='between(t,{aj:.2f},{e:.2f})'[p{k}];"
             prev = f"p{k}"
             k += 1
     fc += f"[{prev}]format=yuv420p[o];"
