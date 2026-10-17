@@ -28,6 +28,11 @@ def main() -> int:
     art = images.generate_art(SCENE, "9:16", pro=True, style=v.STYLE.replace("upper third", "upper fifth"), image_size="2K")
     art.save(OUT / "short-bild.png")
     art.convert("RGB").resize((900, 1600)).save(REPO / "bilder" / "short-bild.jpg", quality=88)
+    # Nakameguro als Abendszene neu (Rolf: immer Abend, kein Tageslicht)
+    nart = images.generate_art(v.ROOMS["nakameguro-evening-loft"], "16:9", pro=True, style=v.STYLE, image_size="2K")
+    nart.save(OUT / "nakameguro-evening-loft.png")
+    nart.convert("RGB").resize((1600, 900)).save(REPO / "bilder" / "nakameguro-evening-loft.jpg", quality=88)
+    nth = v.make_thumb(nart, REPO / "thumbs" / "thumb-nakameguro-evening-loft.jpg")
     sw, sh = 1080, 1920
     v.text_layer(sw, sh, 0.07, 0.036, 0.0165, 0.0125).save(OUT / "text.png")
     images._cover_crop(art, sw, sh).convert("RGB").save(OUT / "basis.png")
@@ -41,7 +46,7 @@ def main() -> int:
                     "-map", "[vo]", "-map", "[ao]", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
                     "-c:a", "aac", "-b:a", "192k", "-t", "25", str(vid)], check=True, capture_output=True)
     shutil.copy(vid, REPO / "video" / vid.name)
-    links = drive.upload_mix_package("GENRE-TEST Tokyo Work Lounge v2", [], {"video": [vid], "bilder": [OUT / "short-bild.png"]})
+    links = drive.upload_mix_package("GENRE-TEST Tokyo Work Lounge v2", [], {"video": [vid], "bilder": [OUT / "short-bild.png", OUT / "nakameguro-evening-loft.png"], "thumbs": [nth]})
     for k, val in links.items():
         print(k, val)
     return 0

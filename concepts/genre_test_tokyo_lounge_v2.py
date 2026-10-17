@@ -36,11 +36,12 @@ BASE = ("A wide, spacious ultra-modern Tokyo loft apartment seen from a wide-ang
 STYLE = (" Photorealistic architectural interior photograph, calm composition with long perspective, completely empty of people, "
          "warm low amber light pools and hidden cove LED strips on dark matte surfaces, ultra-modern contemporary Japanese loft "
          "design with concrete, dark walnut, black stone and sculptural curved plaster, high-end architectural magazine quality, "
+         "always an evening or night scene with dark sky and artificial warm light, never daylight, no sunshine, no morning light, "
          "realistic proportions and materials, the upper third of the image is a calm dark ceiling or wall area, screens switched "
          "off or with only a soft abstract glow, no readable text, no logos, no watermark.")
 ROOMS = {
     "shinjuku-sky-loft": BASE + "floor-to-ceiling windows showing the Tokyo skyline at blue dusk with distant warm city lights, polished concrete floor",
-    "nakameguro-morning-loft": BASE + "tall slatted wood screens throwing soft stripes of morning light across pale concrete floor, a calm canal with cherry branches visible through a wide window, golden light",
+    "nakameguro-evening-loft": BASE + "tall slatted wood screens lit from behind by warm lamps, a calm canal with cherry blossom branches lit by soft lanterns visible through a wide window in the dark blue evening, deep dusk sky, polished pale concrete floor, warm amber interior light",
     "azabu-rain-loft": BASE + "a very large window with soft rain streaks and blurred city lights, dark walnut wall panels, curved plaster ceiling, moody warm lamp light",
 }
 SHORT_SCENE = ("Vertical composition: a spacious ultra-modern Tokyo loft apartment at night, the home-office zone in the middle of the "
