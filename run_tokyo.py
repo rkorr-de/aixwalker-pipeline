@@ -273,13 +273,16 @@ def short_text_layer(lines: list[str], w: int = 1080, h: int = 1920) -> Image.Im
             break
         size -= 2
     lh = int(size * 1.7)
-    small = images._font(F, int(size * 0.42), "Regular")
-    cta = "FULL TOKYO WORK LOUNGE MIX ON THE CHANNEL"
-    cw = images._tracked_width(d, cta, small, int(small.size * 0.28))
-    while cw > w * 0.86:
-        small = images._font(F, small.size - 1, "Regular")
-        cw = images._tracked_width(d, cta, small, int(small.size * 0.28))
-    block = int(size * 1.0) + lh * len(texts) + int(size * 1.4)
+    cta_lines = ["FULL TOKYO WORK LOUNGE MIX", "ON THE CHANNEL"]
+    ssz = int(size * 0.62)
+    while True:
+        small = images._font(F, ssz, "Regular")
+        ctr = int(ssz * 0.20)
+        cws = [images._tracked_width(d, t, small, ctr) for t in cta_lines]
+        if max(cws) <= w * 0.86 or ssz <= 20:
+            break
+        ssz -= 2
+    block = int(size * 1.0) + lh * len(texts) + int(size * 0.35) + int(ssz * 1.6) * len(cta_lines) + int(size * 0.5)
     cy = int(h * 0.50)
     half = block * 1.35
     for yy in range(h):
@@ -294,7 +297,9 @@ def short_text_layer(lines: list[str], w: int = 1080, h: int = 1920) -> Image.Im
         images._draw_tracked(d, ((w - w_) // 2, y), t, f, col, tr)
         y += lh
     y += int(size * 0.35)
-    images._draw_tracked(d, ((w - cw) // 2, y), cta, small, (240, 228, 205), int(small.size * 0.28))
+    for t, w_ in zip(cta_lines, cws):
+        images._draw_tracked(d, ((w - w_) // 2, y), t, small, (245, 232, 208), ctr)
+        y += int(ssz * 1.6)
     return lay
 
 
