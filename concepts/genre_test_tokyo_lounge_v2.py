@@ -29,16 +29,19 @@ PROMPT = ("Audiophile high-fidelity recording, crystal clear pristine instrument
 
 CHAIR = ("at the desk stands a sleek Vitra Eames EA 117 aluminum office chair in dark leather with cognac-colored leather "
          "upholstery and polished aluminum frame, clearly visible and realistic")
-BASE = ("A wide, spacious ultra-modern Tokyo loft apartment seen from a wide-angle eye-level view: a large open-plan living area "
-        "with a low modular designer sofa, a sculptural floor lamp, a dry branch in a ceramic vase and a rug, and further in the room "
-        "a stylish realistic home-office zone with a long slim minimal desk, a large monitor and a slim laptop, " + CHAIR + ". "
-        "The whole loft is visible, the work area is part of the room and not the only subject. ")
+BASE = ("A wide, spacious ultra-modern Tokyo loft apartment photographed from a wide-angle eye-level view from BEHIND the office chair: "
+        "in the middle ground a stylish realistic home-office zone with a long slim minimal desk; on the desk stand exactly TWO modern "
+        "widescreen coding monitors side by side, both turned correctly toward the chair and the camera so the screens are fully visible, "
+        "the left screen shows a dark-theme code editor with colorful abstract syntax lines, the right screen a dark dashboard, with a "
+        "slim monitor light bar above them; " + CHAIR + ", seen from behind and facing the monitors. Around it the whole open-plan loft is "
+        "visible: a low modular designer sofa, a sculptural floor lamp, a dry branch in a ceramic vase and a rug. The work area is part of "
+        "the room and not the only subject. ")
 STYLE = (" Photorealistic architectural interior photograph, calm composition with long perspective, completely empty of people, "
          "warm low amber light pools and hidden cove LED strips on dark matte surfaces, ultra-modern contemporary Japanese loft "
          "design with concrete, dark walnut, black stone and sculptural curved plaster, high-end architectural magazine quality, "
          "always an evening or night scene with dark sky and artificial warm light, never daylight, no sunshine, no morning light, "
-         "realistic proportions and materials, the upper third of the image is a calm dark ceiling or wall area, screens switched "
-         "off or with only a soft abstract glow, no readable text, no logos, no watermark.")
+         "realistic proportions and materials, the upper third of the image is a calm dark ceiling or wall area, screens glow softly with "
+         "dark-theme code, the code is abstract and not readable, no other readable text, no logos, no watermark.")
 ROOMS = {
     "shinjuku-sky-loft": BASE + "floor-to-ceiling windows showing the Tokyo skyline at blue dusk with distant warm city lights, polished concrete floor",
     "nakameguro-evening-loft": BASE + "tall slatted wood screens lit from behind by warm lamps, a calm canal with cherry blossom branches lit by soft lanterns visible through a wide window in the dark blue evening, deep dusk sky, polished pale concrete floor, warm amber interior light",

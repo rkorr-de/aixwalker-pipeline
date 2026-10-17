@@ -17,10 +17,12 @@ from pipeline import drive, images  # noqa: E402
 
 REPO = HERE / "genre-test-tokyo-lounge-v2"
 OUT = Path("build/short-v2")
-SCENE = ("ONE single continuous vertical photograph, not a collage, not a split screen, no stacked images. A spacious ultra-modern "
-         "Tokyo loft apartment at night seen from eye level in portrait format: in the lower middle of the frame a long slim desk with a "
-         "large monitor and a slim laptop, " + v.CHAIR + ", behind the desk floor-to-ceiling windows with the Tokyo skyline in deep blue "
-         "and amber, in the foreground a low designer sofa and a floor lamp, the dark ceiling with a warm cove light fills the top fifth")
+SCENE = ("ONE single continuous vertical photograph, not a collage, not a split screen, no stacked images. Portrait view from behind "
+         "an office chair in a spacious ultra-modern Tokyo loft at night: in the lower middle of the frame a long slim desk with exactly TWO "
+         "modern widescreen coding monitors side by side, both facing the chair and the camera with their screens fully visible, the left "
+         "screen a dark-theme code editor with colorful abstract syntax lines, the right a dark dashboard, a slim monitor light bar above; "
+         + v.CHAIR + ", seen from behind; behind the desk floor-to-ceiling windows with the Tokyo skyline in deep blue and amber, in the "
+         "foreground a low designer sofa and a floor lamp, the dark ceiling with a warm cove light fills the top fifth")
 
 
 def main() -> int:
@@ -28,11 +30,14 @@ def main() -> int:
     art = images.generate_art(SCENE, "9:16", pro=True, style=v.STYLE.replace("upper third", "upper fifth"), image_size="2K")
     art.save(OUT / "short-bild.png")
     art.convert("RGB").resize((900, 1600)).save(REPO / "bilder" / "short-bild.jpg", quality=88)
-    # Nakameguro als Abendszene neu (Rolf: immer Abend, kein Tageslicht)
-    nart = images.generate_art(v.ROOMS["nakameguro-evening-loft"], "16:9", pro=True, style=v.STYLE, image_size="2K")
-    nart.save(OUT / "nakameguro-evening-loft.png")
-    nart.convert("RGB").resize((1600, 900)).save(REPO / "bilder" / "nakameguro-evening-loft.jpg", quality=88)
-    nth = v.make_thumb(nart, REPO / "thumbs" / "thumb-nakameguro-evening-loft.jpg")
+    # alle drei Räume neu (Rolf: zwei Coding-Monitore zum Arbeitsplatz gedreht, immer Abend), dann Thumbnails mit Text mittig
+    thumbs, bilder = [], [OUT / "short-bild.png"]
+    for key, scene in v.ROOMS.items():
+        rart = images.generate_art(scene, "16:9", pro=True, style=v.STYLE, image_size="2K")
+        rart.save(OUT / f"{key}.png")
+        bilder.append(OUT / f"{key}.png")
+        rart.convert("RGB").resize((1600, 900)).save(REPO / "bilder" / f"{key}.jpg", quality=88)
+        thumbs.append(v.make_thumb(rart, REPO / "thumbs" / f"thumb-{key}.jpg"))
     sw, sh = 1080, 1920
     v.text_layer(sw, sh, 0.07, 0.036, 0.0165, 0.0125).save(OUT / "text.png")
     images._cover_crop(art, sw, sh).convert("RGB").save(OUT / "basis.png")
@@ -46,7 +51,7 @@ def main() -> int:
                     "-map", "[vo]", "-map", "[ao]", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
                     "-c:a", "aac", "-b:a", "192k", "-t", "25", str(vid)], check=True, capture_output=True)
     shutil.copy(vid, REPO / "video" / vid.name)
-    links = drive.upload_mix_package("GENRE-TEST Tokyo Work Lounge v2", [], {"video": [vid], "bilder": [OUT / "short-bild.png", OUT / "nakameguro-evening-loft.png"], "thumbs": [nth]})
+    links = drive.upload_mix_package("GENRE-TEST Tokyo Work Lounge v2", [], {"video": [vid], "bilder": bilder, "thumbs": thumbs})
     for k, val in links.items():
         print(k, val)
     return 0
