@@ -28,8 +28,9 @@ STYLE = (" Photorealistic architectural interior photograph, calm composition wi
 
 DESK = ("The home-office zone is only a part of the picture and sits in the {side} third of the frame, NOT in the center: a long slim "
         "designer desk with exactly TWO modern widescreen coding monitors side by side, both turned toward the chair so the screens are "
-        "visible, a slim monitor light bar, a modern designer desk lamp with a warm glow, a modern handleless Japanese yunomi tea cup "
-        "with green tea and a little steam, a small notebook and a pen, the desk looks as if its user has just stepped away: " + v.CHAIR +
+        "visible, a slim monitor light bar, a modern designer desk lamp with a warm glow, a modern small black minimalist tea tray "
+        "with Japanese tea utensils (a small dark iron kyusu teapot, a ceramic tea caddy and a bamboo tea scoop; NO tea cup or mug anywhere on the desk), "
+        "a black EPOS Sennheiser ADAPT 260 over-ear headset with a slim microphone arm lying on the desk, a small notebook and a pen, the desk looks as if its user has just stepped away: " + v.CHAIR +
         ", pushed back a little and slightly turned away from the desk. ")
 COZY = ("The loft is cozy and inviting: two or three lush green indoor plants (for example a leafy plant in a ceramic pot and a small "
         "bonsai), a soft wool throw on a low modular designer sofa, a warm textured rug, a wooden shelf with a few books and a ceramic vase. ")
