@@ -41,9 +41,9 @@ TAGS = ["tokyo work lounge", "slow jazz for work and coding", "productivity musi
         "tokyo lounge jazz", "jazz for work", "coding music", "deep focus jazz", "study jazz", "quiet jazz",
         "work music instrumental", "background jazz for coding", "lofi jazz", "tokyo loft", "aix walker"]
 HASHTAGS = "#deepwork #productivity #codingmusic #focusmusic #tokyo"
-PINNED = ("Your quiet corner in Tokyo is open!\n"
-          "Silence your phone, pick one small task and let the music carry you through it.\n"
-          "What are you building, writing or learning today?")
+# Pin-Kommentar und Community-Post schreibt Claude bei JEDEM Mix neu (Rolf 18.10.2026), nicht aus einer Konstante.
+# Der Kommentar wird nach "Tokyo freigeben" von Claude selbst unter den Mix geschrieben (Rolf pinnt ihn), der Post
+# wird von Rolf gepostet; beide Texte stehen in der Mail (send_tokyo_mail.py --pin ... --community ...).
 
 # (Zeilen des Spruchs, Hinweis auf die Musik steht immer in den letzten Zeilen)
 QUOTES = [
@@ -563,7 +563,7 @@ def main() -> int:
 
     meta = out / "metadata.txt"
     meta.write_text("\n".join(["TITEL", TITLE, "", "BESCHREIBUNG", desc, "", "TAGS", ", ".join(TAGS), "",
-                               "ANGEPINNTER KOMMENTAR", PINNED, "", "SPRUCH", " ".join(lines)]), encoding="utf-8")
+                               "SPRUCH", " ".join(lines)]), encoding="utf-8")
     drive_links = {}
     if args.drive and not args.dry_run:
         try:

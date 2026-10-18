@@ -1,7 +1,8 @@
 """Tokyo-Work-Lounge-Mail an Rolf: Links, Thumbnail als Anhang, angepinnter Kommentar, Community-Post.
 
-Aufruf:  python send_tokyo_mail.py <ergebnis-ordner> [--befehl] [--nachtrag]
+Aufruf:  python send_tokyo_mail.py <ergebnis-ordner> --pin "<Text>" --community "<Text>" [--befehl] [--nachtrag]
   <ergebnis-ordner>  z. B. concepts/tokyo-mix-1/v2 (enthält result.json, thumb.jpg)
+  --pin / --community  neu geschriebene Texte (Pflicht, Claude schreibt sie pro Mix neu; Community darf {url} enthalten)
   --befehl           Block „So geht es weiter: Tokyo freigeben“ anhängen (Mix noch privat)
   --nachtrag         Betreff „Nachtrag“ (Mix ist schon freigegeben)
 Rolf-Regel 18.10.2026: Thumbnail immer als Anhang, Pin-Kommentar und Community-Post immer in der Mail.
@@ -15,27 +16,22 @@ from pathlib import Path
 
 from pipeline import config, mailer
 
-COMMUNITY = ("🌃 The Tokyo Work Lounge is open.\n\n"
-             "Slow jazz for deep work and coding: breathy saxophone, soft piano and a warm, quiet groove. "
-             "Close the door on the noise, pick one task and begin. 🎷\n\n"
-             "What are you working on today? 👇\n\n"
-             "{url}")
-
-
-def community_text(url: str) -> str:
-    return COMMUNITY.format(url=url)
+def community_text(text: str, url: str) -> str:
+    """Community-Text, den Claude pro Mix neu schreibt; {url} wird durch den Mix-Link ersetzt (fehlt er, wird er angehängt)."""
+    return text.replace("{url}", url) if "{url}" in text else f"{text}\n\n{url}"
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("folder")
+    ap.add_argument("--pin", required=True)
+    ap.add_argument("--community", required=True)
     ap.add_argument("--befehl", action="store_true")
     ap.add_argument("--nachtrag", action="store_true")
     a = ap.parse_args()
     d = Path(a.folder)
     res = json.loads((d / "result.json").read_text(encoding="utf-8"))
     sys.path.insert(0, str(Path(__file__).parent))
-    import run_tokyo
     url = res["video_url"]
     short = f"https://youtube.com/shorts/{res['short_id']}"
     lines = [
@@ -43,10 +39,10 @@ def main() -> None:
         ("hier der Nachtrag zum Tokyo-Mix: Thumbnail, angepinnter Kommentar und Community-Post."
          if a.nachtrag else "der Tokyo-Mix und der Short sind fertig."), "",
         f"Mix: {url}", f"Short: {short}", f"Drive-Ordner: {(res.get('drive') or {}).get('_folder', '-')}", "",
-        "ANGEPINNTER KOMMENTAR (Studio → Kommentare → unter dem Mix schreiben und anpinnen; die API kann nicht anpinnen):",
-        run_tokyo.PINNED, "",
-        "COMMUNITY-POST (Studio → Inhalte → Community → Beitrag erstellen, Text kopieren):",
-        community_text(url), "",
+        "PIN-KOMMENTAR (Claude schreibt ihn unter den Mix, du pinnst ihn danach selbst fest):",
+        a.pin, "",
+        "COMMUNITY-POST (Studio → Inhalte → Community → Beitrag erstellen, Text kopieren, du postest ihn selbst):",
+        community_text(a.community, url), "",
         "Das Thumbnail hängt als Bild an dieser Mail.", "",
     ]
     if a.befehl:
