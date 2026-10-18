@@ -33,7 +33,7 @@ MAX_TRACKS = 30
 LUFS = -16.0
 ROOM_DRIVE_FOLDER = "GENRE-TEST Tokyo Work Lounge v3"
 
-TITLE = "close the door on the noise, and settle in | quiet tokyo lounge jazz for deep work, coding and productivity"
+TITLE = "🎧 Tokyo Work Lounge | Slow Jazz for Deep Work & Coding 🎷"
 PLAYLIST = ("Tokyo Work Lounge · Slow Jazz for Work and Coding",
             "Tokyo Work Lounge: slow, quiet jazz for deep work, coding, studying and productivity. A cozy Tokyo loft at night, "
             "a breathy tenor saxophone, felt piano and a warm sub-bass. By Aix Walker.")
@@ -41,7 +41,9 @@ TAGS = ["tokyo work lounge", "slow jazz for work and coding", "productivity musi
         "tokyo lounge jazz", "jazz for work", "coding music", "deep focus jazz", "study jazz", "quiet jazz",
         "work music instrumental", "background jazz for coding", "lofi jazz", "tokyo loft", "aix walker"]
 HASHTAGS = "#deepwork #productivity #codingmusic #focusmusic #tokyo"
-PINNED = "Take a breath. Put your phone away. Pick one task and begin. We will keep the room quiet for you."
+PINNED = ("Your quiet corner in Tokyo is open!\n"
+          "Silence your phone, pick one small task and let the music carry you through it.\n"
+          "What are you building, writing or learning today?")
 
 # (Zeilen des Spruchs, Hinweis auf die Musik steht immer in den letzten Zeilen)
 QUOTES = [

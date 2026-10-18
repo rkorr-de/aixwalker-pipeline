@@ -15,9 +15,10 @@ from pathlib import Path
 
 from pipeline import config, mailer
 
-COMMUNITY = ("The Tokyo Work Lounge is open 🌃\n"
-             "Slow jazz for deep work and coding: breathy sax, soft piano and a warm, quiet groove. "
-             "Close the door on the noise, pick one small task and begin.\n"
+COMMUNITY = ("🌃 The Tokyo Work Lounge is open.\n\n"
+             "Slow jazz for deep work and coding: breathy saxophone, soft piano and a warm, quiet groove. "
+             "Close the door on the noise, pick one task and begin. 🎷\n\n"
+             "What are you working on today? 👇\n\n"
              "{url}")
 
 
