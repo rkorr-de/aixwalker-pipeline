@@ -1,0 +1,50 @@
+{
+  "room": "shinjuku-sky-loft",
+  "video_id": "wyAwCLunEe4",
+  "video_url": "https://youtu.be/wyAwCLunEe4",
+  "short_id": "1EFovqyiLuY",
+  "privacy": "private",
+  "duration_sec": 3838.874172,
+  "duration_min": 64,
+  "songs": 22,
+  "quote": [
+    "Start with the smallest task.",
+    "My tracks will carry you",
+    "the rest of the way."
+  ],
+  "title": "close the door on the noise, and settle in | quiet tokyo lounge jazz for deep work, coding and productivity",
+  "cost_usd": 0.0,
+  "cost_report": "Tatsächlicher API-Verbrauch: 0.00 $ ≈ 0.00 € (0 Lyria-Erzeugungen, davon 0 Neuversuche nach QC, 0 Flash-Bilder, 0 Pro-Bilder, 0 Pro-4K-Bilder, 0 Bild-Fallbacks ohne Kosten)",
+  "drive": {
+    "_folder": "https://drive.google.com/drive/folders/18L04N_HDO4cBLTlJFtlwmHdXaDQRCaAE",
+    "thumb.jpg": "https://drive.google.com/file/d/1VsxbSDVsCZ3k5c_CQT0nDURsW-RyneWL/view?usp=drivesdk",
+    "master.jpg": "https://drive.google.com/file/d/17Rq6F_M67nBgRmkn1dSySmqkZlj_mcRf/view?usp=drivesdk",
+    "metadata.txt": "https://drive.google.com/file/d/1YWmnpYZy4hyopAuroroYNGdoIl4TOZbB/view?usp=drivesdk",
+    "short/short.mp4": "https://drive.google.com/file/d/1j4_hwmmITgoVrx64zSH7DtYDBCUlQ6ZA/view?usp=drivesdk"
+  },
+  "boundaries": [
+    0.0,
+    174.7,
+    351.6,
+    527.9,
+    706.2,
+    879.7,
+    1056.4,
+    1231.1,
+    1401.8,
+    1575.0,
+    1751.8,
+    1926.6,
+    2105.0,
+    2280.7,
+    2459.0,
+    2633.0,
+    2810.5,
+    2988.2,
+    3164.3,
+    3315.9,
+    3486.2,
+    3664.1
+  ],
+  "video_mb": 840
+}
