@@ -31,10 +31,11 @@ VEO_MODELS = [m for m in os.environ.get(
 # Videoquelle: "kling" (fal.ai, Kling 3.0, 15 s am Stück) oder "veo" (Gemini API, 2 × 8 s)
 VIDEO_PROVIDER = os.environ.get("KIDS_VIDEO_PROVIDER", "kling")
 KLING_TIER = os.environ.get("KIDS_KLING_TIER", "pro")          # "pro" oder "standard"
-# Kling-Ton AUS (Rolf 15.10.2026): spart ca. 0,84 $ je Video und verhindert, dass Kling Figuren Sätze sprechen lässt.
-# Die Geräusche kommen aus der eigenen Bibliothek (assets/kids_sfx), passend zu den sichtbaren Aktionen platziert.
-# Wieder einschalten nur mit KIDS_KLING_AUDIO=1.
-KLING_AUDIO = os.environ.get("KIDS_KLING_AUDIO", "0") == "1"
+# Kling-Ton AN (Rolf 18.10.2026): Kling erzeugt die Geräusche synchron mit dem Video, unsere Musik liegt leise darunter.
+# (15.–17.10. war der Ton aus und kam aus der eigenen Bibliothek assets/kids_sfx – laut Rolf „katastrophal“.)
+# Gesprochene Wörter verhindert der Kling-Prompt + Negativ-Prompt; die Videoprüfung wertet echte Wörter als schweren
+# Fehler. Nur zum Testen abschaltbar mit KIDS_KLING_AUDIO=0.
+KLING_AUDIO = os.environ.get("KIDS_KLING_AUDIO", "1") == "1"
 VEO_CLIP_SEC = 8                 # Veo liefert 4/6/8 s; 2 × 8 s → 15 s nach Schnitt
 VEO_RESOLUTION = os.environ.get("KIDS_VEO_RESOLUTION", "1080p")
 LYRIA_MODEL = os.environ.get("LYRIA_MODEL", "lyria-3.5")
