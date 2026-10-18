@@ -72,9 +72,12 @@ def upload_mix_package(folder_name: str, files: list[Path], subfolders: dict[str
             links[f.name] = _upload(svc, f, folder)
     for sub, sub_files in (subfolders or {}).items():
         sub_id = ensure_folder(svc, sub, folder)
+        # Shorts gehen immer über Metricool auf Instagram/TikTok: Videodateien in „short“/„shorts“ werden beim Upload
+        # selbst für „Jeder mit dem Link“ freigegeben (Rolf 18.10.2026: automatisch, ohne sein Zutun).
+        public = sub.lower() in ("short", "shorts")
         for f in sub_files:
             if f.exists():
-                links[f"{sub}/{f.name}"] = _upload(svc, f, sub_id)
+                links[f"{sub}/{f.name}"] = _upload(svc, f, sub_id, public=public and f.suffix.lower() == ".mp4")
     # Alle Nano-Banana-Bilder ohne Text, die seit dem letzten Upload entstanden sind, immer mit in den Mix-Ordner (Rolf 16.10.)
     from . import images as _images
     raw = [p for p in _images.RAW_ART if p.exists()]
