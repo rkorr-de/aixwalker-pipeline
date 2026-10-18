@@ -1,4 +1,4 @@
-fix_tokyo_drive.py abgebrochen (18.10.2026):
+DRIVE_REFRESH_TOKEN gesetzt: False
+
 RuntimeError: Umgebungsvariable DRIVE_REFRESH_TOKEN fehlt
-(in pipeline/drive.py service() -> youtube.credentials -> config.require)
-In der Cloud-Umgebung dieses Laufs sind keine Drive-Zugangsdaten gesetzt; es wurde nichts im Drive veraendert.
+(fix_tokyo_drive.py bricht in pipeline/drive.py service() ab; Lauf vom 18.10.2026)
