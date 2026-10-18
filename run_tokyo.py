@@ -34,6 +34,10 @@ LUFS = -16.0
 ROOM_DRIVE_FOLDER = "GENRE-TEST Tokyo Work Lounge v3"
 
 TITLE = "🎧 Tokyo Work Lounge | Slow Jazz for Deep Work & Coding 🎷"
+# Ordnername im Drive muss auf "(Genre, BPM)" enden (Format aller Mix-Ordner, der DistroKid-Lauf liest das Genre daraus)
+GENRE_LABEL = "Slow Jazz"
+BPM_LABEL = 70           # nur Beschriftung des Ordners, DistroKid fragt kein BPM ab
+REUSE_SRC_MP3 = {"id": None}   # Drive-Ordner "mp3" des Quell-Mixes, wenn --reuse-music
 PLAYLIST = ("Tokyo Work Lounge · Slow Jazz for Work and Coding",
             "Tokyo Work Lounge: slow, quiet jazz for deep work, coding, studying and productivity. A cozy Tokyo loft at night, "
             "a breathy tenor saxophone, felt piano and a warm sub-bass. By Aix Walker.")
@@ -444,6 +448,7 @@ def reuse_music(room: str, out: Path) -> list[Path]:
         raise RuntimeError("Drive-Ordner des ersten Tokyo-Mixes nicht gefunden")
     mp3_dir = [f for f in drive.list_children(svc, folders[-1]["id"], folders=True) if f["name"] == "mp3"][0]
     mp3s = [f for f in drive.list_children(svc, mp3_dir["id"], folders=False) if f["name"].endswith(".mp3")]
+    REUSE_SRC_MP3["id"] = mp3_dir["id"]
     wavs = []
     for i, f in enumerate(mp3s, 1):
         wav = out / "wav" / f"{i:02d}.wav"
@@ -496,6 +501,7 @@ def main() -> int:
     ap.add_argument("--image-file", default="", help="Dateiname des gewählten Hauptbildes (PNG)")
     ap.add_argument("--make-image", type=int, default=0, help="nur N Kandidaten für das Hauptbild (4K) erzeugen und in Drive ablegen")
     ap.add_argument("--reuse-music", action="store_true", help="Musik aus dem Drive-Ordner des ersten Mixes übernehmen (keine neue Erzeugung)")
+    ap.add_argument("--album-cover", default="", help="eigenes Album-Cover (quadratisch, jpg/png) für DistroKid; sonst Ausschnitt des Hauptbilds")
     ap.add_argument("--short-only", action="store_true", help="nur den Short neu bauen (Musik aus dem Drive-Ordner des Mixes)")
     ap.add_argument("--mix-video-id", default="", help="YouTube-ID des Mixes (für den Link in der Short-Beschreibung)")
     args = ap.parse_args()
@@ -568,9 +574,28 @@ def main() -> int:
     if args.drive and not args.dry_run:
         try:
             from pipeline import drive
-            folder = f"{date.today().isoformat()} – Tokyo Work Lounge – {args.room} ({total_min} Min, 4K{', v2' if args.reuse_music else ''})"
-            drive_links = drive.upload_mix_package(folder, [thumb, out / "img" / "master.jpg", meta],
+            folder = (f"{date.today().isoformat()} – Tokyo Work Lounge – {args.room}{' v2' if args.reuse_music else ''} "
+                      f"({GENRE_LABEL}, {BPM_LABEL} BPM)")
+            # Album-Cover für DistroKid: album_3000.png (3000x3000). Vorrang: --album-cover, sonst quadratischer Ausschnitt des Hauptbilds.
+            album = out / "img" / "album_3000.png"
+            src_cover = Path(args.album_cover) if args.album_cover else None
+            im = Image.open(src_cover).convert("RGB") if src_cover else images.crop_aspect(art, 1, 1)
+            im.resize((3000, 3000), Image.LANCZOS).save(album, "PNG", optimize=True)
+            drive_links = drive.upload_mix_package(folder, [album, thumb, out / "img" / "master.jpg", meta],
                                                    {"mp3": sorted((out / "mp3").glob("*.mp3")), "short": [short]})
+            if args.reuse_music and REUSE_SRC_MP3["id"]:
+                # Musik unverändert: die MP3s serverseitig in den mp3-Ordner des neuen Mix-Ordners kopieren (Namen bleiben)
+                svc = drive.service()
+                new_root = drive.ensure_folder(svc, drive.ROOT_FOLDER)
+                new_folder = drive.ensure_folder(svc, folder, new_root)
+                dst = drive.ensure_folder(svc, "mp3", new_folder)
+                have = {f["name"] for f in drive.list_children(svc, dst, folders=False)}
+                n = 0
+                for f in drive.list_children(svc, REUSE_SRC_MP3["id"], folders=False):
+                    if f["name"].endswith(".mp3") and f["name"] not in have:
+                        svc.files().copy(fileId=f["id"], body={"name": f["name"], "parents": [dst]}, fields="id").execute()
+                        n += 1
+                log(f"{n} MP3s aus dem Quell-Mix in den neuen Drive-Ordner kopiert")
             log(f"Drive: {drive_links.get('_folder')}")
         except Exception as e:  # noqa: BLE001
             log(f"Drive-Ablage fehlgeschlagen: {e}")
