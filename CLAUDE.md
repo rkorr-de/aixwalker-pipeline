@@ -38,3 +38,5 @@
   Das Skript erzeugt das Bild in 4K (0,24 $), prüft es automatisch (Schreibtisch mit zwei Monitoren sichtbar, Cognac-Ledersessel, kein Text, Person nur unscharf von hinten, kein Tageslicht/Blaustich,
   keine Fehler), misst die Schreibtischmitte selbst für den Album-Cover-Ausschnitt und legt das Bild in Drive `bilder/<kennung>.png` ab. Bis zu 3 Versuche; scheitern alle, bricht der Lauf VOR der Musik
   mit Exit-Code 3 ab → dann mit einem vorhandenen Raum neu starten und das Rolf im Bericht sagen. Bildkosten (bis 0,72 $ bei 3 Versuchen) in die Kostenmeldung aufnehmen.
+  Ergänzung Rolf 19.10.2026: Der Ort liegt IMMER in Tokyo (Szenentext nennt Stadtteil + „Tokyo“, alles passt zum Thema Tokyo). Der Arbeitsplatz ist ein echter Computerarbeitsplatz mit zwei Monitoren,
+  Tastatur UND Maus, im Raum sichtbar (muss nicht direkt vorne im Bild sein); die Prüfung verlangt `keyboard_mouse`.
