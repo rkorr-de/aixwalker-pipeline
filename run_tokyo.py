@@ -66,6 +66,19 @@ def _norm(s: str) -> str:
     return " ".join(s.lower().replace("’", "'").split())
 
 
+# Mitte des Schreibtischs im 16:9-Hauptbild (Anteil der Breite, 0 = links, 1 = rechts) – Standard für das Album-Cover-Fenster.
+DESK_X = {"nakameguro-evening-loft": 0.72, "shinjuku-sky-loft": 0.70, "azabu-rain-loft": 0.70}
+
+
+def make_album_cover(art: Image.Image, desk_x: float, size: int = 3000) -> Image.Image:
+    """Album-Cover 1:1 (Rolf 19.10.2026): VOLLE Bildhöhe des Hauptbilds, das Fenster wird waagerecht so gelegt, dass der
+    Schreibtisch (Mitte bei desk_x) zu sehen ist; Text wie im Thumbnail (v.text_layer)."""
+    w, h = art.size
+    x0 = int(round(min(max(desk_x * w - h / 2, 0), max(w - h, 0))))
+    sq = art.convert("RGB").crop((x0, 0, x0 + min(h, w), h)).resize((size, size), Image.LANCZOS).convert("RGBA")
+    return Image.alpha_composite(sq, v.text_layer(size, size, 0.05, 0.085, 0.043, 0.032, center=0.48)).convert("RGB")
+
+
 def next_vol() -> int:
     """Laufende Nummer im Titel (Rolf 19.10.2026): der Mix vom 19.10. ist Vol. 2, danach zählt jeder Mix um 1 hoch.
     Einträge im Gedächtnis „tokyo“ mit Feld „vol“ zählen; Einträge ohne „vol“ vom 19.10. oder früher gelten als Vol. 2."""
@@ -563,6 +576,7 @@ def main() -> int:
     ap.add_argument("--quote-text", default="", help="NEUER Spruch dieses Mixes (Rolf 19.10.2026: bei jedem Mix neu, von Claude ausgedacht), "
                                                       "Zeilen mit | getrennt, z. B. 'Open one tab, finish one task.|My tracks will keep you company.'")
     ap.add_argument("--description-file", default="", help="NEUER Beschreibungstext dieses Mixes (englisch, 2–4 Absätze, von Claude pro Mix frisch geschrieben)")
+    ap.add_argument("--cover-desk-x", type=float, default=0.0, help="Mitte des Schreibtischs im Hauptbild (0–1, von links) für den Album-Cover-Ausschnitt; 0 = Standard des Raums")
     ap.add_argument("--vol", type=int, default=0, help="Nummer im Titel („- Vol. N“); ohne Angabe: automatisch hochgezählt")
     ap.add_argument("--out", default=None)
     ap.add_argument("--upload", action="store_true")
@@ -656,8 +670,12 @@ def main() -> int:
             # Album-Cover für DistroKid: album_3000.png (3000x3000). Vorrang: --album-cover, sonst quadratischer Ausschnitt des Hauptbilds.
             album = out / "img" / "album_3000.png"
             src_cover = Path(args.album_cover) if args.album_cover else None
-            im = Image.open(src_cover).convert("RGB") if src_cover else images.crop_aspect(art, 1, 1)
-            im.resize((3000, 3000), Image.LANCZOS).save(album, "PNG", optimize=True)
+            if src_cover:
+                im = Image.open(src_cover).convert("RGB").resize((3000, 3000), Image.LANCZOS)
+            else:
+                dx = args.cover_desk_x or DESK_X.get(args.room, 0.70)
+                im = make_album_cover(art, dx, 3000)
+            im.save(album, "PNG", optimize=True)
             drive_links = drive.upload_mix_package(folder, [album, thumb, out / "img" / "master.jpg", meta],
                                                    {"mp3": sorted((out / "mp3").glob("*.mp3")), "short": [short]})
             if args.reuse_music and REUSE_SRC_MP3["id"]:

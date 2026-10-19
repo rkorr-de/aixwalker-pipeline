@@ -51,7 +51,7 @@ def main() -> None:
         "dann bei deinem Kommentar auf die drei Punkte und „Anpinnen“.",
         "2. Community-Post: YouTube Studio → Inhalte → Community → Beitrag erstellen, Text einfügen, Posten.",
         "3. Abspann ohne Infokarten: im Studio beim Video „Details“ öffnen und den Abspann selbst setzen.", "",
-        "Das Thumbnail hängt als Bild an dieser Mail.", "",
+        "Thumbnail und Album-Cover hängen als Bilder an dieser Mail.", "",
     ]
     if a.befehl:
         lines += ["So geht es weiter: Wenn alles passt, schreibe mir im Chat genau diesen Befehl:", "",
@@ -68,6 +68,13 @@ def main() -> None:
     if not thumb.exists():
         thumb = d / "thumb" / "thumb.jpg"   # run_tokyo.py legt das Thumbnail im Unterordner thumb/ ab
     msg.add_attachment(thumb.read_bytes(), maintype="image", subtype="jpeg", filename="tokyo_thumbnail.jpg")
+    album = d / "img" / "album_3000.png"
+    if album.exists():                     # Rolf 19.10.2026: Album-Cover immer mit in die Mail (als JPEG, sonst zu groß)
+        import io
+        from PIL import Image
+        buf = io.BytesIO()
+        Image.open(album).convert("RGB").save(buf, "JPEG", quality=90)
+        msg.add_attachment(buf.getvalue(), maintype="image", subtype="jpeg", filename="tokyo_album_cover.jpg")
     svc = mailer._service()
     r = svc.users().messages().send(userId="me", body={"raw": base64.urlsafe_b64encode(msg.as_bytes()).decode()}).execute()
     print("gesendet:", r.get("id"))

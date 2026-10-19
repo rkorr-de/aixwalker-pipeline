@@ -25,3 +25,7 @@
   `run_tokyo.py --description-file <Datei>`. Kapitel, Musik-/KI-Hinweis und Hashtags hängt das Skript automatisch an.
 - **Tokyo-Mixe: Titel mit laufender Nummer** (Rolf 19.10.2026): `🎧 Tokyo Work Lounge | Slow Jazz for Deep Work & Coding - Vol. N🎷`. Der Mix vom 19.10.2026 ist
   Vol. 2; `run_tokyo.py` zählt automatisch hoch (Gedächtnis „tokyo“, Feld `vol`), `--vol N` überschreibt. Der echte Titel steht in `result.json` („title“).
+- **Tokyo-Mixe: Album-Cover 1:1 aus dem Hauptbild** (Rolf 19.10.2026, gilt ab dem nächsten Mix): volle Bildhöhe des Originalbilds, der Ausschnitt wird waagerecht
+  so gelegt, dass der Schreibtisch immer zu sehen ist (`DESK_X` je Raum, oder `--cover-desk-x 0.0–1.0` = Schreibtischmitte von links), Text wie im Thumbnail;
+  als `album_3000.png` im Drive-Ordner und als `tokyo_album_cover.jpg` an der Bestätigungsmail (`send_tokyo_mail.py` hängt `img/album_3000.png` automatisch an).
+  Ist der Schreibtisch im fertigen Cover nicht klar zu sehen, `--cover-desk-x` anpassen und neu bauen. `--album-cover <Datei>` überschreibt weiter.
