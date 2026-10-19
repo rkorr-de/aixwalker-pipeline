@@ -134,7 +134,7 @@ def list_children(svc, parent: str, folders: bool | None = None) -> list[dict]:
         q += f" and mimeType != '{FOLDER_MIME}'"
     out, token = [], None
     while True:
-        r = svc.files().list(q=q, fields="nextPageToken,files(id,name,mimeType)", pageSize=200,
+        r = svc.files().list(q=q, fields="nextPageToken,files(id,name,mimeType,createdTime)", pageSize=200,
                              pageToken=token).execute()
         out += r.get("files", [])
         token = r.get("nextPageToken")

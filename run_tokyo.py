@@ -67,7 +67,7 @@ def _norm(s: str) -> str:
 
 
 # Mitte des Schreibtischs im 16:9-Hauptbild (Anteil der Breite, 0 = links, 1 = rechts) – Standard für das Album-Cover-Fenster.
-DESK_X = {"nakameguro-evening-loft": 0.72, "shinjuku-sky-loft": 0.70, "azabu-rain-loft": 0.70}
+DESK_X = {"nakameguro-evening-loft": 0.72, "shinjuku-sky-loft": 0.70, "azabu-rain-loft": 0.25}
 
 
 def make_album_cover(art: Image.Image, desk_x: float, size: int = 3000) -> Image.Image:
@@ -196,8 +196,9 @@ def fetch_main_image(room: str, out: Path, dry: bool, folder: str = ROOM_DRIVE_F
                         continue
                     pics = [c for c in drive.list_children(svc, subs[0]["id"], folders=False) if c["name"] == (fname or f"{room}.png")]
                     if pics:
+                        pics.sort(key=lambda c: c.get("createdTime", ""), reverse=True)   # bei mehreren gleichnamigen: die NEUESTE
                         drive.download(svc, pics[0]["id"], png)
-                        log(f"Bild aus Drive geladen ({f['modifiedTime']})")
+                        log(f"Bild aus Drive geladen: {pics[0]['name']} (id {pics[0]['id']}, erstellt {pics[0].get('createdTime')})")
                         got = True
                         break
             except Exception as e:  # noqa: BLE001
