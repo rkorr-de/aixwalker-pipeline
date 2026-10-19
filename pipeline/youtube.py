@@ -144,6 +144,20 @@ def set_public(video_id: str) -> None:
     svc.videos().update(part="status", body={"id": video_id, "status": {**keep, "privacyStatus": "public"}}).execute()
 
 
+def get_description(video_id: str) -> str:
+    items = service().videos().list(part="snippet", id=video_id).execute().get("items", [])
+    return items[0]["snippet"]["description"] if items else ""
+
+
+def set_description(video_id: str, description: str) -> None:
+    """Nur die Beschreibung ändern – Titel, Kategorie, Tags und Sprache bleiben erhalten."""
+    svc = service()
+    sn = svc.videos().list(part="snippet", id=video_id).execute()["items"][0]["snippet"]
+    body = {k: sn[k] for k in ("title", "categoryId", "tags", "defaultLanguage", "defaultAudioLanguage") if k in sn}
+    body["description"] = description
+    svc.videos().update(part="snippet", body={"id": video_id, "snippet": body}).execute()
+
+
 def recent_performance(days: int = 28, max_videos: int = 15) -> list[dict]:
     """Kennzahlen der zuletzt hochgeladenen Videos: Aufrufe, Wiedergabezeit, Ø Dauer, Bindung."""
     yt = service()
