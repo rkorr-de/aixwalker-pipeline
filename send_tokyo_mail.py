@@ -57,6 +57,8 @@ def main() -> None:
                       else "Tokyo Work Lounge: Mix und Short sind fertig" + (" – Befehl: Tokyo freigeben" if a.befehl else ""))
     msg.set_content("\n".join(lines))
     thumb = d / "thumb.jpg"
+    if not thumb.exists():
+        thumb = d / "thumb" / "thumb.jpg"   # run_tokyo.py legt das Thumbnail im Unterordner thumb/ ab
     msg.add_attachment(thumb.read_bytes(), maintype="image", subtype="jpeg", filename="tokyo_thumbnail.jpg")
     svc = mailer._service()
     r = svc.users().messages().send(userId="me", body={"raw": base64.urlsafe_b64encode(msg.as_bytes()).decode()}).execute()
