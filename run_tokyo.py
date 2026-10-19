@@ -229,6 +229,8 @@ FIGURINE = ("Easter egg: somewhere in the room, on the desk, a shelf, the dining
 NEW_ROOM_CHECK = ("You are a strict quality checker for a photorealistic interior image. Answer ONLY with compact JSON, keys: "
                   "\"desk\" (true if a complete computer workplace with exactly two monitors side by side is clearly visible somewhere in the room; it does not have to be in the foreground), "
                   "\"desk_x\" (horizontal center of that desk as a number from 0.0 at the left edge to 1.0 at the right edge), "
+                  "\"person_visible\" (true if a person is visible anywhere, even blurred or from behind), "
+                  "\"person_x\" (horizontal center of that person from 0.0 at the left edge to 1.0 at the right edge, or null if no person), "
                   "\"chair\" (true if a cognac-brown leather office chair stands at the desk), "
                   "\"figurine\" (true if one small manga-style female figurine, clearly under about 15 cm tall, is visible anywhere in the room), "
                   "\"keyboard_mouse\" (true if a keyboard AND a computer mouse are clearly visible on the desk in front of the monitors), "
@@ -236,7 +238,7 @@ NEW_ROOM_CHECK = ("You are a strict quality checker for a photorealistic interio
                   "\"person_sharp\" (true if a person is shown sharp or with a visible face; false if no person or only a blurred back view), "
                   "\"daylight\" (true if it looks like daytime or has cold blue light), "
                   "\"artifacts\" (true if there are obvious deformed objects, extra limbs or broken geometry), "
-                  "\"ok\" (true only if desk, chair, keyboard_mouse and figurine are true and text, person_sharp, daylight and artifacts are all false).")
+                  "\"ok\" (true only if desk, chair, person_visible, keyboard_mouse and figurine are true and text, person_sharp, daylight and artifacts are all false).")
 
 
 def check_room_image(img: Image.Image) -> dict | None:
@@ -267,7 +269,7 @@ def check_room_image(img: Image.Image) -> dict | None:
 
 def make_new_room(slug: str, scene_file: str, side: str, person: str, out: Path, max_tries: int = 3):
     """Erzeugt für diesen Mix einen NEUEN Raum (Ort/Szene von Claude ausgedacht, `scene_file`), 4K, mit automatischer Prüfung.
-    Liefert (Bild, Schreibtisch-Mitte 0–1) oder (None, None), wenn nach max_tries kein Bild alle Kriterien erfüllt."""
+    Liefert (Bild, Schreibtisch-Mitte 0–1, Person-Mitte 0–1 oder None) oder (None, None, None), wenn nach max_tries kein Bild alle Kriterien erfüllt."""
     import genre_test_tokyo_rooms_v3 as r
     scene = Path(scene_file).read_text(encoding="utf-8").strip()
     if len(scene) < 80 or len(scene) > 900:
@@ -285,11 +287,13 @@ def make_new_room(slug: str, scene_file: str, side: str, person: str, out: Path,
         if res and res.get("ok") is True:
             dx = res.get("desk_x")
             dx = float(dx) if isinstance(dx, (int, float)) and 0.05 <= float(dx) <= 0.95 else (0.28 if side == "left" else 0.72)
+            px = res.get("person_x")
+            px = float(px) if isinstance(px, (int, float)) and 0.0 <= float(px) <= 1.0 else None
             png = out / "img" / "main_src.png"
             png.parent.mkdir(parents=True, exist_ok=True)
             art.save(png)
             (out / "img" / "neuer_raum.json").write_text(json.dumps({"slug": slug, "side": side, "person": person, "scene": scene,
-                                                                      "check": res, "desk_x": dx, "tries": i}, indent=2, ensure_ascii=False))
+                                                                      "check": res, "desk_x": dx, "person_x": px, "tries": i}, indent=2, ensure_ascii=False))
             try:   # Bild für spätere Verwendung in Drive ablegen (bilder/<slug>.png)
                 from pipeline import drive
                 named = out / "img" / f"{slug}.png"
@@ -297,8 +301,8 @@ def make_new_room(slug: str, scene_file: str, side: str, person: str, out: Path,
                 drive.upload_mix_package(ROOM_DRIVE_FOLDER, [], {"bilder": [named]})
             except Exception as e:  # noqa: BLE001
                 log(f"Raumbild nicht in Drive abgelegt: {str(e)[:160]}")
-            return art, dx
-    return None, None
+            return art, dx, px
+    return None, None, None
 
 
 # ---------------------------------------------------------------- Spruch (Video-Anfang)
@@ -468,6 +472,80 @@ def short_text_layers(lines: list[str], w: int = 1080, h: int = 1920) -> tuple[l
         images._draw_tracked(dc, ((w - w_) // 2, y), t, small, (245, 232, 208), ctr)
         y += int(ssz * 1.6)
     return layers, spots, size
+
+
+def short_center(desk_x: float, person_x: float | None) -> float:
+    """Mitte des Short-Ausschnitts (0–1 von links): zwischen Person und Schreibtisch, der Schreibtisch bleibt sicher im Bild.
+    Der Ausschnitt ist 31,6 % der Bildbreite breit (Halbbreite 0,158)."""
+    if person_x is None:
+        return desk_x
+    c = (desk_x + person_x) / 2
+    if abs(c - desk_x) > 0.118:                      # Schreibtischmitte muss mit Rand im Ausschnitt bleiben
+        c = desk_x + (0.118 if c > desk_x else -0.118)
+    return min(max(c, 0.17), 0.83)
+
+
+SHORT_CHECK = ("These are 3 frames from a vertical video of a cozy Tokyo home office, taken at the start, middle and end of a slow camera pan. "
+               "Answer ONLY with compact JSON, keys: \"desk\" (true if in ALL 3 frames a desk with at least one computer monitor is clearly visible), "
+               "\"keyboard_mouse\" (true if in ALL 3 frames a keyboard or a mouse is visible on the desk), "
+               "\"person\" (true if in ALL 3 frames a person is at least partly visible, even small, blurred or from behind), "
+               "\"person_side\" (\"left\" or \"right\": on which side of the frames the person would be, based on the room layout, if not visible), "
+               "\"ok\" (true only if desk and person are both true).")
+
+
+def check_short_frames(short: Path, tmp: Path) -> dict | None:
+    """Prüft den fertigen Short: Standbilder bei Anfang/Mitte/Ende, Bildverständnis-Modell. None = Prüfung nicht möglich."""
+    import base64
+    import io
+    import requests
+    if not config.GOOGLE_API_KEY:
+        return None
+    frames = []
+    for k, t in enumerate((1.0, 10.0, 18.5)):
+        f = tmp / f"short_frame_{k}.jpg"
+        run(["ffmpeg", "-v", "error", "-y", "-ss", str(t), "-i", short, "-frames:v", "1", "-vf", "scale=540:960", f])
+        frames.append(Image.open(f).convert("RGB"))
+    m = Image.new("RGB", (1620, 960))
+    for k, fr in enumerate(frames):
+        m.paste(fr, (k * 540, 0))
+    m.save(tmp / "short_check.jpg", quality=88)
+    buf = io.BytesIO()
+    m.save(buf, "JPEG", quality=88)
+    body = {"contents": [{"parts": [{"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(buf.getvalue()).decode()}},
+                                    {"text": SHORT_CHECK}]}],
+            "generationConfig": {"responseMimeType": "application/json", "temperature": 0}}
+    for model in (config.TEXT_MODEL, config.TEXT_MODEL_FALLBACK):
+        try:
+            r = requests.post(f"{config.GEMINI_BASE}/models/{model}:generateContent",
+                              headers={"x-goog-api-key": config.GOOGLE_API_KEY}, json=body, timeout=120)
+            if r.status_code != 200:
+                log(f"Short-Prüfung {model}: HTTP {r.status_code}")
+                continue
+            res = json.loads(r.json()["candidates"][0]["content"]["parts"][0]["text"])
+            return res if isinstance(res, dict) else None
+        except Exception as e:  # noqa: BLE001
+            log(f"Short-Prüfung {model} fehlgeschlagen: {str(e)[:160]}")
+    return None
+
+
+def make_short_checked(art: Image.Image, lines: list[str], audio_in: Path, start: float, out: Path, center: float,
+                       person_x: float | None = None, tries: int = 3, **kw) -> tuple[Path, dict | None]:
+    """Short bauen und prüfen (Schreibtisch UND Person im Schwenk, Rolf 19.10.2026). Bei Misserfolg Ausschnitt verschieben und neu bauen (nur ffmpeg, kostet nichts)."""
+    res = None
+    for i in range(1, tries + 1):
+        short = make_short(art, lines, audio_in, start, out, desk_x=center, **kw)
+        res = check_short_frames(short, out)
+        log(f"Short Versuch {i} (Ausschnittmitte {center:.2f}): Prüfung {res}")
+        if res is None or res.get("ok") is True:
+            break
+        side = res.get("person_side")
+        if res.get("desk") is not True and res.get("person") is True:
+            center += -0.05 if (person_x is not None and person_x > center) or side == "right" else 0.05   # zum Schreibtisch zurück
+        else:
+            center += -0.06 if (person_x is not None and person_x < center) or (person_x is None and side == "left") else 0.06  # zur Person
+        center = min(max(center, 0.17), 0.83)
+    (out / "short_check.json").write_text(json.dumps({"center": round(center, 3), "result": res}, ensure_ascii=False, indent=2))
+    return short, res
 
 
 def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: float, out: Path, sec: int = 20,
@@ -641,8 +719,8 @@ def short_only(args, out: Path, lines: list[str]) -> int:
     pick = mp3s[min(2, len(mp3s) - 1)]
     song = drive.download(svc, pick["id"], out / "work" / "short_song.mp3")
     log(f"Short-Ton aus „{pick['name']}“ (Ordner {folder['name']})")
-    short = make_short(art, lines, song, 35, out / "short",
-                      desk_x=args.short_desk_x or args.cover_desk_x or DESK_X.get(args.room, 0.70))
+    short, _chk = make_short_checked(art, lines, song, 35, out / "short",
+                                     args.short_desk_x or args.cover_desk_x or DESK_X.get(args.room, 0.70))
     url = f"https://youtu.be/{args.mix_video_id}" if args.mix_video_id else "(Link zum Mix)"
     s_title, s_desc, s_tags = short_texts(lines, url)
     sid = youtube.upload_video(short, s_title, s_desc, s_tags, privacy="private", location=youtube.TOKYO)
@@ -701,6 +779,7 @@ def main() -> int:
     log(f"Tokyo Work Lounge, Raum {args.room}, Spruch: {' '.join(lines)}, dry_run={args.dry_run}")
 
     new_desk_x = None
+    new_person_x = None
     if args.main_image:
         import shutil
         dst = out / "img" / "main_src.png"
@@ -715,10 +794,16 @@ def main() -> int:
                 drive.upload_mix_package(ROOM_DRIVE_FOLDER, [], {"bilder": [named]})
             except Exception as e:  # noqa: BLE001
                 log(f"Raumbild nicht in Drive abgelegt: {str(e)[:160]}")
+            chk = check_room_image(Image.open(dst))   # Schreibtisch- und Personenposition für Cover/Short messen
+            log(f"Eigenes Bild geprüft: {chk}")
+            if chk:
+                dx_ = chk.get("desk_x"); px_ = chk.get("person_x")
+                new_desk_x = float(dx_) if isinstance(dx_, (int, float)) and 0.05 <= float(dx_) <= 0.95 else None
+                new_person_x = float(px_) if isinstance(px_, (int, float)) and 0.0 <= float(px_) <= 1.0 else None
     if args.new_room and not args.dry_run and not args.main_image:
         if not args.scene_file:
             raise SystemExit("--new-room braucht --scene-file")
-        art_new, new_desk_x = make_new_room(args.room, args.scene_file, args.desk_side, args.person, out)
+        art_new, new_desk_x, new_person_x = make_new_room(args.room, args.scene_file, args.desk_side, args.person, out)
         if art_new is None:
             log("NEUER RAUM: kein Bild hat nach 3 Versuchen alle Kriterien erfüllt – Abbruch vor der Musik (kein Geld für Musik ausgegeben). "
                 "Mit vorhandenem Raum (--room shinjuku-sky-loft|nakameguro-evening-loft|azabu-rain-loft) neu starten und im Bericht melden.")
@@ -752,8 +837,9 @@ def main() -> int:
 
     # Short (aus dem Hauptbild)
     s_start = starts[min(2, len(starts) - 1)] + 25
-    short = make_short(art, lines, mix, min(s_start, max(0, total - 30)), out / "short",
-                       desk_x=args.short_desk_x or args.cover_desk_x or new_desk_x or DESK_X.get(args.room, 0.70))
+    desk_c = args.cover_desk_x or new_desk_x or DESK_X.get(args.room, 0.70)
+    center = args.short_desk_x or short_center(desk_c, new_person_x)
+    short, short_chk = make_short_checked(art, lines, mix, min(s_start, max(0, total - 30)), out / "short", center, new_person_x)
     log(f"Short fertig: {short}")
 
     # Upload (privat, Aufnahmeort Tokyo, Playlist) – Shorts bleiben privat, bis Rolf zustimmt
@@ -813,7 +899,7 @@ def main() -> int:
 
     cost_line = costs.report()
     log(cost_line)
-    result = {"room": args.room, "video_id": video_id, "video_url": video_url, "short_id": short_id, "vol": vol, "privacy": privacy,
+    result = {"room": args.room, "video_id": video_id, "video_url": video_url, "short_id": short_id, "short_check": (short_chk or None), "vol": vol, "privacy": privacy,
               "duration_sec": total, "duration_min": total_min, "songs": len(wavs), "quote": lines, "title": TITLE,
               "cost_usd": costs.total_usd(), "cost_report": cost_line, "drive": drive_links,
               "boundaries": [round(s, 1) for s in starts], "video_mb": round(mp4.stat().st_size / 1e6)}

@@ -48,3 +48,6 @@
   Nur Short neu: `run_tokyo.py --short-only --room <kennung> --mix-video-id <id> --quote-text "..." --short-desk-x <x>`.
 - **Tokyo-Sprüche und Beschreibungen: Home-Office-Thema** (Rolf 19.10.2026, ab dem nächsten Mix): Mehr Bezug auf Arbeiten im Home Office, die kleine Pause zwischendurch und Coding
   (z. B. Tee holen, Fenster/Garten ansehen, Schultern lockern, ein Bug, ein Commit, der nächste Fokus-Block). Weiter: Englisch, ruhig, letzte Zeile „my tracks / my music“, noch nie verwendet.
+  Automatisch (Rolf 19.10.2026 „automatisiere das“): Die Raumprüfung misst `person_x` und verlangt eine sichtbare Person; `short_center()` legt den Schwenk zwischen Person und Schreibtisch;
+  `make_short_checked()` zieht Standbilder (Anfang/Mitte/Ende) und lässt sie prüfen (Schreibtisch + Person in ALLEN drei), bei Misserfolg verschiebt es den Ausschnitt und baut bis zu 3× neu (nur ffmpeg, kostenlos).
+  Ergebnis steht in `short_check.json` und `result.json` („short_check“). Ist `ok` am Ende nicht `true`, im Bericht an Rolf sagen. Rolfs eigene Bilder (`--main-image`) werden ebenfalls vermessen.
