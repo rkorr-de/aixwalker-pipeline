@@ -60,6 +60,43 @@ QUOTES = [
     ["Take a breath, then begin.", "My music will keep you steady."],
     ["Whatever you build tonight,", "my tracks will support you."],
 ]
+
+def _norm(s: str) -> str:
+    return " ".join(s.lower().replace("’", "'").split())
+
+
+def used_quotes() -> set[str]:
+    """Alle bisher verwendeten Sprüche (feste Liste + Gedächtnis „tokyo“), normalisiert."""
+    used = {_norm(" ".join(q)) for q in QUOTES}
+    try:
+        from pipeline import memory
+        for e in memory.load().get("tokyo", []):
+            if e.get("quote"):
+                used.add(_norm(e["quote"]))
+    except Exception as e:  # noqa: BLE001
+        log(f"Gedächtnis für Spruch-Prüfung nicht lesbar: {str(e)[:120]}")
+    return used
+
+
+def parse_quote(text: str) -> list[str]:
+    """Prüft den neuen Spruch (Rolfs Kriterien): Englisch, 2–3 Zeilen, je Zeile höchstens 42 Zeichen, die letzte Zeile bezieht sich
+    auf „my tracks / my music“, keine Zeit-/Längenangaben, noch nie verwendet."""
+    lines = [l.strip() for l in text.split("|") if l.strip()]
+    if not 2 <= len(lines) <= 3:
+        raise SystemExit(f"Spruch muss 2 oder 3 Zeilen haben (mit | getrennt), hat {len(lines)}")
+    if any(len(l) > 42 for l in lines):
+        raise SystemExit("Spruch: jede Zeile höchstens 42 Zeichen")
+    low = " ".join(lines).lower()
+    if not ("my tracks" in low or "my music" in low or "these tracks" in low):
+        raise SystemExit("Spruch muss sich auf die Musik beziehen (my tracks / my music / these tracks)")
+    import re as _re
+    if _re.search(r"\d|hour|minute|\bmin\b|second|\blong\b|full[- ]length", low):
+        raise SystemExit("Spruch: keine Zeit-/Längenangaben")
+    if _norm(" ".join(lines)) in used_quotes():
+        raise SystemExit("Spruch wurde schon verwendet – bitte einen neuen ausdenken")
+    return lines
+
+
 TRACK_NAMES = ["Lantern Hours", "Quiet Circuit", "Slow Neon", "Paper Window", "Midnight Tab", "Soft Compile", "Tea Steam",
                "Late Commit", "Shoji Glow", "Low Bandwidth", "Evening Syntax", "Still Desk", "Warm Cache", "Rain on Glass",
                "Cedar Shelf", "Gentle Deploy", "Amber Standby", "Idle Cursor", "Velvet Terminal", "Nightshift Loop",
@@ -490,7 +527,9 @@ def short_only(args, out: Path, lines: list[str]) -> int:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--room", default="shinjuku-sky-loft")
-    ap.add_argument("--quote", type=int, default=0, help="Nummer des Spruchs (0 bis 7)")
+    ap.add_argument("--quote", type=int, default=0, help="Nummer des Spruchs (0 bis 7) – nur Notfall-Rückfall")
+    ap.add_argument("--quote-text", default="", help="NEUER Spruch dieses Mixes (Rolf 19.10.2026: bei jedem Mix neu, von Claude ausgedacht), "
+                                                      "Zeilen mit | getrennt, z. B. 'Open one tab, finish one task.|My tracks will keep you company.'")
     ap.add_argument("--out", default=None)
     ap.add_argument("--upload", action="store_true")
     ap.add_argument("--public", action="store_true")
@@ -511,7 +550,7 @@ def main() -> int:
     if args.dry_run:
         config.GOOGLE_API_KEY = ""
     costs.start(out / "costs.json")
-    lines = QUOTES[args.quote % len(QUOTES)]
+    lines = parse_quote(args.quote_text) if args.quote_text else QUOTES[args.quote % len(QUOTES)]
     if args.make_image:
         return make_image_candidates(args, out)
     if args.short_only:

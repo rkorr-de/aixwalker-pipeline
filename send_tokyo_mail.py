@@ -26,6 +26,7 @@ def main() -> None:
     ap.add_argument("folder")
     ap.add_argument("--pin", required=True)
     ap.add_argument("--community", required=True)
+    ap.add_argument("--quote", default="", help="Spruch des Mixes (Zeilen mit | oder Leerzeichen), erscheint in der Mail")
     ap.add_argument("--befehl", action="store_true")
     ap.add_argument("--nachtrag", action="store_true")
     a = ap.parse_args()
@@ -39,10 +40,17 @@ def main() -> None:
         ("hier der Nachtrag zum Tokyo-Mix: Thumbnail, angepinnter Kommentar und Community-Post."
          if a.nachtrag else "der Tokyo-Mix und der Short sind fertig."), "",
         f"Mix: {url}", f"Short: {short}", f"Drive-Ordner: {(res.get('drive') or {}).get('_folder', '-')}", "",
-        "PIN-KOMMENTAR (Claude schreibt ihn unter den Mix, du pinnst ihn danach selbst fest):",
+        "NEUER SPRUCH IM VIDEO UND IM SHORT:",
+        a.quote or "(siehe result.json)", "",
+        "PIN-KOMMENTAR (neu für diesen Mix – schreibe ihn unter den Mix und pinne ihn danach selbst fest):",
         a.pin, "",
-        "COMMUNITY-POST (Studio → Inhalte → Community → Beitrag erstellen, Text kopieren, du postest ihn selbst):",
+        "COMMUNITY-POST (neu für diesen Mix – Text kopieren und selbst posten):",
         community_text(a.community, url), "",
+        "DEINE HANDGRIFFE (alles in dieser einen Mail, in der Cloud gibt es keinen Browser):",
+        "1. Pin-Kommentar: Mix-Link öffnen, ins Feld „Kommentar hinzufügen“ klicken, Text einfügen, „Kommentieren“, "
+        "dann bei deinem Kommentar auf die drei Punkte und „Anpinnen“.",
+        "2. Community-Post: YouTube Studio → Inhalte → Community → Beitrag erstellen, Text einfügen, Posten.",
+        "3. Abspann ohne Infokarten: im Studio beim Video „Details“ öffnen und den Abspann selbst setzen.", "",
         "Das Thumbnail hängt als Bild an dieser Mail.", "",
     ]
     if a.befehl:
