@@ -663,6 +663,7 @@ def main() -> int:
     ap.add_argument("--scene-file", default="", help="Datei mit dem neuen Orts-/Szenentext (englisch, 80–900 Zeichen, von Claude pro Mix neu erfunden)")
     ap.add_argument("--desk-side", default="right", choices=["left", "right"], help="Seite des Schreibtischs im neuen Raum (abwechseln)")
     ap.add_argument("--person", default="woman", choices=["woman", "man"], help="unscharfe Person am Fenster im neuen Raum (abwechseln)")
+    ap.add_argument("--main-image", default="", help="fertiges Hauptbild (von Rolf erzeugt, 16:9) statt Drive/Neuerzeugung; --room ist dann die Kennung des Raums")
     ap.add_argument("--vol", type=int, default=0, help="Nummer im Titel („- Vol. N“); ohne Angabe: automatisch hochgezählt")
     ap.add_argument("--out", default=None)
     ap.add_argument("--upload", action="store_true")
@@ -696,7 +697,21 @@ def main() -> int:
     log(f"Tokyo Work Lounge, Raum {args.room}, Spruch: {' '.join(lines)}, dry_run={args.dry_run}")
 
     new_desk_x = None
-    if args.new_room and not args.dry_run:
+    if args.main_image:
+        import shutil
+        dst = out / "img" / "main_src.png"
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        Image.open(args.main_image).convert("RGB").save(dst)
+        log(f"Hauptbild von Rolf übernommen: {args.main_image} ({Image.open(dst).size})")
+        if not args.dry_run:
+            try:   # fürs Archiv in Drive bilder/<raum>.png ablegen
+                from pipeline import drive
+                named = out / "img" / f"{args.room}.png"
+                shutil.copy(dst, named)
+                drive.upload_mix_package(ROOM_DRIVE_FOLDER, [], {"bilder": [named]})
+            except Exception as e:  # noqa: BLE001
+                log(f"Raumbild nicht in Drive abgelegt: {str(e)[:160]}")
+    if args.new_room and not args.dry_run and not args.main_image:
         if not args.scene_file:
             raise SystemExit("--new-room braucht --scene-file")
         art_new, new_desk_x = make_new_room(args.room, args.scene_file, args.desk_side, args.person, out)
