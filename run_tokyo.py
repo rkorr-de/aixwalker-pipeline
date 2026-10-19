@@ -434,15 +434,33 @@ def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: fl
 
 
 # ---------------------------------------------------------------- Texte
-def description(chapter_text: str, total_min: int) -> str:
+def parse_description(path: str) -> str:
+    """Neuer Beschreibungstext pro Mix (Rolf 19.10.2026): Claude schreibt ihn frisch, passend zu Raum, Spruch und Stimmung.
+    Datei mit 2–4 Absätzen, Englisch, 250–1200 Zeichen, ohne Zeit-/Längenangaben; die Standardsätze der alten Beschreibung sind tabu."""
+    import re
+    text = Path(path).read_text(encoding="utf-8").strip()
+    if not 250 <= len(text) <= 1200:
+        raise SystemExit(f"Beschreibungstext: {len(text)} Zeichen, erlaubt sind 250–1200.")
+    if re.search(r"\d+\s*(hour|hours|minute|minutes|min|hr)\b|\b(hour|hours|minutes)\b|full[- ]length", text, re.I):
+        raise SystemExit("Beschreibungstext: keine Zeit-/Längenangaben.")
+    low = text.lower()
+    for old in ("hang your coat on the hook", "nothing here pulls at your attention", "the lounge is always open"):
+        if old in low:
+            raise SystemExit(f"Beschreibungstext: alte Standardformulierung „{old}“ nicht wiederverwenden.")
+    return text
+
+
+def description(chapter_text: str, total_min: int, intro: str = "") -> str:
+    if not intro:   # Notfall-Rückfall, wenn kein neuer Text übergeben wurde
+        intro = (
+            "Hang your coat on the hook. Leave the noise with it.\n\n"
+            "A quiet loft high above Tokyo at night. A long desk with two screens, a cognac leather office chair pushed back, "
+            "a small black tea tray, one warm lamp and the city glowing amber outside the window. A breathy tenor saxophone, "
+            "single felt piano notes, a deep warm sub-bass and a slow, soft groove. Nothing here pulls at your attention.\n\n"
+            f"For deep work, coding, studying, writing and productivity. About {metadata.hours_wording(total_min)}, uninterrupted.")
     return (
-        "Hang your coat on the hook. Leave the noise with it.\n\n"
-        "A quiet loft high above Tokyo at night. A long desk with two screens, a cognac leather office chair pushed back, "
-        "a small black tea tray, one warm lamp and the city glowing amber outside the window. A breathy tenor saxophone, "
-        "single felt piano notes, a deep warm sub-bass and a slow, soft groove. Nothing here pulls at your attention.\n\n"
-        f"For deep work, coding, studying, writing and productivity. About {metadata.hours_wording(total_min)}, uninterrupted.\n\n"
+        f"{intro}\n\n"
         f"Chapters\n{chapter_text}\n\n"
-        "Well done. Stand up, drink some water, and come back whenever you are ready. The lounge is always open.\n\n"
         f"Music by {config.ARTIST}, created with AI. Images: AI-generated.\n"
         f"{HASHTAGS}")
 
@@ -530,6 +548,7 @@ def main() -> int:
     ap.add_argument("--quote", type=int, default=0, help="Nummer des Spruchs (0 bis 7) – nur Notfall-Rückfall")
     ap.add_argument("--quote-text", default="", help="NEUER Spruch dieses Mixes (Rolf 19.10.2026: bei jedem Mix neu, von Claude ausgedacht), "
                                                       "Zeilen mit | getrennt, z. B. 'Open one tab, finish one task.|My tracks will keep you company.'")
+    ap.add_argument("--description-file", default="", help="NEUER Beschreibungstext dieses Mixes (englisch, 2–4 Absätze, von Claude pro Mix frisch geschrieben)")
     ap.add_argument("--out", default=None)
     ap.add_argument("--upload", action="store_true")
     ap.add_argument("--public", action="store_true")
@@ -592,7 +611,7 @@ def main() -> int:
     # Upload (privat, Aufnahmeort Tokyo, Playlist) – Shorts bleiben privat, bis Rolf zustimmt
     video_id, video_url, short_id = None, "(nicht hochgeladen)", None
     privacy = "public" if args.public else "private"
-    desc = description(chapter_text, total_min)
+    desc = description(chapter_text, total_min, parse_description(args.description_file) if args.description_file else "")
     if args.upload:
         from pipeline import youtube
         video_id = youtube.upload_video(mp4, TITLE, desc, TAGS, privacy=privacy, location=youtube.TOKYO)

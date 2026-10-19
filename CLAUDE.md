@@ -20,3 +20,6 @@
   gegen die feste Liste und das Gedächtnis „tokyo“ und bricht sonst ab). Der Short übernimmt denselben Spruch automatisch.
 - **Tokyo-Mail: genau EINE Mail pro Mix** mit neuem Spruch, neuem Pin-Kommentar, neuem Community-Text (zum Einkopieren) und den Handgriffen
   (`send_tokyo_mail.py ... --quote "<Spruch>" --pin ... --community ...`). Keine zweite „was du noch tun musst“-Mail.
+- **Tokyo-Mixe: Beschreibungstext bei JEDEM Mix neu** (Rolf 19.10.2026): Claude schreibt pro Mix einen frischen englischen Einleitungstext (2–4 Absätze,
+  250–1200 Zeichen, passend zu Raum, Spruch und Stimmung, keine Zeit-/Längenangaben, nicht die alten Standardsätze) in eine Datei und übergibt sie mit
+  `run_tokyo.py --description-file <Datei>`. Kapitel, Musik-/KI-Hinweis und Hashtags hängt das Skript automatisch an.
