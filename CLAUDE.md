@@ -40,3 +40,5 @@
   mit Exit-Code 3 ab → dann mit einem vorhandenen Raum neu starten und das Rolf im Bericht sagen. Bildkosten (bis 0,72 $ bei 3 Versuchen) in die Kostenmeldung aufnehmen.
   Ergänzung Rolf 19.10.2026: Der Ort liegt IMMER in Tokyo (Szenentext nennt Stadtteil + „Tokyo“, alles passt zum Thema Tokyo). Der Arbeitsplatz ist ein echter Computerarbeitsplatz mit zwei Monitoren,
   Tastatur UND Maus, im Raum sichtbar (muss nicht direkt vorne im Bild sein); die Prüfung verlangt `keyboard_mouse`.
+  Easter-Egg (Rolf 19.10.2026): In JEDEM neuen Raum steht irgendwo (Schreibtisch, Regal, Tisch, Sideboard; Ort wechselt) EINE kleine weibliche Manga-Figur, höchstens 15 cm hoch
+  (`FIGURINE` in run_tokyo.py: silber-lavendelfarbener Pferdeschwanz, große weiße Kopfhörer, mintgrüner Hoodie). Eine geschützte Figur (z. B. Lain Iwakura) wird NICHT gezeichnet. Die Prüfung verlangt `figurine`.

@@ -219,16 +219,22 @@ def fetch_main_image(room: str, out: Path, dry: bool, folder: str = ROOM_DRIVE_F
 
 
 # ---------------------------------------------------------------- Neuer Raum pro Mix (Rolf 19.10.2026)
+FIGURINE = ("Easter egg: somewhere in the room, on the desk, a shelf, the dining table or a sideboard (a different spot in each room, never in the exact center), "
+            "stands ONE small collectible manga-style anime figurine of a young woman, at most 15 cm tall (clearly tiny compared to the monitors and the chair, about the size "
+            "of a tea caddy): long silver-lavender ponytail, large round white headphones, an oversized soft mint-green hoodie, small sneakers, a calm dreamy pose, "
+            "painted matte PVC look on a small round black base. ")
+
 NEW_ROOM_CHECK = ("You are a strict quality checker for a photorealistic interior image. Answer ONLY with compact JSON, keys: "
                   "\"desk\" (true if a complete computer workplace with exactly two monitors side by side is clearly visible somewhere in the room; it does not have to be in the foreground), "
                   "\"desk_x\" (horizontal center of that desk as a number from 0.0 at the left edge to 1.0 at the right edge), "
                   "\"chair\" (true if a cognac-brown leather office chair stands at the desk), "
+                  "\"figurine\" (true if one small manga-style female figurine, clearly under about 15 cm tall, is visible anywhere in the room), "
                   "\"keyboard_mouse\" (true if a keyboard AND a computer mouse are clearly visible on the desk in front of the monitors), "
                   "\"text\" (true if any readable text, logo or watermark is visible), "
                   "\"person_sharp\" (true if a person is shown sharp or with a visible face; false if no person or only a blurred back view), "
                   "\"daylight\" (true if it looks like daytime or has cold blue light), "
                   "\"artifacts\" (true if there are obvious deformed objects, extra limbs or broken geometry), "
-                  "\"ok\" (true only if desk, chair and keyboard_mouse are true and text, person_sharp, daylight and artifacts are all false).")
+                  "\"ok\" (true only if desk, chair, keyboard_mouse and figurine are true and text, person_sharp, daylight and artifacts are all false).")
 
 
 def check_room_image(img: Image.Image) -> dict | None:
@@ -266,7 +272,7 @@ def make_new_room(slug: str, scene_file: str, side: str, person: str, out: Path,
         raise SystemExit("Szenentext muss 80–900 Zeichen lang sein (neuer Ort: Fenster/Ausblick, Materialien, Stimmung).")
     if "tokyo" not in scene.lower():
         raise SystemExit("Der Szenentext muss einen Ort in Tokyo nennen (Stadtteil, z. B. Daikanyama, Kagurazaka, Asakusa).")
-    prompt = r.INTRO + r.DESK.format(side=side) + r.COZY + r.PERSON[person] + scene
+    prompt = r.INTRO + r.DESK.format(side=side) + r.COZY + r.PERSON[person] + FIGURINE + scene
     for i in range(1, max_tries + 1):
         art = images.generate_art(prompt, "16:9", pro=True, style=r.STYLE, image_size="4K").convert("RGB")
         if art.size[0] < 2500:
