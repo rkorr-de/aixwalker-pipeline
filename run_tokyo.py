@@ -218,6 +218,78 @@ def fetch_main_image(room: str, out: Path, dry: bool, folder: str = ROOM_DRIVE_F
     return art
 
 
+# ---------------------------------------------------------------- Neuer Raum pro Mix (Rolf 19.10.2026)
+NEW_ROOM_CHECK = ("You are a strict quality checker for a photorealistic interior image. Answer ONLY with compact JSON, keys: "
+                  "\"desk\" (true if a desk with exactly two monitors side by side is clearly visible), "
+                  "\"desk_x\" (horizontal center of that desk as a number from 0.0 at the left edge to 1.0 at the right edge), "
+                  "\"chair\" (true if a cognac-brown leather office chair stands at the desk), "
+                  "\"text\" (true if any readable text, logo or watermark is visible), "
+                  "\"person_sharp\" (true if a person is shown sharp or with a visible face; false if no person or only a blurred back view), "
+                  "\"daylight\" (true if it looks like daytime or has cold blue light), "
+                  "\"artifacts\" (true if there are obvious deformed objects, extra limbs or broken geometry), "
+                  "\"ok\" (true only if desk and chair are true and text, person_sharp, daylight and artifacts are all false).")
+
+
+def check_room_image(img: Image.Image) -> dict | None:
+    """Automatische Prüfung des neuen Raumbilds mit dem Bildverständnis-Modell. None = Prüfung nicht möglich (gilt als nicht bestanden)."""
+    import base64
+    import io
+    import requests
+    if not config.GOOGLE_API_KEY:
+        return None
+    buf = io.BytesIO()
+    img.convert("RGB").resize((1536, 864), Image.LANCZOS).save(buf, "JPEG", quality=88)
+    body = {"contents": [{"parts": [{"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(buf.getvalue()).decode()}},
+                                    {"text": NEW_ROOM_CHECK}]}],
+            "generationConfig": {"responseMimeType": "application/json", "temperature": 0}}
+    for model in (config.TEXT_MODEL, config.TEXT_MODEL_FALLBACK):
+        try:
+            r = requests.post(f"{config.GEMINI_BASE}/models/{model}:generateContent",
+                              headers={"x-goog-api-key": config.GOOGLE_API_KEY}, json=body, timeout=120)
+            if r.status_code != 200:
+                log(f"Bildprüfung {model}: HTTP {r.status_code}")
+                continue
+            res = json.loads(r.json()["candidates"][0]["content"]["parts"][0]["text"])
+            return res if isinstance(res, dict) else None
+        except Exception as e:  # noqa: BLE001
+            log(f"Bildprüfung {model} fehlgeschlagen: {str(e)[:160]}")
+    return None
+
+
+def make_new_room(slug: str, scene_file: str, side: str, person: str, out: Path, max_tries: int = 3):
+    """Erzeugt für diesen Mix einen NEUEN Raum (Ort/Szene von Claude ausgedacht, `scene_file`), 4K, mit automatischer Prüfung.
+    Liefert (Bild, Schreibtisch-Mitte 0–1) oder (None, None), wenn nach max_tries kein Bild alle Kriterien erfüllt."""
+    import genre_test_tokyo_rooms_v3 as r
+    scene = Path(scene_file).read_text(encoding="utf-8").strip()
+    if len(scene) < 80 or len(scene) > 900:
+        raise SystemExit("Szenentext muss 80–900 Zeichen lang sein (neuer Ort: Fenster/Ausblick, Materialien, Stimmung).")
+    prompt = r.INTRO + r.DESK.format(side=side) + r.COZY + r.PERSON[person] + scene
+    for i in range(1, max_tries + 1):
+        art = images.generate_art(prompt, "16:9", pro=True, style=r.STYLE, image_size="4K").convert("RGB")
+        if art.size[0] < 2500:
+            log(f"Neuer Raum Versuch {i}: nur {art.size}, verworfen")
+            continue
+        res = check_room_image(art)
+        log(f"Neuer Raum Versuch {i}: Prüfung {res}")
+        if res and res.get("ok") is True:
+            dx = res.get("desk_x")
+            dx = float(dx) if isinstance(dx, (int, float)) and 0.05 <= float(dx) <= 0.95 else (0.28 if side == "left" else 0.72)
+            png = out / "img" / "main_src.png"
+            png.parent.mkdir(parents=True, exist_ok=True)
+            art.save(png)
+            (out / "img" / "neuer_raum.json").write_text(json.dumps({"slug": slug, "side": side, "person": person, "scene": scene,
+                                                                      "check": res, "desk_x": dx, "tries": i}, indent=2, ensure_ascii=False))
+            try:   # Bild für spätere Verwendung in Drive ablegen (bilder/<slug>.png)
+                from pipeline import drive
+                named = out / "img" / f"{slug}.png"
+                art.save(named)
+                drive.upload_mix_package(ROOM_DRIVE_FOLDER, [], {"bilder": [named]})
+            except Exception as e:  # noqa: BLE001
+                log(f"Raumbild nicht in Drive abgelegt: {str(e)[:160]}")
+            return art, dx
+    return None, None
+
+
 # ---------------------------------------------------------------- Spruch (Video-Anfang)
 def quote_frame(lines: list[str], dst: Path) -> Path:
     """Schwarzes 4K-Bild mit dem Spruch in Cinzel (cremeweiß, in Anführungszeichen) und darunter klein AIX WALKER."""
@@ -577,6 +649,10 @@ def main() -> int:
                                                       "Zeilen mit | getrennt, z. B. 'Open one tab, finish one task.|My tracks will keep you company.'")
     ap.add_argument("--description-file", default="", help="NEUER Beschreibungstext dieses Mixes (englisch, 2–4 Absätze, von Claude pro Mix frisch geschrieben)")
     ap.add_argument("--cover-desk-x", type=float, default=0.0, help="Mitte des Schreibtischs im Hauptbild (0–1, von links) für den Album-Cover-Ausschnitt; 0 = Standard des Raums")
+    ap.add_argument("--new-room", action="store_true", help="NEUER Raum für diesen Mix: Bild wird neu erzeugt (Szene aus --scene-file) und automatisch geprüft; --room ist dann die neue Kennung")
+    ap.add_argument("--scene-file", default="", help="Datei mit dem neuen Orts-/Szenentext (englisch, 80–900 Zeichen, von Claude pro Mix neu erfunden)")
+    ap.add_argument("--desk-side", default="right", choices=["left", "right"], help="Seite des Schreibtischs im neuen Raum (abwechseln)")
+    ap.add_argument("--person", default="woman", choices=["woman", "man"], help="unscharfe Person am Fenster im neuen Raum (abwechseln)")
     ap.add_argument("--vol", type=int, default=0, help="Nummer im Titel („- Vol. N“); ohne Angabe: automatisch hochgezählt")
     ap.add_argument("--out", default=None)
     ap.add_argument("--upload", action="store_true")
@@ -609,6 +685,15 @@ def main() -> int:
         return short_only(args, out, lines)
     log(f"Tokyo Work Lounge, Raum {args.room}, Spruch: {' '.join(lines)}, dry_run={args.dry_run}")
 
+    new_desk_x = None
+    if args.new_room and not args.dry_run:
+        if not args.scene_file:
+            raise SystemExit("--new-room braucht --scene-file")
+        art_new, new_desk_x = make_new_room(args.room, args.scene_file, args.desk_side, args.person, out)
+        if art_new is None:
+            log("NEUER RAUM: kein Bild hat nach 3 Versuchen alle Kriterien erfüllt – Abbruch vor der Musik (kein Geld für Musik ausgegeben). "
+                "Mit vorhandenem Raum (--room shinjuku-sky-loft|nakameguro-evening-loft|azabu-rain-loft) neu starten und im Bericht melden.")
+            return 3
     art = fetch_main_image(args.room, out, args.dry_run, args.image_folder, args.image_file)
     wavs = reuse_music(args.room, out) if args.reuse_music else make_music(out, args.dry_run, args.workers)
     mix, starts = monthly.join_tracks(wavs, out / "wav" / "mix.flac", xf=XF)
@@ -673,7 +758,7 @@ def main() -> int:
             if src_cover:
                 im = Image.open(src_cover).convert("RGB").resize((3000, 3000), Image.LANCZOS)
             else:
-                dx = args.cover_desk_x or DESK_X.get(args.room, 0.70)
+                dx = args.cover_desk_x or new_desk_x or DESK_X.get(args.room, 0.70)
                 im = make_album_cover(art, dx, 3000)
             im.save(album, "PNG", optimize=True)
             drive_links = drive.upload_mix_package(folder, [album, thumb, out / "img" / "master.jpg", meta],

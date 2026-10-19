@@ -31,3 +31,10 @@
   Ist der Schreibtisch im fertigen Cover nicht klar zu sehen, `--cover-desk-x` anpassen und neu bauen. `--album-cover <Datei>` überschreibt weiter.
 - **Tokyo-Mail: kompletter DistroKid-Name** (Rolf 19.10.2026): Die Mail nennt immer den vollen Release-Namen, z. B. `Tokyo Work Lounge (Slow Jazz for Deep Work & Coding), Vol. 2`
   (der erste Mix hieß ohne Nummer). `send_tokyo_mail.py` baut ihn aus `result.json` („vol“).
+- **Tokyo-Mixe: JEDES MAL NEUER RAUM + NEUES BILD** (Rolf 19.10.2026, gilt ab dem Mix nach Vol. 3, keine Freigabe nötig, wenn alle Kriterien erfüllt sind): Claude erfindet pro Mix
+  einen neuen Ort (neue Kennung, z. B. `daikanyama-garden-loft`; nicht in Gedächtnis „tokyo“ Feld `room` und nicht in `r.ROOMS` verwendet) und schreibt einen englischen Szenentext
+  (80–900 Zeichen: Fenster/Ausblick, Materialien, Stimmung; abends/nachts, warmes Licht, dunkle gerade Decke) in eine Datei. Aufruf:
+  `run_tokyo.py --new-room --room <kennung> --scene-file <datei> --desk-side left|right --person woman|man ...` (Seite und Person gegenüber dem letzten Mix wechseln).
+  Das Skript erzeugt das Bild in 4K (0,24 $), prüft es automatisch (Schreibtisch mit zwei Monitoren sichtbar, Cognac-Ledersessel, kein Text, Person nur unscharf von hinten, kein Tageslicht/Blaustich,
+  keine Fehler), misst die Schreibtischmitte selbst für den Album-Cover-Ausschnitt und legt das Bild in Drive `bilder/<kennung>.png` ab. Bis zu 3 Versuche; scheitern alle, bricht der Lauf VOR der Musik
+  mit Exit-Code 3 ab → dann mit einem vorhandenen Raum neu starten und das Rolf im Bericht sagen. Bildkosten (bis 0,72 $ bei 3 Versuchen) in die Kostenmeldung aufnehmen.
