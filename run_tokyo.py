@@ -692,6 +692,11 @@ def main() -> int:
             mem.setdefault("tokyo", []).append({"date": date.today().isoformat(), "room": args.room, "video_id": video_id,
                                                 "short_id": short_id, "duration_min": total_min, "songs": len(wavs),
                                                 "privacy": privacy, "vol": vol, "quote": " ".join(lines), "cost_usd": costs.total_usd()})
+            # Die Abend-Aufgabe „Mix-Link und veröffentlichen“ (19:45) liest nur die Liste „shorts2“ → Tokyo-Short dort eintragen,
+            # sonst bliebe er privat und ohne Mix-Verknüpfung (gefunden 19.10.2026).
+            mem.setdefault("shorts2", []).append({"date": date.today().isoformat(), "id": f"tokyo-{date.today().isoformat()}",
+                                                  "title": s_title, "video_id": short_id, "mix_video_id": video_id,
+                                                  "cost_usd": 0.0, "tokyo": True})
             memory.save(mem)
         except Exception as e:  # noqa: BLE001
             log(f"Gedächtnis nicht gespeichert: {str(e)[:160]}")
