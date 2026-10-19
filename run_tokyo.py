@@ -106,7 +106,7 @@ def used_quotes() -> set[str]:
     return used
 
 
-def parse_quote(text: str) -> list[str]:
+def parse_quote(text: str, allow_used: bool = False) -> list[str]:
     """Prüft den neuen Spruch (Rolfs Kriterien): Englisch, 2–3 Zeilen, je Zeile höchstens 42 Zeichen, die letzte Zeile bezieht sich
     auf „my tracks / my music“, keine Zeit-/Längenangaben, noch nie verwendet."""
     lines = [l.strip() for l in text.split("|") if l.strip()]
@@ -120,7 +120,7 @@ def parse_quote(text: str) -> list[str]:
     import re as _re
     if _re.search(r"\d|hour|minute|\bmin\b|second|\blong\b|full[- ]length", low):
         raise SystemExit("Spruch: keine Zeit-/Längenangaben")
-    if _norm(" ".join(lines)) in used_quotes():
+    if not allow_used and _norm(" ".join(lines)) in used_quotes():
         raise SystemExit("Spruch wurde schon verwendet – bitte einen neuen ausdenken")
     return lines
 
@@ -693,7 +693,7 @@ def main() -> int:
     if args.dry_run:
         config.GOOGLE_API_KEY = ""
     costs.start(out / "costs.json")
-    lines = parse_quote(args.quote_text) if args.quote_text else QUOTES[args.quote % len(QUOTES)]
+    lines = parse_quote(args.quote_text, allow_used=args.short_only) if args.quote_text else QUOTES[args.quote % len(QUOTES)]
     if args.make_image:
         return make_image_candidates(args, out)
     if args.short_only:
