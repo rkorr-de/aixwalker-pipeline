@@ -29,3 +29,5 @@
   so gelegt, dass der Schreibtisch immer zu sehen ist (`DESK_X` je Raum, oder `--cover-desk-x 0.0–1.0` = Schreibtischmitte von links), Text wie im Thumbnail;
   als `album_3000.png` im Drive-Ordner und als `tokyo_album_cover.jpg` an der Bestätigungsmail (`send_tokyo_mail.py` hängt `img/album_3000.png` automatisch an).
   Ist der Schreibtisch im fertigen Cover nicht klar zu sehen, `--cover-desk-x` anpassen und neu bauen. `--album-cover <Datei>` überschreibt weiter.
+- **Tokyo-Mail: kompletter DistroKid-Name** (Rolf 19.10.2026): Die Mail nennt immer den vollen Release-Namen, z. B. `Tokyo Work Lounge (Slow Jazz for Deep Work & Coding), Vol. 2`
+  (der erste Mix hieß ohne Nummer). `send_tokyo_mail.py` baut ihn aus `result.json` („vol“).

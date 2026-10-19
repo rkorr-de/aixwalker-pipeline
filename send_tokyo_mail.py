@@ -21,6 +21,12 @@ def community_text(text: str, url: str) -> str:
     return text.replace("{url}", url) if "{url}" in text else f"{text}\n\n{url}"
 
 
+def distrokid_name(vol) -> str:
+    """Kompletter Release-Name für DistroKid (Rolf 19.10.2026): der erste Mix hieß ohne Nummer, ab Vol. 2 mit „, Vol. N“."""
+    base = "Tokyo Work Lounge (Slow Jazz for Deep Work & Coding)"
+    return f"{base}, Vol. {vol}" if vol else base
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("folder")
@@ -40,6 +46,8 @@ def main() -> None:
         ("hier der Nachtrag zum Tokyo-Mix: Thumbnail, angepinnter Kommentar und Community-Post."
          if a.nachtrag else "der Tokyo-Mix und der Short sind fertig."), "",
         f"Mix: {url}", f"Short: {short}", f"Drive-Ordner: {(res.get('drive') or {}).get('_folder', '-')}", "",
+        "NAME FÜR DISTROKID (Album-/Release-Name, genau so eintragen):",
+        distrokid_name(res.get("vol")), "",
         "NEUER SPRUCH IM VIDEO UND IM SHORT:",
         a.quote or "(siehe result.json)", "",
         "PIN-KOMMENTAR (neu für diesen Mix – schreibe ihn unter den Mix und pinne ihn danach selbst fest):",

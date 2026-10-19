@@ -698,7 +698,7 @@ def main() -> int:
 
     cost_line = costs.report()
     log(cost_line)
-    result = {"room": args.room, "video_id": video_id, "video_url": video_url, "short_id": short_id, "privacy": privacy,
+    result = {"room": args.room, "video_id": video_id, "video_url": video_url, "short_id": short_id, "vol": vol, "privacy": privacy,
               "duration_sec": total, "duration_min": total_min, "songs": len(wavs), "quote": lines, "title": TITLE,
               "cost_usd": costs.total_usd(), "cost_report": cost_line, "drive": drive_links,
               "boundaries": [round(s, 1) for s in starts], "video_mb": round(mp4.stat().st_size / 1e6)}
