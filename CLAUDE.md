@@ -23,3 +23,5 @@
 - **Tokyo-Mixe: Beschreibungstext bei JEDEM Mix neu** (Rolf 19.10.2026): Claude schreibt pro Mix einen frischen englischen Einleitungstext (2–4 Absätze,
   250–1200 Zeichen, passend zu Raum, Spruch und Stimmung, keine Zeit-/Längenangaben, nicht die alten Standardsätze) in eine Datei und übergibt sie mit
   `run_tokyo.py --description-file <Datei>`. Kapitel, Musik-/KI-Hinweis und Hashtags hängt das Skript automatisch an.
+- **Tokyo-Mixe: Titel mit laufender Nummer** (Rolf 19.10.2026): `🎧 Tokyo Work Lounge | Slow Jazz for Deep Work & Coding - Vol. N🎷`. Der Mix vom 19.10.2026 ist
+  Vol. 2; `run_tokyo.py` zählt automatisch hoch (Gedächtnis „tokyo“, Feld `vol`), `--vol N` überschreibt. Der echte Titel steht in `result.json` („title“).

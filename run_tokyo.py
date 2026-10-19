@@ -33,7 +33,8 @@ MAX_TRACKS = 30
 LUFS = -16.0
 ROOM_DRIVE_FOLDER = "GENRE-TEST Tokyo Work Lounge v3"
 
-TITLE = "🎧 Tokyo Work Lounge | Slow Jazz for Deep Work & Coding 🎷"
+TITLE_BASE = "🎧 Tokyo Work Lounge | Slow Jazz for Deep Work & Coding"
+TITLE = f"{TITLE_BASE} 🎷"   # wird in main() mit der laufenden Nummer („- Vol. N“) überschrieben
 # Ordnername im Drive muss auf "(Genre, BPM)" enden (Format aller Mix-Ordner, der DistroKid-Lauf liest das Genre daraus)
 GENRE_LABEL = "Slow Jazz"
 BPM_LABEL = 70           # nur Beschriftung des Ordners, DistroKid fragt kein BPM ab
@@ -63,6 +64,19 @@ QUOTES = [
 
 def _norm(s: str) -> str:
     return " ".join(s.lower().replace("’", "'").split())
+
+
+def next_vol() -> int:
+    """Laufende Nummer im Titel (Rolf 19.10.2026): der Mix vom 19.10. ist Vol. 2, danach zählt jeder Mix um 1 hoch.
+    Einträge im Gedächtnis „tokyo“ mit Feld „vol“ zählen; Einträge ohne „vol“ vom 19.10. oder früher gelten als Vol. 2."""
+    vols = [2]
+    try:
+        from pipeline import memory
+        for e in memory.load().get("tokyo", []):
+            vols.append(int(e.get("vol") or 0))
+    except Exception as e:  # noqa: BLE001
+        log(f"Gedächtnis für Titelnummer nicht lesbar: {str(e)[:120]}")
+    return max(vols) + 1
 
 
 def used_quotes() -> set[str]:
@@ -549,6 +563,7 @@ def main() -> int:
     ap.add_argument("--quote-text", default="", help="NEUER Spruch dieses Mixes (Rolf 19.10.2026: bei jedem Mix neu, von Claude ausgedacht), "
                                                       "Zeilen mit | getrennt, z. B. 'Open one tab, finish one task.|My tracks will keep you company.'")
     ap.add_argument("--description-file", default="", help="NEUER Beschreibungstext dieses Mixes (englisch, 2–4 Absätze, von Claude pro Mix frisch geschrieben)")
+    ap.add_argument("--vol", type=int, default=0, help="Nummer im Titel („- Vol. N“); ohne Angabe: automatisch hochgezählt")
     ap.add_argument("--out", default=None)
     ap.add_argument("--upload", action="store_true")
     ap.add_argument("--public", action="store_true")
@@ -563,6 +578,10 @@ def main() -> int:
     ap.add_argument("--short-only", action="store_true", help="nur den Short neu bauen (Musik aus dem Drive-Ordner des Mixes)")
     ap.add_argument("--mix-video-id", default="", help="YouTube-ID des Mixes (für den Link in der Short-Beschreibung)")
     args = ap.parse_args()
+    global TITLE
+    vol = args.vol or next_vol()
+    TITLE = f"{TITLE_BASE} - Vol. {vol}🎷"
+    log(f"Titel: {TITLE}")
     out = Path(args.out or f"build/tokyo-{args.room}")
     for sub in ("raw", "wav", "mp3", "img", "work", "short", "thumb"):
         (out / sub).mkdir(parents=True, exist_ok=True)
@@ -672,7 +691,7 @@ def main() -> int:
             mem = memory.load()
             mem.setdefault("tokyo", []).append({"date": date.today().isoformat(), "room": args.room, "video_id": video_id,
                                                 "short_id": short_id, "duration_min": total_min, "songs": len(wavs),
-                                                "privacy": privacy, "quote": " ".join(lines), "cost_usd": costs.total_usd()})
+                                                "privacy": privacy, "vol": vol, "quote": " ".join(lines), "cost_usd": costs.total_usd()})
             memory.save(mem)
         except Exception as e:  # noqa: BLE001
             log(f"Gedächtnis nicht gespeichert: {str(e)[:160]}")
