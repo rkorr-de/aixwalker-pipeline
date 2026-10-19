@@ -42,3 +42,9 @@
   Tastatur UND Maus, im Raum sichtbar (muss nicht direkt vorne im Bild sein); die Prüfung verlangt `keyboard_mouse`.
   Easter-Egg (Rolf 19.10.2026): In JEDEM neuen Raum steht irgendwo (Schreibtisch, Regal, Tisch, Sideboard; Ort wechselt) EINE kleine weibliche Manga-Figur, höchstens 15 cm hoch
   (`FIGURINE` in run_tokyo.py: silber-lavendelfarbener Pferdeschwanz, große weiße Kopfhörer, mintgrüner Hoodie). Eine geschützte Figur (z. B. Lain Iwakura) wird NICHT gezeichnet. Die Prüfung verlangt `figurine`.
+- **Tokyo-Short: Kameraschwenk mit Schreibtisch UND Person** (Rolf 19.10.2026): Der 9:16-Ausschnitt des Shorts muss auf dem gesamten Schwenk den Schreibtisch (Monitor, Tastatur, Maus)
+  und die Person (zumindest zum Teil, auch unscharf im Hintergrund) zeigen, sonst passen Text und Bild nicht zusammen. `make_short` zentriert den Schwenk auf `desk_x`;
+  liegen Person und Schreibtisch auseinander, `--short-desk-x 0.0–1.0` (Mitte des Ausschnitts, von links) zwischen beide legen. Vorher den Ausschnitt (Anfang/Mitte/Ende des Schwenks) ansehen und prüfen.
+  Nur Short neu: `run_tokyo.py --short-only --room <kennung> --mix-video-id <id> --quote-text "..." --short-desk-x <x>`.
+- **Tokyo-Sprüche und Beschreibungen: Home-Office-Thema** (Rolf 19.10.2026, ab dem nächsten Mix): Mehr Bezug auf Arbeiten im Home Office, die kleine Pause zwischendurch und Coding
+  (z. B. Tee holen, Fenster/Garten ansehen, Schultern lockern, ein Bug, ein Commit, der nächste Fokus-Block). Weiter: Englisch, ruhig, letzte Zeile „my tracks / my music“, noch nie verwendet.

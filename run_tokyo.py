@@ -67,7 +67,8 @@ def _norm(s: str) -> str:
 
 
 # Mitte des Schreibtischs im 16:9-Hauptbild (Anteil der Breite, 0 = links, 1 = rechts) – Standard für das Album-Cover-Fenster.
-DESK_X = {"nakameguro-evening-loft": 0.72, "shinjuku-sky-loft": 0.70, "azabu-rain-loft": 0.25}
+DESK_X = {"nakameguro-evening-loft": 0.72, "shinjuku-sky-loft": 0.70, "azabu-rain-loft": 0.25,
+          "daikanyama-garden-loft": 0.80}
 
 
 def make_album_cover(art: Image.Image, desk_x: float, size: int = 3000) -> Image.Image:
@@ -470,7 +471,7 @@ def short_text_layers(lines: list[str], w: int = 1080, h: int = 1920) -> tuple[l
 
 
 def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: float, out: Path, sec: int = 20,
-               xf: float = 2.0) -> Path:
+               xf: float = 2.0, desk_x: float = 0.70) -> Path:
     """Short als nahtlose Schleife (Rolf 17.10.2026: nicht ein-/ausblenden, soll sich unbemerkt wiederholen).
     Bild: Ausschnitt 9:16 mit der kompletten Bildhöhe (1215×2160), die Kamerafahrt läuft als Cosinus und endet exakt am Anfang.
     Text: baut sich Zeile für Zeile auf und löst sich kurz vor dem Ende weich auf (Bild bleibt durchgehend sichtbar).
@@ -491,7 +492,8 @@ def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: fl
         pth = out / f"short_text_{i}.png"
         l.save(pth)
         paths.append(pth)
-    x0 = int(W * 0.17)
+    # Rolf 19.10.2026: Der Schwenk zeigt IMMER den Schreibtisch und die Person (zumindest zum Teil) → Ausschnitt um die Schreibtischmitte
+    x0 = int(min(max(desk_x * W - cw / 2 - 55, 0), W - cw - 110))
     dst = out / "short.mp4"
     n_el = len(layers)
     # Aufbau über die ganze Länge (Rolf 17.10.: nicht alles am Anfang): Verlauf 0,3 s, Linie 0,6 s, Zeilen bei 1,2 / 5,2 / 9,2 s, Hinweis auf den Mix bei 12,3 s; Auflösen in den letzten 1,5 s
@@ -639,7 +641,8 @@ def short_only(args, out: Path, lines: list[str]) -> int:
     pick = mp3s[min(2, len(mp3s) - 1)]
     song = drive.download(svc, pick["id"], out / "work" / "short_song.mp3")
     log(f"Short-Ton aus „{pick['name']}“ (Ordner {folder['name']})")
-    short = make_short(art, lines, song, 35, out / "short")
+    short = make_short(art, lines, song, 35, out / "short",
+                      desk_x=args.short_desk_x or args.cover_desk_x or DESK_X.get(args.room, 0.70))
     url = f"https://youtu.be/{args.mix_video_id}" if args.mix_video_id else "(Link zum Mix)"
     s_title, s_desc, s_tags = short_texts(lines, url)
     sid = youtube.upload_video(short, s_title, s_desc, s_tags, privacy="private", location=youtube.TOKYO)
@@ -678,6 +681,7 @@ def main() -> int:
     ap.add_argument("--album-cover", default="", help="eigenes Album-Cover (quadratisch, jpg/png) für DistroKid; sonst Ausschnitt des Hauptbilds")
     ap.add_argument("--short-only", action="store_true", help="nur den Short neu bauen (Musik aus dem Drive-Ordner des Mixes)")
     ap.add_argument("--mix-video-id", default="", help="YouTube-ID des Mixes (für den Link in der Short-Beschreibung)")
+    ap.add_argument("--short-desk-x", type=float, default=0.0, help="Schreibtischmitte (0.0-1.0 von links) für den Short-Ausschnitt; sonst wie beim Cover")
     args = ap.parse_args()
     global TITLE
     vol = args.vol or next_vol()
@@ -748,7 +752,8 @@ def main() -> int:
 
     # Short (aus dem Hauptbild)
     s_start = starts[min(2, len(starts) - 1)] + 25
-    short = make_short(art, lines, mix, min(s_start, max(0, total - 30)), out / "short")
+    short = make_short(art, lines, mix, min(s_start, max(0, total - 30)), out / "short",
+                       desk_x=args.short_desk_x or args.cover_desk_x or new_desk_x or DESK_X.get(args.room, 0.70))
     log(f"Short fertig: {short}")
 
     # Upload (privat, Aufnahmeort Tokyo, Playlist) – Shorts bleiben privat, bis Rolf zustimmt
