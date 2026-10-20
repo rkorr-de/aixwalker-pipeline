@@ -51,3 +51,5 @@
   Automatisch (Rolf 19.10.2026 „automatisiere das“): Die Raumprüfung misst `person_x` und verlangt eine sichtbare Person; `short_center()` legt den Schwenk zwischen Person und Schreibtisch;
   `make_short_checked()` zieht Standbilder (Anfang/Mitte/Ende) und lässt sie prüfen (Schreibtisch + Person in ALLEN drei), bei Misserfolg verschiebt es den Ausschnitt und baut bis zu 3× neu (nur ffmpeg, kostenlos).
   Ergebnis steht in `short_check.json` und `result.json` („short_check“). Ist `ok` am Ende nicht `true`, im Bericht an Rolf sagen. Rolfs eigene Bilder (`--main-image`) werden ebenfalls vermessen.
+- **Tokyo-Short: Dauerzeile oben** (Rolf 20.10.2026, ab dem nächsten Short): Im oberen Drittel steht über die GANZE Länge des Shorts (ohne Ein-/Ausblenden, nahtlose Schleife) der Text
+  „Slow Jazz / for Deep Work & Coding“ (`SHORT_TOP_TEXT`, `short_top_layer()` in run_tokyo.py; Cinzel, Gold + Cremeweiß, weicher dunkler Verlauf, Mitte bei ca. 21 % der Höhe). Der Spruch bleibt in der Bildmitte.

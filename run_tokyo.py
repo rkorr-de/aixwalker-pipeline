@@ -474,6 +474,40 @@ def short_text_layers(lines: list[str], w: int = 1080, h: int = 1920) -> tuple[l
     return layers, spots, size
 
 
+SHORT_TOP_TEXT = ["Slow Jazz", "for Deep Work & Coding"]   # Rolf 20.10.2026: steht im oberen Drittel über die GANZE Länge des Shorts
+
+
+def short_top_layer(w: int = 1080, h: int = 1920) -> Image.Image:
+    """Dauerhafte Zeile im oberen Drittel (Mitte bei ca. 21 % der Höhe, unterhalb der Oberfläche von Reels/TikTok/Shorts):
+    Cinzel, cremeweiß/Gold, mit weichem dunklem Verlauf dahinter, damit sie auf jedem Bildausschnitt lesbar bleibt."""
+    lay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(lay)
+    for yy in range(int(h * 0.42)):
+        a = int(150 * (1 - yy / (h * 0.42)) ** 1.3)
+        if a:
+            d.line([(0, yy), (w, yy)], fill=(8, 5, 3, a))
+    F = config.ASSETS / "fonts" / "Cinzel.ttf"
+    texts = [t.upper() for t in SHORT_TOP_TEXT]
+    size = 58
+    while True:
+        f = images._font(F, size, "Regular")
+        tr = int(size * 0.14)
+        widths = [images._tracked_width(d, t, f, tr) for t in texts]
+        if max(widths) <= w * 0.86 or size <= 24:
+            break
+        size -= 2
+    lh = int(size * 1.55)
+    y = int(h * 0.21) - lh
+    for i, (t, w_) in enumerate(zip(texts, widths)):
+        col = (232, 190, 130) if i == 0 else (255, 246, 228)
+        sh = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+        images._draw_tracked(ImageDraw.Draw(sh), ((w - w_) // 2 + 2, y + 3), t, f, (0, 0, 0, 170), tr)
+        lay.alpha_composite(sh)
+        images._draw_tracked(d, ((w - w_) // 2, y), t, f, col, tr)
+        y += lh
+    return lay
+
+
 def short_center(desk_x: float, person_x: float | None) -> float:
     """Mitte des Short-Ausschnitts (0–1 von links): zwischen Person und Schreibtisch, der Schreibtisch bleibt sicher im Bild.
     Der Ausschnitt ist 31,6 % der Bildbreite breit (Halbbreite 0,158)."""
@@ -582,6 +616,9 @@ def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: fl
         cmd += ["-loop", "1", "-framerate", 25, "-t", sec, "-i", pth]
     cmd += ["-loop", "1", "-framerate", 25, "-t", sec, "-i", dot_path]
     cmd += ["-ss", f"{start:.2f}", "-t", sec + xf, "-i", final_audio]
+    top_path = out / "short_top.png"
+    short_top_layer().save(top_path)
+    cmd += ["-loop", "1", "-framerate", 25, "-t", sec, "-i", top_path]       # dauerhafte Zeile oben, ohne Ein-/Ausblenden (nahtlose Schleife)
     fc = (f"[0:v]crop=w={cw}:h={H}:x='{x0}+110*(1-cos(2*PI*t/{sec}))/2':y=0,scale=1080:1920:flags=lanczos[b0];")
     for i in range(n_el):
         dur = 1.2
@@ -607,7 +644,8 @@ def make_short(main: Image.Image, lines: list[str], final_audio: Path, start: fl
             fc += f"[{prev}][dd{k}]overlay=x={x}:y={y}:enable='between(t,{aj:.2f},{e:.2f})'[p{k}];"
             prev = f"p{k}"
             k += 1
-    fc += f"[{prev}]format=yuv420p[o];"
+    ti = di + 2                                    # Eingang der dauerhaften Zeile oben (nach dem Ton)
+    fc += f"[{prev}][{ti}:v]overlay=0:0[ptop];[ptop]format=yuv420p[o];"
     ai = di + 1
     fc += (f"[{ai}:a]asplit=3[ab][at][ah];"
            f"[ab]atrim=start={xf}:end={sec},asetpts=PTS-STARTPTS[abd];"
