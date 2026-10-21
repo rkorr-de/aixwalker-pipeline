@@ -187,8 +187,9 @@ def check_clip(path: Path) -> dict:
     if res["static_share"] < 0.45:
         reasons.append("zu viel Bewegung im Raum (Kamera?)")
     # relativ zum Median (09.10.: Median 0,73, Max 0,84 ohne sichtbaren Sprung). Seit 17.10.2026 schneit es im Clip nicht
-    # mehr – bewegt sich nur noch Feuer/Kerzen, dessen Flackern unregelmäßiger ist → relativer Faktor 1,6 statt 1,35.
-    if res["jump_max"] > 0.95 or res["jump_max"] > 1.6 * res["jump_median"]:
+    # mehr – bewegt sich nur noch Feuer/Kerzen, dessen Flackern unregelmäßiger ist → relativer Faktor 1,6 statt 1,35;
+    # absolute Grenze 1,4 statt 0,95 (21.10.2026: alle 12 Clips ohne Schnee hatten Median ≈ 0,8, Max 1,06–1,32, ohne sichtbaren Sprung).
+    if res["jump_max"] > 1.4 or res["jump_max"] > 1.6 * res["jump_median"]:
         reasons.append("Sprung im Schnee/Feuer")
     if res["flake_frames"] >= 3:
         reasons.append("riesige Schneeflocken")
