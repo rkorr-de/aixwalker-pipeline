@@ -27,6 +27,7 @@ from pipeline import audio, cabin_art, config, costs, images, loopvideo, lyria, 
 
 CRACKLE = config.ASSETS / "ambience" / "fireplace_crackle_loop.m4a"
 SHORT_SEC = 15
+ABORT_CODE = 4   # Kostengrenze / zu wenige gültige Clips: NICHT neu starten (run_auto.py und Routinen halten sich daran)
 
 
 def log(msg: str) -> None:
@@ -105,22 +106,34 @@ def _static_clip(frame_png: Path, dst: Path) -> Path:
     return dst
 
 
+class ClipsFailed(RuntimeError):
+    """Zu wenige gültige Kaminfilm-Clips (Prüfung hat sie abgelehnt) – Lauf wird abgebrochen."""
+
+
+MAX_CLIP_ATTEMPTS = 3   # je Clip insgesamt (über Neustarts hinweg gezählt)
+
+
 def make_clips(frame: Image.Image, out: Path, n: int, dry: bool) -> list[Path]:
-    """n Veo-Clips; jeder wird geprüft, ein durchgefallener einmal neu erzeugt (bei nur 2 Clips zweimal, weil es keine
-    Reserve gibt). Mind. 2 gute Clips nötig."""
+    """n Veo-Clips; jeder wird geprüft, ein durchgefallener neu erzeugt – höchstens MAX_CLIP_ATTEMPTS je Clip IM GANZEN
+    LAUF: abgelehnte Dateien (`<Name>_abgelehnt_<k>.mp4`, daneben `.json` mit dem Prüfergebnis) zählen bei einem
+    Neustart mit. So kostet ein Neustart keine bereits bezahlten Versuche ein zweites Mal (21.10.2026: 15 statt 2 Clips,
+    39,60 $). Mind. 2 gute Clips nötig; sonst ClipsFailed. Die Kostengrenze (costs.guard) greift vor jedem Clip."""
     d = out / "clips"
     d.mkdir(parents=True, exist_ok=True)
     names = "ABCDEFGH"[:n]
 
     def one(name: str) -> Path | None:
         p = d / f"{name}.mp4"
-        for attempt in range(2 if n > 2 else 3):
-            if not (p.exists() and attempt == 0):
+        used = len(list(d.glob(f"{name}_abgelehnt_*.mp4")))
+        for attempt in range(used, MAX_CLIP_ATTEMPTS):
+            if not (p.exists() and attempt == used):
                 if dry:
                     _static_clip(out / "img" / "frame_4k.png", p)
                 else:
                     try:
                         loopvideo.generate_clip(frame, p)
+                    except costs.BudgetExceeded:
+                        raise
                     except Exception as e:  # noqa: BLE001
                         log(f"Clip {name}: Veo-Fehler {str(e)[:200]}")
                         p.unlink(missing_ok=True)
@@ -129,14 +142,51 @@ def make_clips(frame: Image.Image, out: Path, n: int, dry: bool) -> list[Path]:
             log(f"Clip {name}: {json.dumps(qc)}")
             if qc["ok"] or dry:
                 return p
-            p.rename(d / f"{name}_abgelehnt_{attempt}.mp4")
+            rej = d / f"{name}_abgelehnt_{attempt}.mp4"
+            p.rename(rej)
+            rej.with_suffix(".json").write_text(json.dumps({"clip": name, "versuch": attempt, "pruefung": qc},
+                                                           indent=2, ensure_ascii=False), encoding="utf-8")
         return None
 
     with ThreadPoolExecutor(max_workers=n) as ex:
         clips = [c for c in ex.map(one, names) if c]
     if len(clips) < 2:
-        raise RuntimeError(f"nur {len(clips)} gültige Kaminfilm-Clips – mindestens 2 nötig")
+        msg = f"nur {len(clips)} gültige Kaminfilm-Clips – mindestens 2 nötig"
+        costs.trip(msg)   # Musik-Thread stoppt beim nächsten bezahlten Aufruf
+        raise ClipsFailed(msg)
     return clips
+
+
+def abort_report(out: Path, title: str, reason: str, drive: bool, dry: bool = False) -> dict:
+    """Lauf wurde abgebrochen (Kostengrenze oder zu wenige gültige Clips): ALLE abgelehnten Clips auf Drive legen und
+    per Mail an Rolf melden – mit Link zu jedem einzelnen Clip, Prüfergrund und Kosten-Aufschlüsselung (Rolf 21.10.2026)."""
+    rejected = sorted((out / "clips").glob("*_abgelehnt_*.mp4"))
+    info = {"title": title, "reason": reason, "cost_lines": costs.breakdown(), "clips": [], "folder": None}
+    links: dict = {}
+    if drive and rejected:
+        try:
+            from pipeline import drive as drv
+            links = drv.upload_mix_package(f"{date.today().isoformat()} – {title} – ABGEBROCHEN (Clips zur Prüfung)", [],
+                                           {"clips_abgelehnt": rejected})
+            info["folder"] = links.get("_folder")
+        except Exception as e:  # noqa: BLE001
+            info["drive_error"] = str(e)[:300]
+            log(f"Drive-Ablage der abgelehnten Clips fehlgeschlagen: {e}")
+    for f in rejected:
+        side = f.with_suffix(".json")
+        qc = json.loads(side.read_text(encoding="utf-8")).get("pruefung", {}) if side.exists() else {}
+        info["clips"].append({"name": f.name, "grund": qc.get("reason") or "nicht gespeichert",
+                              "link": links.get(f"clips_abgelehnt/{f.name}"), "datei": str(f)})
+    (out / "abort.json").write_text(json.dumps(info, indent=2, ensure_ascii=False), encoding="utf-8")
+    if not dry:
+        try:
+            from pipeline import mailer
+            info["mail"] = mailer.send_abort(info)
+            log(f"Abbruch-Mail: {info['mail']}")
+        except Exception as e:  # noqa: BLE001
+            info["mail_error"] = str(e)[:300]
+            log(f"Abbruch-Mail nicht gesendet: {e}")
+    return info
 
 
 def short_center(frame: Image.Image, k: int) -> float:
@@ -208,16 +258,21 @@ def main() -> int:
         config.GOOGLE_API_KEY = ""
     genre, album = concept["genre"], concept["album"].strip()
     fmt = config.LINE_FORMAT[genre]
-    costs.start(out / "costs.json")
+    costs.start(out / "costs.json", None if args.dry_run else config.RUN_BUDGET_EUR)
     log(f"Mix „{album}“ ({genre}, {concept['bpm']} BPM), Ziel ≥ {fmt['min_minutes']} Min, dry_run={args.dry_run}")
 
     # 1) Bild + Clips parallel zur Musik starten (Veo braucht ca. 6 Min je Clip)
-    frame = master_frame(concept, out, args.dry_run)
-    log(f"Hauptbild {frame.size[0]}×{frame.size[1]}")
-    with ThreadPoolExecutor(max_workers=1) as bg:
-        clips_future = bg.submit(make_clips, frame, out, fmt["veo_clips"], args.dry_run)
-        tracks, wavs = make_music(concept, out, args.dry_run, fmt, args.workers)
-        clips = clips_future.result()
+    try:
+        frame = master_frame(concept, out, args.dry_run)
+        log(f"Hauptbild {frame.size[0]}×{frame.size[1]}")
+        with ThreadPoolExecutor(max_workers=1) as bg:
+            clips_future = bg.submit(make_clips, frame, out, fmt["veo_clips"], args.dry_run)
+            tracks, wavs = make_music(concept, out, args.dry_run, fmt, args.workers)
+            clips = clips_future.result()
+    except (costs.BudgetExceeded, ClipsFailed) as e:
+        log(f"ABBRUCH: {e}")
+        abort_report(out, album, str(e), args.drive, args.dry_run)
+        return ABORT_CODE
     log(f"{len(tracks)} Tracks, {len(clips)} Kaminfilm-Clips: {[c.name for c in clips]}")
 
     # 2) Mix, Kapitel, Knistern, MP3s (mit Hauptbild als Cover-Tag, für den 2-Wochen-/Monats-Zusammenschnitt)
@@ -317,7 +372,8 @@ def main() -> int:
               "video_id": video_id, "video_url": video_url, "duration_sec": total_sec, "duration_min": total_min,
               "tracks": len(tracks), "chapters": chapter_text, "title": title, "description": desc, "tags": tags,
               "privacy": privacy if args.upload else None, "comment_id": comment_id, "thumbnails": [str(thumb)],
-              "shorts": short_list, "drive": drive_links, "clips": [c.name for c in clips], "format": "cabin-4k"}
+              "shorts": short_list, "drive": drive_links, "clips": [c.name for c in clips], "format": "cabin-4k",
+              "cost_breakdown": costs.breakdown()}
     (out / "result.json").write_text(json.dumps(result, indent=2, ensure_ascii=False))
     log(f"Fertig: {total_min} Min, Video {video_url}, Shorts {len(short_list)}")
     return 0

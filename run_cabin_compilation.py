@@ -158,7 +158,7 @@ def main() -> int:
     tag = month if args.period == "monthly" else today.isoformat()
     base = config.ROOT / "build" / f"cabin-{args.period}-{tag}"
     base.mkdir(parents=True, exist_ok=True)
-    costs.start(base / "costs.json")
+    costs.start(base / "costs.json", None if args.dry_run else config.RUN_BUDGET_EUR)
 
     if args.dry_run:
         mem = {"mixes": []}
@@ -235,7 +235,12 @@ def main() -> int:
         frame.save(frame_png)
         frame.save(base / "master.jpg", "JPEG", quality=92)
     import run_cabin
-    clips = run_cabin.make_clips(frame, base, config.LINE_FORMAT[GENRE].get("compilation_veo_clips", 2), args.dry_run)
+    try:
+        clips = run_cabin.make_clips(frame, base, config.LINE_FORMAT[GENRE].get("compilation_veo_clips", 2), args.dry_run)
+    except (costs.BudgetExceeded, run_cabin.ClipsFailed) as e:
+        log(f"ABBRUCH: {e}")
+        run_cabin.abort_report(base, f"Cabin-Zusammenschnitt {tag}", str(e), not args.dry_run, args.dry_run)
+        return run_cabin.ABORT_CODE
     playlist_file = loopvideo.prepare_video(clips, total_sec, base / "work", log=log)
     thumb = cabin_art.make_thumbnail(frame, images.duration_label(total_min), base / "thumbnail.jpg")
 

@@ -12,14 +12,23 @@ from pathlib import Path
 from . import config
 
 _lock = threading.Lock()
+_limit_eur: float | None = None   # Obergrenze je Lauf (inkl. Neustarts, weil das Ledger fortgeführt wird)
+_tripped: str = ""                # gesetzt, sobald die Grenze erreicht ist oder ein Lauf abgebrochen wird
 _ledger_path: Path | None = None
 _ledger: dict = {"lyria_tracks": 0, "lyria_retries": 0, "image_flash": 0, "image_pro": 0, "image_pro_4k": 0, "image_failed": 0}
 
 
-def start(ledger_path: Path) -> None:
-    """Ledger-Datei setzen; vorhandene Zählung (Neustart nach Abbruch) wird fortgeführt."""
-    global _ledger_path, _ledger
+class BudgetExceeded(RuntimeError):
+    """Kostengrenze erreicht oder Lauf bewusst abgebrochen (Rolf 21.10.2026: Winter-Cabin max. 9 €)."""
+
+
+def start(ledger_path: Path, limit_eur: float | None = None) -> None:
+    """Ledger-Datei setzen; vorhandene Zählung (Neustart nach Abbruch) wird fortgeführt.
+    `limit_eur`: harte Obergrenze für diesen Lauf; `guard()` bricht vor jedem bezahlten Aufruf ab, der sie überschreiten würde."""
+    global _ledger_path, _ledger, _limit_eur, _tripped
     _ledger_path = ledger_path
+    _limit_eur = limit_eur
+    _tripped = ""
     if ledger_path.exists():
         try:
             _ledger.update(json.loads(ledger_path.read_text()))
@@ -32,6 +41,33 @@ def _save() -> None:
     if _ledger_path:
         _ledger_path.parent.mkdir(parents=True, exist_ok=True)
         _ledger_path.write_text(json.dumps({**_ledger, "usd": total_usd(), "eur": usd_to_eur(total_usd())}, indent=2))
+
+
+def guard(key: str, n: int = 1) -> None:
+    """Vor jedem bezahlten Aufruf: Würde `n` × Preis von `key` die Grenze überschreiten (oder ist der Lauf schon
+    abgebrochen), BudgetExceeded auslösen. Ohne Grenze (limit_eur=None) wirkungslos."""
+    if _limit_eur is None:
+        return
+    with _lock:
+        if _tripped:
+            raise BudgetExceeded(_tripped)
+        price = n * config.PRICES_USD[key]
+        after_eur = (total_usd() + price) * float(os.environ.get("USD_EUR_RATE", config.USD_EUR_RATE))
+        if after_eur > _limit_eur + 1e-9:
+            _trip(f"Kostengrenze {_limit_eur:.2f} € erreicht: bisher {usd_to_eur(total_usd()):.2f} €, "
+                  f"der nächste Aufruf ({key}, {price:.2f} $) würde auf {after_eur:.2f} € steigen")
+            raise BudgetExceeded(_tripped)
+
+
+def _trip(reason: str) -> None:
+    global _tripped
+    _tripped = _tripped or reason
+
+
+def trip(reason: str) -> None:
+    """Lauf als abgebrochen markieren: alle weiteren guard()-Aufrufe (auch in anderen Threads) lösen aus."""
+    with _lock:
+        _trip(reason)
 
 
 def count(key: str, n: int = 1) -> None:
@@ -92,6 +128,26 @@ def report() -> str:
             f"({led['lyria_tracks']} Lyria-Erzeugungen, davon {led['lyria_retries']} Neuversuche nach QC, "
             f"{led['image_flash']} Flash-Bilder, {led['image_pro']} Pro-Bilder, {led.get('image_pro_4k', 0)} Pro-4K-Bilder, {led['image_failed']} Bild-Fallbacks ohne Kosten"
             + (f", {led['veo_sec_4k_fast']} s Veo-4K-Video" if led.get("veo_sec_4k_fast") else "") + ")")
+
+
+def breakdown() -> list[str]:
+    """Aufschlüsselung der tatsächlichen Kosten für die Mail (Zeilen)."""
+    p, led = config.PRICES_USD, _ledger
+    rows = []
+    n = led.get("lyria_tracks", 0)
+    if n:
+        rows.append(f"Lyria-Tracks: {n} × {p['lyria_track']:.2f} $ = {n * p['lyria_track']:.2f} $ (davon {led.get('lyria_retries', 0)} Neuversuche nach Prüfung)")
+    imgs = [(led.get("image_pro_4k", 0), p.get("image_pro_4k", p["image_pro"]), "Hauptbild(er) 4K"),
+            (led.get("image_pro", 0), p["image_pro"], "Pro-Bild(er)"), (led.get("image_flash", 0), p["image_flash"], "Flash-Bild(er)")]
+    for cnt, price, name in imgs:
+        if cnt:
+            rows.append(f"{name}: {cnt} × {price:.2f} $ = {cnt * price:.2f} $")
+    sec = led.get("veo_sec_4k_fast", 0)
+    if sec:
+        rows.append(f"Veo-Clips 4K: {sec / 8:g} Clips à 8 s ({sec} s) × {p['veo_sec_4k_fast']:.2f} $/s = {sec * p['veo_sec_4k_fast']:.2f} $")
+    usd = total_usd()
+    rows.append(f"Summe: {usd:.2f} $ ≈ {usd_to_eur(usd):.2f} €" + (f" (Grenze {_limit_eur:.2f} €)" if _limit_eur else ""))
+    return rows
 
 
 def budget_hint(usd: float) -> str:

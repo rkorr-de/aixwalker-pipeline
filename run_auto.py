@@ -113,7 +113,7 @@ def main() -> int:
     # 3) Kosten-Obergrenze (kein Mensch zum Freigeben → harte Grenze)
     est = costs.estimate(concept)
     lf = config.LINE_FORMAT.get(concept["genre"])
-    limit = float(lf["budget_usd"]) if lf else float(os.environ.get("BUDGET_MAX_USD", config.BUDGET_MAX_USD))
+    limit = config.RUN_BUDGET_EUR / config.USD_EUR_RATE if lf else float(os.environ.get("BUDGET_MAX_USD", config.BUDGET_MAX_USD))
     log(f"Kostenvoranschlag {est['usd']:.2f} $ ≈ {est['eur']:.2f} € (Obergrenze {limit:.2f} $)")
     if est["usd"] > limit and not args.dry_run:
         log("ABBRUCH: Voranschlag über BUDGET_MAX_USD")
@@ -136,6 +136,9 @@ def main() -> int:
         rc = subprocess.call(cmd, cwd=config.ROOT)
         if rc == 0:
             break
+        if rc == 4:   # run_cabin.ABORT_CODE: Kostengrenze/zu wenige gültige Clips – Mail an Rolf ist raus, NICHT neu starten
+            log("ABBRUCH durch Kostengrenze bzw. fehlgeschlagene Clips – kein Neustart (Mail mit Clip-Links gesendet)")
+            return 4
         log(f"run_mix endete mit Code {rc}")
         time.sleep(30)
     else:

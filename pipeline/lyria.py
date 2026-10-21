@@ -73,6 +73,7 @@ def generate_track(prompt: str, out_path: Path, retries: int = 3, timeout: int =
     global _working_mode
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    costs.guard("lyria_track")
     modes = [_working_mode] if _working_mode else ["generateContent", "interactions"]
     last_err = None
     for attempt in range(retries):

@@ -74,6 +74,7 @@ def _veo_headers() -> dict:
 
 def generate_clip(frame: Image.Image, out: Path, prompt: str = LOOP_PROMPT, timeout_s: int = 1800) -> Path:
     """Ein 8-s-Clip in 4K; Start- und Endbild = `frame`."""
+    costs.guard("veo_sec_4k_fast", VEO_SEC)
     buf = io.BytesIO()
     frame.convert("RGB").save(buf, "JPEG", quality=95)
     img = {"bytesBase64Encoded": base64.b64encode(buf.getvalue()).decode(), "mimeType": "image/jpeg"}

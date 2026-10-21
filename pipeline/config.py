@@ -190,6 +190,7 @@ PRICES_USD = {
     "veo_sec_4k_fast": 0.30,  # Veo 3.1 Fast in 4K, je Sekunde Video (Kaminfilm-Loops der Winter-Cabin-Linie), Stand 09.10.2026
 }
 USD_EUR_RATE = 0.92
+RUN_BUDGET_EUR = 9.0         # harte Obergrenze je Winter-Cabin-Lauf in EURO, inkl. Neustarts (Rolf 21.10.2026); darüber Abbruch + Mail
 BUDGET_WARN_USD = 5.0        # Warnschwelle je Lauf (Umgebungsvariable BUDGET_WARN_USD überschreibt)
 BUDGET_MAX_USD = 9.0         # harte Obergrenze je automatischem Lauf: darüber bricht run_auto.py ab (BUDGET_MAX_USD)
 MEMORY_FOLDER = "_memory"    # Unterordner in „AIX WALKER Mixe“ mit memory.json (Gedächtnis des Planers)

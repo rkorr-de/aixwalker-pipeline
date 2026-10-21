@@ -83,6 +83,7 @@ def build_report(concept: dict, result: dict, estimate_usd: float | None = None)
         "",
         f"Kosten des Laufs: {result.get('cost_usd', 0):.2f} $ ≈ {eur if eur is not None else '-'} €"
         + (f" (Voranschlag {estimate_usd:.2f} $)" if estimate_usd else ""),
+        *[f"  - {ln}" for ln in (result.get("cost_breakdown") or [])],
         "",
         "## YouTube-Titel", result.get("title", ""),
         "", "## Beschreibung", desc,
@@ -103,6 +104,41 @@ def build_report(concept: dict, result: dict, estimate_usd: float | None = None)
           else ["- DistroKid-Release anlegen (Angaben oben)"]),
     ]
     return "\n".join(parts)
+
+
+def send_abort(info: dict) -> dict:
+    """Mail bei Abbruch (Kostengrenze / zu wenige gültige Clips): Grund, Kosten-Aufschlüsselung und ein Link je
+    abgelehntem Clip auf Drive (Rolf 21.10.2026), damit er sie nachträglich ansehen und die Prüfung beurteilen kann."""
+    lines = [f"# ABGEBROCHEN: {info['title']}", "", f"Grund: {info['reason']}", "",
+             "Der Lauf wurde gestoppt, damit nicht weiter Geld ausgegeben wird. Es wurde NICHTS veröffentlicht und nichts "
+             "automatisch neu gestartet. Bereits fertige Tracks und das Hauptbild bleiben für einen Neustart erhalten.", "",
+             "## Bisherige Kosten", *[f"- {ln}" for ln in info.get("cost_lines", [])], "",
+             f"## Abgelehnte Clips zur Sichtung ({len(info['clips'])})"]
+    if info.get("folder"):
+        lines.append(f"Drive-Ordner: {info['folder']}")
+    for c in info["clips"]:
+        lines += [f"- {c['name']} – Prüfergebnis: {c['grund']}", f"  {c['link'] or '(nicht auf Drive – ' + c['datei'] + ')'}"]
+    if not info["clips"]:
+        lines.append("(keine abgelehnten Clips vorhanden)")
+    if info.get("drive_error"):
+        lines += ["", f"Drive-Ablage fehlgeschlagen: {info['drive_error']}"]
+    text = "\n".join(lines)
+    svc = _service()
+    to = config.REPORT_EMAIL or svc.users().getProfile(userId="me").execute()["emailAddress"]
+    msg = EmailMessage()
+    msg["To"] = to
+    msg["From"] = "me"
+    msg["Subject"] = f"AIX WALKER ABGEBROCHEN: {info['title']} (Kostengrenze/Clips) – {len(info['clips'])} Clips zur Sichtung"
+    msg.set_content(text)
+    html = "<pre style='font-family:Manrope,Segoe UI,sans-serif;font-size:14px;white-space:pre-wrap'>" + \
+           text.replace("&", "&amp;").replace("<", "&lt;") + "</pre>"
+    for url in [info.get("folder"), *[c.get("link") for c in info["clips"]]]:
+        if url:
+            html = html.replace(url, f"<a href='{url}'>{url}</a>")
+    msg.add_alternative(html, subtype="html")
+    raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
+    r = svc.users().messages().send(userId="me", body={"raw": raw}).execute()
+    return {"sent": True, "to": to, "id": r.get("id")}
 
 
 def _attach_image(msg: EmailMessage, path: Path, max_side: int = 1400) -> None:

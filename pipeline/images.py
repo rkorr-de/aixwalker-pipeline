@@ -90,6 +90,7 @@ def generate_art(prompt: str, aspect: str = "1:1", pro: bool = False, timeout: i
     }
     if image_size and pro:   # hohe Auflösung fürs Hauptbild (Album-Cover 3000×3000 und Thumbnail aus einem Bild)
         body["generationConfig"]["imageConfig"]["imageSize"] = image_size
+    costs.guard(("image_pro_4k" if image_size == "4K" else "image_pro") if pro else "image_flash")
     last = None
     for attempt in range(3):
         try:

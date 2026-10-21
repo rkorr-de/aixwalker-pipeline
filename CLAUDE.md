@@ -53,3 +53,10 @@
   Ergebnis steht in `short_check.json` und `result.json` („short_check“). Ist `ok` am Ende nicht `true`, im Bericht an Rolf sagen. Rolfs eigene Bilder (`--main-image`) werden ebenfalls vermessen.
 - **Tokyo-Short: Dauerzeile oben** (Rolf 20.10.2026, ab dem nächsten Short): Im oberen Drittel steht über die GANZE Länge des Shorts (ohne Ein-/Ausblenden, nahtlose Schleife) der Text
   „Slow Jazz / for Deep Work & Coding“ (`SHORT_TOP_TEXT`, `short_top_layer()` in run_tokyo.py; Cinzel, Gold + Cremeweiß, weicher dunkler Verlauf, Mitte bei ca. 21 % der Höhe). Der Spruch bleibt in der Bildmitte.
+
+- **Winter-Cabin: Kostengrenze 9 €** (Rolf 21.10.2026): Der Lauf 21.10. (Winterwood Hideaway) kostete 39,60 $ statt 8,88 $ Voranschlag, fast nur durch
+  Veo-Clips (15 statt 2, je 2,40 $): drei Versuche je Clip, dazu Neustarts, bei denen abgelehnte Clips neu bezahlt wurden. Jetzt:
+  `config.RUN_BUDGET_EUR = 9.0` (inkl. Neustarts), `costs.guard()` vor jedem bezahlten Aufruf, abgelehnte Clips zählen bei Neustarts mit
+  (höchstens 3 Versuche je Clip). Bei Abbruch (Exit-Code 4) liegen ALLE abgelehnten Clips in Drive, die Mail enthält einen Link je Clip,
+  den Prüfgrund und die Kosten; NICHT neu starten. Die normale Mail zeigt die Kosten aufgeschlüsselt (Tracks, Bilder, Veo-Clips).
+  Mit 9 € ist neben den 2 Clips praktisch kein Ersatz-Clip drin (Tracks 3,36 $ + Bild 0,24 $ + 3 Clips 7,20 $ = 10,80 $ ≈ 9,94 €).

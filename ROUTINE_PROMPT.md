@@ -168,6 +168,12 @@ Eigene Linie, alles **echtes 4K**, kein DistroKid. **Seit 17.10.2026: kein Schne
 - **Am 1. um 07:45** – **`python run_cabin_compilation.py --period monthly`**: alle Freitags-Mixe des Vormonats
   (ca. 8–10 Std., max. 11:50 Std.), neues Bild + neuer Film aus 2 Clips, Upload ca. 1 Std.
 - Bei Abbruch denselben Befehl erneut starten (fertige Tracks, Hauptbild und geprüfte Clips werden wiederverwendet).
+- **Kostengrenze 9 € (Rolf 21.10.2026):** `config.RUN_BUDGET_EUR` gilt je Cabin-Lauf INKLUSIVE Neustarts (das Ledger `costs.json` wird
+  fortgeführt). Vor jedem bezahlten Aufruf (Lyria, Bild, Veo-Clip) prüft `costs.guard()`; würde die Grenze überschritten, oder fehlen
+  gültige Clips, endet `run_cabin.py` mit **Exit-Code 4**: alle abgelehnten Clips liegen in Drive („<Datum> – <Album> – ABGEBROCHEN
+  (Clips zur Prüfung)“), die Mail „AIX WALKER ABGEBROCHEN“ mit einem Link je Clip ist schon raus. Bei Exit-Code 4 **NICHT neu
+  starten** (auch nicht ein zweites Mal), nichts veröffentlichen, nur kurz an Rolf berichten (Grund, Kosten, Mail-Hinweis).
+  Je Clip höchstens 3 Versuche über alle Neustarts (abgelehnte Dateien `<Name>_abgelehnt_<k>.mp4` + `.json` zählen mit).
   Mit 2 Clips gibt es keine Reserve: ein durchgefallener Clip wird bis zu zweimal neu erzeugt; bleibt danach nur 1 Clip, bricht der Lauf ab (Fehler nennen).
 - Nicht umbauen: Endbild-Vorgabe für Veo (ohne fährt die Kamera), Überblendung an den Nähten, `mbtree=0`, Streaming-Upload.
 
