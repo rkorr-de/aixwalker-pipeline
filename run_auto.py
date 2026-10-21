@@ -64,6 +64,8 @@ def main() -> int:
     ap.add_argument("--long", action="store_true", help="Lang-Format (Sleep/Spa, ≥ LONG_MIN_MINUTES) statt Standard-Mix")
     ap.add_argument("--no-email", action="store_true")
     ap.add_argument("--no-upload", action="store_true")
+    ap.add_argument("--clip", nargs="+", default=None,
+                    help="eigene Kaminfilm-Clip-Datei(en) (z. B. mit Gemini erzeugt) statt Veo – nur Winter-Cabin, nach einem Kostenabbruch")
     ap.add_argument("--seed", type=int, default=None, help="Zufall für die Planung festlegen (Tests)")
     args = ap.parse_args()
     if args.long and args.genre in planner.ROTATION_EXCLUDE:
@@ -122,6 +124,8 @@ def main() -> int:
     # 4) Produktion (Unterprozess, damit Neustart/Resume sauber funktioniert); ein automatischer Neuversuch
     runner = "run_cabin.py" if lf else "run_mix.py"   # Winter-Cabin: 4K-Kaminfilm statt Standbild-Video
     cmd = [sys.executable, str(config.ROOT / runner), str(concept_path), "--out", str(out)]
+    if args.clip and runner == "run_cabin.py":
+        cmd += ["--clip", *args.clip]
     if args.dry_run:
         cmd.append("--dry-run")
     else:

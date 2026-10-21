@@ -152,26 +152,62 @@ def make_clips(frame: Image.Image, out: Path, n: int, dry: bool) -> list[Path]:
         clips = [c for c in ex.map(one, names) if c]
     if len(clips) < 2:
         msg = f"nur {len(clips)} gültige Kaminfilm-Clips – mindestens 2 nötig"
-        costs.trip(msg)   # Musik-Thread stoppt beim nächsten bezahlten Aufruf
         raise ClipsFailed(msg)
     return clips
 
 
-def abort_report(out: Path, title: str, reason: str, drive: bool, dry: bool = False) -> dict:
-    """Lauf wurde abgebrochen (Kostengrenze oder zu wenige gültige Clips): ALLE abgelehnten Clips auf Drive legen und
-    per Mail an Rolf melden – mit Link zu jedem einzelnen Clip, Prüfergrund und Kosten-Aufschlüsselung (Rolf 21.10.2026)."""
+def import_clips(paths: list[str], out: Path) -> list[Path]:
+    """Rolfs eigene Clips (z. B. mit Gemini/Veo erzeugt) statt Veo-Aufrufen verwenden: auf 3840×2160, 24 fps, gleiche Länge
+    bringen und als clips/A.mp4, B.mp4 … ablegen. Ein einzelner Clip wird als A und B (Kopie) verwendet. Die Prüfung läuft nur
+    zur Information (Rolf hat den Clip selbst gesehen und freigegeben). Kein Veo-Aufruf, keine Kosten."""
+    d = out / "clips"
+    d.mkdir(parents=True, exist_ok=True)
+    src = [Path(p) for p in paths]
+    secs = min(float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(p)],
+                                    capture_output=True, text=True).stdout.strip() or 8) for p in src)
+    secs = min(secs, float(loopvideo.VEO_SEC) + 2)
+    res = []
+    for i, p in enumerate(src if len(src) > 1 else src * 2):
+        dst = d / f"{'ABCDEFGH'[i]}.mp4"
+        if len(src) == 1 and i == 1:
+            dst.write_bytes(res[0].read_bytes())
+        else:
+            subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(p), "-t", f"{secs:.3f}", "-an", "-r", str(loopvideo.FPS),
+                            "-vf", f"scale={loopvideo.W}:{loopvideo.H}:force_original_aspect_ratio=increase:flags=lanczos,"
+                                   f"crop={loopvideo.W}:{loopvideo.H}", "-c:v", "libx264", "-crf", "14", "-preset", "medium",
+                            "-pix_fmt", "yuv420p", str(dst)], check=True)
+        res.append(dst)
+        qc = loopvideo.check_clip(dst)
+        log(f"Eigener Clip {dst.name} ({p.name}): {json.dumps(qc)}")
+    return res
+
+
+def abort_report(out: Path, title: str, reason: str, drive: bool, dry: bool = False, concept_file: str | None = None) -> dict:
+    """Lauf wurde abgebrochen (Kostengrenze oder zu wenige gültige Clips): auf Drive legen, was zum Weitermachen nötig ist –
+    ALLE abgelehnten Clips, das Hauptbild, die fertigen Tracks, das Konzept und das Veo-Prompt als Textdatei – und per Mail an
+    Rolf melden: Link zu jedem einzelnen Clip, Prüfgrund, Kosten und das EXAKTE Video-Prompt, damit er den Clip selbst mit seinem
+    Gemini-Pro-Konto erzeugen kann (Rolf 21.10.2026). Den fertigen Clip schickt er in den Chat; dann baut Claude den Film
+    (`restore_cabin_abort.py`, danach `run_auto.py --concept … --clip …`)."""
     rejected = sorted((out / "clips").glob("*_abgelehnt_*.mp4"))
-    info = {"title": title, "reason": reason, "cost_lines": costs.breakdown(), "clips": [], "folder": None}
+    tracks = sorted((out / "raw").glob("*.mp3"))
+    frame_png, frame_jpg = out / "img" / "frame_4k.png", out / "img" / "master.jpg"
+    prompt_txt = out / "veo_prompt.txt"
+    prompt_txt.write_text(veo_prompt_text(), encoding="utf-8")
+    info = {"title": title, "reason": reason, "cost_lines": costs.breakdown(), "clips": [], "folder": None,
+            "tracks_done": len(tracks), "veo_prompt": loopvideo.LOOP_PROMPT, "veo_negative": loopvideo.LOOP_NEGATIVE,
+            "frame_link": None, "slug": out.name}
     links: dict = {}
-    if drive and rejected:
+    if drive:
         try:
             from pipeline import drive as drv
-            links = drv.upload_mix_package(f"{date.today().isoformat()} – {title} – ABGEBROCHEN (Clips zur Prüfung)", [],
-                                           {"clips_abgelehnt": rejected})
+            files = [f for f in (frame_png, frame_jpg, prompt_txt, Path(concept_file) if concept_file else None) if f and f.exists()]
+            links = drv.upload_mix_package(f"{date.today().isoformat()} – {title} – ABGEBROCHEN (Clips zur Prüfung)", files,
+                                           {"clips_abgelehnt": rejected, "tracks": tracks})
             info["folder"] = links.get("_folder")
+            info["frame_link"] = links.get(frame_png.name) or links.get(frame_jpg.name)
         except Exception as e:  # noqa: BLE001
             info["drive_error"] = str(e)[:300]
-            log(f"Drive-Ablage der abgelehnten Clips fehlgeschlagen: {e}")
+            log(f"Drive-Ablage fehlgeschlagen: {e}")
     for f in rejected:
         side = f.with_suffix(".json")
         qc = json.loads(side.read_text(encoding="utf-8")).get("pruefung", {}) if side.exists() else {}
@@ -187,6 +223,13 @@ def abort_report(out: Path, title: str, reason: str, drive: bool, dry: bool = Fa
             info["mail_error"] = str(e)[:300]
             log(f"Abbruch-Mail nicht gesendet: {e}")
     return info
+
+
+def veo_prompt_text() -> str:
+    return ("VIDEO-PROMPT (Veo, exakt so verwenden)\n" + loopvideo.LOOP_PROMPT +
+            "\n\nNEGATIV-PROMPT (falls das Werkzeug ein Feld dafür hat; sonst weglassen)\n" + loopvideo.LOOP_NEGATIVE +
+            "\n\nEINSTELLUNGEN: Startbild = Hauptbild (frame_4k.png), Endbild = dasselbe Bild (falls möglich), Format 16:9, "
+            "Länge 8 Sekunden, höchste Auflösung, ohne Kamerabewegung, ohne Musik.\n")
 
 
 def short_center(frame: Image.Image, k: int) -> float:
@@ -249,6 +292,8 @@ def main() -> int:
     ap.add_argument("--drive", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--workers", type=int, default=3, help="gleichzeitige Lyria-Aufrufe")
+    ap.add_argument("--clip", nargs="+", default=None,
+                    help="eigene Kaminfilm-Clip-Datei(en) (z. B. mit Gemini erzeugt) statt Veo; spart die Clip-Kosten")
     args = ap.parse_args()
     concept = json.loads(Path(args.concept).read_text(encoding="utf-8"))
     out = Path(args.out or f"build/{concept['slug']}")
@@ -263,15 +308,21 @@ def main() -> int:
 
     # 1) Bild + Clips parallel zur Musik starten (Veo braucht ca. 6 Min je Clip)
     try:
+        frame_png = out / "img" / "frame_4k.png"
+        if args.clip and not frame_png.exists():   # kein Hauptbild vorhanden: erstes Bild von Rolfs Clip nehmen (kein neues Bild bezahlen)
+            frame_png.parent.mkdir(parents=True, exist_ok=True)
+            subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", args.clip[0], "-frames:v", "1", "-vf",
+                            f"scale={loopvideo.W}:{loopvideo.H}:flags=lanczos", str(frame_png)], check=True)
         frame = master_frame(concept, out, args.dry_run)
         log(f"Hauptbild {frame.size[0]}×{frame.size[1]}")
         with ThreadPoolExecutor(max_workers=1) as bg:
-            clips_future = bg.submit(make_clips, frame, out, fmt["veo_clips"], args.dry_run)
+            clips_future = bg.submit(import_clips, args.clip, out) if args.clip else \
+                bg.submit(make_clips, frame, out, fmt["veo_clips"], args.dry_run)
             tracks, wavs = make_music(concept, out, args.dry_run, fmt, args.workers)
             clips = clips_future.result()
     except (costs.BudgetExceeded, ClipsFailed) as e:
         log(f"ABBRUCH: {e}")
-        abort_report(out, album, str(e), args.drive, args.dry_run)
+        abort_report(out, album, str(e), args.drive, args.dry_run, args.concept)
         return ABORT_CODE
     log(f"{len(tracks)} Tracks, {len(clips)} Kaminfilm-Clips: {[c.name for c in clips]}")
 

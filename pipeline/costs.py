@@ -13,7 +13,6 @@ from . import config
 
 _lock = threading.Lock()
 _limit_eur: float | None = None   # Obergrenze je Lauf (inkl. Neustarts, weil das Ledger fortgeführt wird)
-_tripped: str = ""                # gesetzt, sobald die Grenze erreicht ist oder ein Lauf abgebrochen wird
 _ledger_path: Path | None = None
 _ledger: dict = {"lyria_tracks": 0, "lyria_retries": 0, "image_flash": 0, "image_pro": 0, "image_pro_4k": 0, "image_failed": 0}
 
@@ -25,10 +24,9 @@ class BudgetExceeded(RuntimeError):
 def start(ledger_path: Path, limit_eur: float | None = None) -> None:
     """Ledger-Datei setzen; vorhandene Zählung (Neustart nach Abbruch) wird fortgeführt.
     `limit_eur`: harte Obergrenze für diesen Lauf; `guard()` bricht vor jedem bezahlten Aufruf ab, der sie überschreiten würde."""
-    global _ledger_path, _ledger, _limit_eur, _tripped
+    global _ledger_path, _ledger, _limit_eur
     _ledger_path = ledger_path
     _limit_eur = limit_eur
-    _tripped = ""
     if ledger_path.exists():
         try:
             _ledger.update(json.loads(ledger_path.read_text()))
@@ -44,30 +42,18 @@ def _save() -> None:
 
 
 def guard(key: str, n: int = 1) -> None:
-    """Vor jedem bezahlten Aufruf: Würde `n` × Preis von `key` die Grenze überschreiten (oder ist der Lauf schon
-    abgebrochen), BudgetExceeded auslösen. Ohne Grenze (limit_eur=None) wirkungslos."""
+    """Vor jedem bezahlten Aufruf: Würde `n` × Preis von `key` die Grenze überschreiten, BudgetExceeded auslösen.
+    Jeder Aufruf rechnet für sich: ein zu teurer Veo-Clip sperrt nicht die (günstigeren) Lyria-Tracks, die noch in die Grenze
+    passen – so wird die Musik auch bei Clip-Abbruch fertig (Rolf 21.10.2026: Clip dann selbst mit Gemini erzeugen).
+    Ohne Grenze (limit_eur=None) wirkungslos."""
     if _limit_eur is None:
         return
     with _lock:
-        if _tripped:
-            raise BudgetExceeded(_tripped)
         price = n * config.PRICES_USD[key]
         after_eur = (total_usd() + price) * float(os.environ.get("USD_EUR_RATE", config.USD_EUR_RATE))
         if after_eur > _limit_eur + 1e-9:
-            _trip(f"Kostengrenze {_limit_eur:.2f} € erreicht: bisher {usd_to_eur(total_usd()):.2f} €, "
-                  f"der nächste Aufruf ({key}, {price:.2f} $) würde auf {after_eur:.2f} € steigen")
-            raise BudgetExceeded(_tripped)
-
-
-def _trip(reason: str) -> None:
-    global _tripped
-    _tripped = _tripped or reason
-
-
-def trip(reason: str) -> None:
-    """Lauf als abgebrochen markieren: alle weiteren guard()-Aufrufe (auch in anderen Threads) lösen aus."""
-    with _lock:
-        _trip(reason)
+            raise BudgetExceeded(f"Kostengrenze {_limit_eur:.2f} € erreicht: bisher {usd_to_eur(total_usd()):.2f} €, "
+                                 f"der nächste Aufruf ({key}, {price:.2f} $) würde auf {after_eur:.2f} € steigen")
 
 
 def count(key: str, n: int = 1) -> None:

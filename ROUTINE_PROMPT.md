@@ -174,6 +174,11 @@ Eigene Linie, alles **echtes 4K**, kein DistroKid. **Seit 17.10.2026: kein Schne
   (Clips zur Prüfung)“), die Mail „AIX WALKER ABGEBROCHEN“ mit einem Link je Clip ist schon raus. Bei Exit-Code 4 **NICHT neu
   starten** (auch nicht ein zweites Mal), nichts veröffentlichen, nur kurz an Rolf berichten (Grund, Kosten, Mail-Hinweis).
   Je Clip höchstens 3 Versuche über alle Neustarts (abgelehnte Dateien `<Name>_abgelehnt_<k>.mp4` + `.json` zählen mit).
+
+  **Clip selbst erzeugen (Rolf 21.10.2026):** Bei Abbruch läuft die Musik fertig (die Grenze sperrt nur den zu teuren Clip, nicht die Tracks). Auf Drive im
+  Abbruch-Ordner liegen: abgelehnte Clips, Hauptbild (`frame_4k.png`, `master.jpg`), alle Tracks (`tracks/`), Konzept und `veo_prompt.txt`; die Mail enthält das EXAKTE Video-Prompt
+  (`loopvideo.LOOP_PROMPT`) mit Anleitung. Rolf erzeugt den Clip mit seinem Gemini-Pro-Konto und lädt ihn im Chat hoch. Dann: `python restore_cabin_abort.py <slug> <Drive-Ordner-ID>`
+  (holt Konzept, Tracks, Hauptbild), danach `python run_auto.py --concept concepts/<slug>.json --clip <Clip.mp4>` (Clip wird auf 4K/24 fps gebracht, 1 Clip = A+B; keine Veo-Kosten, keine neuen Tracks).
   Mit 2 Clips gibt es keine Reserve: ein durchgefallener Clip wird bis zu zweimal neu erzeugt; bleibt danach nur 1 Clip, bricht der Lauf ab (Fehler nennen).
 - Nicht umbauen: Endbild-Vorgabe für Veo (ohne fährt die Kamera), Überblendung an den Nähten, `mbtree=0`, Streaming-Upload.
 

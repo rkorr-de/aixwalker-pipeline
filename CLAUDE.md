@@ -60,3 +60,8 @@
   (höchstens 3 Versuche je Clip). Bei Abbruch (Exit-Code 4) liegen ALLE abgelehnten Clips in Drive, die Mail enthält einen Link je Clip,
   den Prüfgrund und die Kosten; NICHT neu starten. Die normale Mail zeigt die Kosten aufgeschlüsselt (Tracks, Bilder, Veo-Clips).
   Mit 9 € ist neben den 2 Clips praktisch kein Ersatz-Clip drin (Tracks 3,36 $ + Bild 0,24 $ + 3 Clips 7,20 $ = 10,80 $ ≈ 9,94 €).
+
+  **Clip selbst erzeugen (Rolf 21.10.2026):** Bei Abbruch läuft die Musik fertig (die Grenze sperrt nur den zu teuren Clip, nicht die Tracks). Auf Drive im
+  Abbruch-Ordner liegen: abgelehnte Clips, Hauptbild (`frame_4k.png`, `master.jpg`), alle Tracks (`tracks/`), Konzept und `veo_prompt.txt`; die Mail enthält das EXAKTE Video-Prompt
+  (`loopvideo.LOOP_PROMPT`) mit Anleitung. Rolf erzeugt den Clip mit seinem Gemini-Pro-Konto und lädt ihn im Chat hoch. Dann: `python restore_cabin_abort.py <slug> <Drive-Ordner-ID>`
+  (holt Konzept, Tracks, Hauptbild), danach `python run_auto.py --concept concepts/<slug>.json --clip <Clip.mp4>` (Clip wird auf 4K/24 fps gebracht, 1 Clip = A+B; keine Veo-Kosten, keine neuen Tracks).

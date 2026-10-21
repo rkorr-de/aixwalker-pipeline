@@ -107,32 +107,48 @@ def build_report(concept: dict, result: dict, estimate_usd: float | None = None)
 
 
 def send_abort(info: dict) -> dict:
-    """Mail bei Abbruch (Kostengrenze / zu wenige gültige Clips): Grund, Kosten-Aufschlüsselung und ein Link je
-    abgelehntem Clip auf Drive (Rolf 21.10.2026), damit er sie nachträglich ansehen und die Prüfung beurteilen kann."""
+    """Mail bei Abbruch (Kostengrenze / zu wenige gültige Clips): Grund, Kosten-Aufschlüsselung, ein Link je abgelehntem Clip
+    auf Drive UND das exakte Video-Prompt samt Anleitung, damit Rolf den Clip selbst mit seinem Gemini-Pro-Konto erzeugen kann
+    (Rolf 21.10.2026). Den fertigen Clip schickt er in den Chat, Claude baut daraus mit den Tracks den ganzen Film."""
     lines = [f"# ABGEBROCHEN: {info['title']}", "", f"Grund: {info['reason']}", "",
-             "Der Lauf wurde gestoppt, damit nicht weiter Geld ausgegeben wird. Es wurde NICHTS veröffentlicht und nichts "
-             "automatisch neu gestartet. Bereits fertige Tracks und das Hauptbild bleiben für einen Neustart erhalten.", "",
+             "Der Lauf wurde gestoppt, damit nicht mehr als die Kostengrenze ausgegeben wird. Es wurde NICHTS veröffentlicht "
+             "und nichts automatisch neu gestartet.", "",
+             "## So geht es weiter (dein Teil: nur der Clip)",
+             "1. Öffne den Drive-Ordner unten und lade das Hauptbild herunter (frame_4k.png bzw. master.jpg).",
+             "2. Öffne Gemini (dein Pro-Konto), wähle die Video-Erstellung (Veo), lade das Hauptbild als Startbild hoch "
+             "(falls es ein Feld für ein Endbild gibt: dasselbe Bild) und füge das Video-Prompt unten EXAKT ein. Länge 8 Sekunden, "
+             "Format 16:9, höchste Qualität.",
+             "3. Lade den fertigen Clip hier im Chat mit Claude hoch und schreibe z. B. „Cabin-Clip für " + info["title"] + "“. "
+             "Claude baut dann aus deinem Clip und den fertigen Tracks den kompletten Film (ohne neue Veo-Kosten).",
+             "(Das Prompt steht auch als Datei veo_prompt.txt im Drive-Ordner.)", "",
+             "## VIDEO-PROMPT (exakt so verwenden)", info.get("veo_prompt", ""), "",
+             "## NEGATIV-PROMPT (nur falls das Werkzeug ein Feld dafür hat, sonst weglassen)", info.get("veo_negative", ""), "",
+             f"## Fertige Musik: {info.get('tracks_done', 0)} Tracks liegen auf Drive (Unterordner „tracks“)", "",
              "## Bisherige Kosten", *[f"- {ln}" for ln in info.get("cost_lines", [])], "",
              f"## Abgelehnte Clips zur Sichtung ({len(info['clips'])})"]
     if info.get("folder"):
-        lines.append(f"Drive-Ordner: {info['folder']}")
+        lines.append(f"Drive-Ordner (Hauptbild, Tracks, Konzept, abgelehnte Clips): {info['folder']}")
+    if info.get("frame_link"):
+        lines.append(f"Hauptbild: {info['frame_link']}")
     for c in info["clips"]:
         lines += [f"- {c['name']} – Prüfergebnis: {c['grund']}", f"  {c['link'] or '(nicht auf Drive – ' + c['datei'] + ')'}"]
     if not info["clips"]:
         lines.append("(keine abgelehnten Clips vorhanden)")
     if info.get("drive_error"):
-        lines += ["", f"Drive-Ablage fehlgeschlagen: {info['drive_error']}"]
+        lines += ["", f"ACHTUNG – Drive-Ablage fehlgeschlagen: {info['drive_error']}"]
+    lines += ["", "## Für Claude (Weiterbauen)", f"python restore_cabin_abort.py {info.get('slug')} <Drive-Ordner-ID>  →  "
+              f"python run_auto.py --concept concepts/{info.get('slug')}.json --clip <Clip.mp4>"]
     text = "\n".join(lines)
     svc = _service()
     to = config.REPORT_EMAIL or svc.users().getProfile(userId="me").execute()["emailAddress"]
     msg = EmailMessage()
     msg["To"] = to
     msg["From"] = "me"
-    msg["Subject"] = f"AIX WALKER ABGEBROCHEN: {info['title']} (Kostengrenze/Clips) – {len(info['clips'])} Clips zur Sichtung"
+    msg["Subject"] = f"AIX WALKER ABGEBROCHEN: {info['title']} – Clip bitte selbst erzeugen (Prompt in der Mail)"
     msg.set_content(text)
     html = "<pre style='font-family:Manrope,Segoe UI,sans-serif;font-size:14px;white-space:pre-wrap'>" + \
            text.replace("&", "&amp;").replace("<", "&lt;") + "</pre>"
-    for url in [info.get("folder"), *[c.get("link") for c in info["clips"]]]:
+    for url in [info.get("folder"), info.get("frame_link"), *[c.get("link") for c in info["clips"]]]:
         if url:
             html = html.replace(url, f"<a href='{url}'>{url}</a>")
     msg.add_alternative(html, subtype="html")
