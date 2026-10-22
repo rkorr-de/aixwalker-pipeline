@@ -73,6 +73,18 @@ PCS = {   # Rolf 22.10.2026: Computergehäuse am Arbeitsplatz (kein sichtbarer M
     "alu": ("a heavy premium PC case (InWin 905 / Lian Li style) of dark brushed aluminium with tinted glass, harmonising with the microcement floor and dark steel elements, "
             "standing beside the desk, with at most a faint warm amber glow inside, no RGB lighting"),
 }
+PERSON_AT_DESK = {   # Rolf 22.10.2026: Person arbeitet nachts am Schreibtisch, Blick über die Schulter von schräg hinten
+    "woman": ("A candid, cinematic, photorealistic natural shot of the coder, a confident Japanese woman in her early 30s, working deep at night at the desk, seen over the shoulder from slightly behind "
+              "so that her face is not visible. She sits ergonomically but casually in the office chair, slightly angled toward the long walnut designer desk. Her dark hair is up in a loose messy low bun "
+              "with wispy strands at the neck. She wears a relaxed, cozy nocturnal outfit of cool Tokyo streetwear: an oversized off-the-shoulder ribbed-knit cardigan in dark charcoal slipping off one shoulder "
+              "over a fine deep-green silk camisole, and fluid wide-leg dark linen trousers; her bare feet are casually tucked up onto the seat of the chair. Her posture is natural and completely absorbed "
+              "in her task, an authentic late-night coding mood without any posing. "),
+    "man": ("A candid, cinematic, photorealistic natural shot of the coder, a stylish, authentic Japanese man in his mid-30s, working deep at night at the desk, seen over the shoulder from slightly behind "
+            "so that his face is not visible (only the back of his head and the temple of dark round acetate glasses). He sits ergonomically in the office chair, leaning in slightly toward the long walnut designer desk "
+            "as he types. Relaxed, textured Japanese two-block haircut in natural black, slightly tousled. He wears a loose heavy-weight black knit pullover over a slightly oversized dark grey undershirt, "
+            "sleeves pushed back to the forearms, loose dark charcoal or indigo raw canvas trousers and dark soft felt slippers, and a dark rugged utility watch on a NATO strap. His whole look is understated, "
+            "modern and typical of Tokyo's creative technology scene, deeply attentive to the night's work. "),
+}
 HEADPHONES = "a pair of open-back hi-fi headphones (Sennheiser HD 800 S) on a slim stand next to a small Schiit Audio headphone amplifier on the desk"
 DECO = {
     "designer_toy": "a large glossy art-toy vinyl figure of an original design (a stylised bear-like collectible, about 70 cm tall) standing on a dark plinth",
@@ -114,7 +126,7 @@ def _hist(history: list[dict], key: str) -> list:
 
 
 def choose(history: list[dict], seed: str, desk_pos: str = "auto", chair: str = "auto", sofa: str = "auto",
-           art: str = "auto") -> dict:
+           art: str = "auto", person_place: str = "auto", gender: str = "woman") -> dict:
     """Wählt die Variation für den neuen Raum. `history`: Gedächtnis-Einträge „tokyo“ (alt→neu). Ein Wert ≠ „auto“ gilt fest
     (art: „ink“, „other“ oder ein Schlüssel aus INK_ART/OTHER_ART)."""
     rnd = random.Random(seed)
@@ -161,8 +173,12 @@ def choose(history: list[dict], seed: str, desk_pos: str = "auto", chair: str = 
     purifier = balanced(tuple(PURIFIER), "purifier")
     accent = balanced(tuple(ACCENT_WALL), "accent_wall")
     console = balanced(tuple(CONSOLE), "console")
+    if person_place in ("desk", "window"):
+        at_desk = person_place == "desk"
+    else:   # etwa 40 %, nie dreimal hintereinander
+        at_desk = sub("at_desk").random() < 0.4 and _hist(history, "at_desk")[-2:] != [True, True]
     pc = balanced(tuple(PCS), "pc")
-    extras = {"pc": pc, "kb": kb, "audio": audio, "deco": deco, "purifier": purifier, "accent_wall": accent, "console": console,
+    extras = {"at_desk": bool(at_desk), "gender": gender, "pc": pc, "kb": kb, "audio": audio, "deco": deco, "purifier": purifier, "accent_wall": accent, "console": console,
               "rack": sub("rack").random() < 0.7, "robot": sub("robot").random() < 0.6, "cyan": sub("cyan").random() < 0.7}
     return {**extras, "desk_pos": pos, "chair": ch, "chair_pose": pose, "sofa_material": material, "sofa_color": color,
             "art_key": art_key, "ink": art_key in INK_ART}
@@ -171,10 +187,15 @@ def choose(history: list[dict], seed: str, desk_pos: str = "auto", chair: str = 
 def apply(var: dict, side: str, base) -> dict:
     """Setzt die Variation in die Bausteine von genre_test_tokyo_rooms_v3 (`base`) ein. Liefert {"desk", "cozy", "style", "art"}."""
     import genre_test_tokyo_lounge_v2 as v
-    chair = (f"at the desk stands {CHAIR_COLORS[var['chair']]}, {CHAIR_POSES[var['chair_pose']]}")
+    if var.get("at_desk"):
+        chair = f"at the desk, in use by the person, is {CHAIR_COLORS[var['chair']]}"
+    else:
+        chair = (f"at the desk stands {CHAIR_COLORS[var['chair']]}, {CHAIR_POSES[var['chair_pose']]}")
     desk = base.DESK.format(side=side)
     assert v.CHAIR in desk, "DESK enthält die Stuhl-Beschreibung nicht mehr"
     desk = desk.replace(v.CHAIR, chair)
+    if var.get("at_desk"):
+        desk = desk.replace("the desk looks as if its user has just stepped away: ", "the desk is in active use at night: ")
     # der Satz nach der Stuhl-Beschreibung im Original (", pushed back a little and slightly turned away from the desk. ") entfällt
     desk = desk.replace(", pushed back a little and slightly turned away from the desk. ", ". ")
     if var["desk_pos"] == "back":
@@ -216,6 +237,13 @@ def apply(var: dict, side: str, base) -> dict:
         style = style.replace("without separate rooms or dividing walls,", "without separate rooms (only one open, see-through slatted wood divider),")
     style = style.rstrip() + " " + NIGHT.strip()
     cap = lambda t: t[:1].upper() + t[1:]
+    style = style.replace("Photorealistic architectural interior photograph", "Cinematic, photorealistic architectural interior photograph")
+    person = None
+    if var.get("at_desk"):
+        person = PERSON_AT_DESK[var.get("gender", "woman")]
+        old = "the person in the background is very strongly out of focus (heavy bokeh blur, only a soft silhouette) and not recognizable in detail"
+        assert old in style
+        style = style.replace(old, "the person at the desk is seen from behind over the shoulder, the face is not visible and not recognizable")
     ex = SHELL + cap(ACCENT_WALL.get(var.get("accent_wall"), ACCENT_WALL["shikkui"])) + ". " + cap(CONSOLE.get(var.get("console"), CONSOLE["bonsai"])) + ". "
     ex += ("Far from the camera, in the background: " + DECO.get(var.get("deco"), DECO["designer_toy"]) + ". ")
     ex += cap(PURIFIER.get(var.get("purifier"), PURIFIER["dyson"])) + ". "
@@ -225,7 +253,7 @@ def apply(var: dict, side: str, base) -> dict:
         ex += ROBOT
     if var.get("cyan"):
         ex += CYAN
-    return {"desk": desk, "cozy": cozy, "style": style, "art": art + ex + NIGHT}
+    return {"desk": desk, "cozy": cozy, "style": style, "art": art + ex + NIGHT, "person": person}
 
 
 def check_text(var: dict) -> str:

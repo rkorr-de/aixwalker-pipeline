@@ -305,7 +305,8 @@ def make_new_room(slug: str, scene_file: str, side: str, person: str, out: Path,
     if day:
         raise SystemExit(f"Der Szenentext nennt „{day.group(0)}“ – es muss eine reine Nachtszene sein (kein Tageslicht, keine Dämmerung). Bitte Szenentext ändern.")
     ch = choice or {}
-    var = tv.choose(tokyo_history(), slug, ch.get("desk_pos", "auto"), ch.get("chair", "auto"), ch.get("sofa", "auto"), ch.get("art", "auto"))
+    var = tv.choose(tokyo_history(), slug, ch.get("desk_pos", "auto"), ch.get("chair", "auto"), ch.get("sofa", "auto"), ch.get("art", "auto"),
+                    ch.get("person_place", "auto"), person)
     LAST_VARIATION.clear()
     LAST_VARIATION.update(var)
     log(f"Raum-Variation: {var}")
@@ -315,7 +316,7 @@ def make_new_room(slug: str, scene_file: str, side: str, person: str, out: Path,
         log("Szenentext: Sätze über Sofa/Schreibtisch/Stuhl/Wandbild entfernt (die Variation legt sie fest)")
         scene = " ".join(keep)
     parts = tv.apply(var, side, r)
-    prompt = r.INTRO + parts["desk"] + parts["cozy"] + r.PERSON[person] + FIGURINE + parts["art"] + scene
+    prompt = r.INTRO + parts["desk"] + parts["cozy"] + (parts.get("person") or r.PERSON[person]) + FIGURINE + parts["art"] + scene
     for i in range(1, max_tries + 1):
         art = images.generate_art(prompt, "16:9", pro=True, style=parts["style"], image_size="4K").convert("RGB")
         if art.size[0] < 2500:
@@ -822,6 +823,7 @@ def main() -> int:
     ap.add_argument("--desk-side", default="right", choices=["left", "right"], help="Seite des Schreibtischs im neuen Raum (abwechseln)")
     ap.add_argument("--desk-pos", default="auto", choices=["auto", "front", "back"], help="Schreibtisch vorn oder im hinteren Teil der Wohnung (auto = abwechselnd, automatisch)")
     ap.add_argument("--chair", default="auto", choices=["auto", "cognac", "black", "eames", "aeron"], help="Bürostuhl: eames (cognac) oder aeron (schwarz, Onyx Black); auto = wechselnd")
+    ap.add_argument("--person-place", default="auto", choices=["auto", "window", "desk"], help="Person: am Fenster (unscharf) oder arbeitend am Schreibtisch (Blick über die Schulter)")
     ap.add_argument("--sofa", default="auto", choices=["auto", "fabric", "leather"], help="Couch: Stoff oder Leder (auto = automatisch wechselnd)")
     ap.add_argument("--art", default="auto", help="Wandbild: auto | ink (schwarz-weißes japanisches Tuschebild) | other | Schlüssel aus concepts/tokyo_variation.py")
     ap.add_argument("--person", default="woman", choices=["woman", "man"], help="unscharfe Person am Fenster im neuen Raum (abwechseln)")
@@ -885,7 +887,7 @@ def main() -> int:
         if not args.scene_file:
             raise SystemExit("--new-room braucht --scene-file")
         art_new, new_desk_x, new_person_x = make_new_room(args.room, args.scene_file, args.desk_side, args.person, out,
-                                                          choice={"desk_pos": args.desk_pos, "chair": args.chair, "sofa": args.sofa, "art": args.art})
+                                                          choice={"desk_pos": args.desk_pos, "chair": args.chair, "sofa": args.sofa, "art": args.art, "person_place": args.person_place})
         if art_new is None:
             log("NEUER RAUM: kein Bild hat nach 3 Versuchen alle Kriterien erfüllt – Abbruch vor der Musik (kein Geld für Musik ausgegeben). "
                 "Mit vorhandenem Raum (--room shinjuku-sky-loft|nakameguro-evening-loft|azabu-rain-loft) neu starten und im Bericht melden.")
