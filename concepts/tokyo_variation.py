@@ -87,6 +87,8 @@ CONSOLE = {
     "bonsai": "on a massive dark console stands a single decades-old juniper bonsai in a rough clay bowl (wabi-sabi)",
     "slate": "on a massive dark console stands a sculpture of black slate (wabi-sabi)",
 }
+NIGHT = ("IT IS DEEP NIGHT: behind every window the sky is pitch-dark night with only artificial city lights, lanterns or lamps outside; absolutely no daylight, "
+         "no sunlight, no sunrise or sunset glow, no dusk, no blue hour, no bright or blue sky anywhere, and no light spilling in from outside during the day. ")
 # Raum-Hülle: immer Beton dominant (Rolf 22.10.2026)
 SHELL = ("Architecture 'Tokyo Brutalism meets Japandi' (warm industrial, Tadao Ando inspired): MOST walls are raw, matte board-formed exposed concrete (Schalungsbeton) "
          "with a precise grid of round formwork tie holes and fine wood-grain imprints from the formwork boards, no smooth plastered drywall; a seamless silky "
@@ -200,6 +202,7 @@ def apply(var: dict, side: str, base) -> dict:
         style = style.replace("absolutely no cold blue light and no blue tint", "no cold blue tint over the image (only tiny cyan LED accents and the glowing network rack are allowed)")
     if var.get("accent_wall") == "slats":
         style = style.replace("without separate rooms or dividing walls,", "without separate rooms (only one open, see-through slatted wood divider),")
+    style = style.rstrip() + " " + NIGHT.strip()
     cap = lambda t: t[:1].upper() + t[1:]
     ex = SHELL + cap(ACCENT_WALL.get(var.get("accent_wall"), ACCENT_WALL["shikkui"])) + ". " + cap(CONSOLE.get(var.get("console"), CONSOLE["bonsai"])) + ". "
     ex += ("Far from the camera, in the background: " + DECO.get(var.get("deco"), DECO["designer_toy"]) + ". ")
@@ -210,7 +213,7 @@ def apply(var: dict, side: str, base) -> dict:
         ex += ROBOT
     if var.get("cyan"):
         ex += CYAN
-    return {"desk": desk, "cozy": cozy, "style": style, "art": art + ex}
+    return {"desk": desk, "cozy": cozy, "style": style, "art": art + ex + NIGHT}
 
 
 def check_text(var: dict) -> str:

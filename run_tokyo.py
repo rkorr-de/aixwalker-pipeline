@@ -243,7 +243,7 @@ def room_check_text(var: dict | None = None) -> str:
             "\"keyboard_mouse\" (true if a keyboard AND a computer mouse are visible on the desk in front of the monitors; they may look small if the desk is far away), "
             "\"text\" (true if any readable text, logo or watermark is visible), "
             "\"person_sharp\" (true if a person is shown sharp or with a visible face; false if no person or only a blurred back view), "
-            "\"daylight\" (true if it looks like daytime or the whole image has a cold blue tint; small cyan LED accents and a glowing network rack are allowed), "
+            "\"daylight\" (true if it looks like daytime, dusk or sunset, a window shows a bright or blue sky, or the whole image has a cold blue tint; small cyan LED accents and a glowing network rack are allowed), "
             "\"artifacts\" (true if there are obvious deformed objects, extra limbs or broken geometry), "
             f"\"ok\" (true only if desk, chair, person_visible, keyboard_mouse and figurine are true and text, person_sharp, daylight and artifacts are all false{ink_ok}).")
 
@@ -300,6 +300,10 @@ def make_new_room(slug: str, scene_file: str, side: str, person: str, out: Path,
     if "tokyo" not in scene.lower():
         raise SystemExit("Der Szenentext muss einen Ort in Tokyo nennen (Stadtteil, z. B. Daikanyama, Kagurazaka, Asakusa).")
     import tokyo_variation as tv
+    import re as _re
+    day = _re.search(r"\b(daylight|sunlight|sunny|sunrise|sunset|dawn|morning|noon|afternoon|golden hour|blue hour|dusk|twilight|blue sky)\b", scene, _re.I)
+    if day:
+        raise SystemExit(f"Der Szenentext nennt „{day.group(0)}“ – es muss eine reine Nachtszene sein (kein Tageslicht, keine Dämmerung). Bitte Szenentext ändern.")
     ch = choice or {}
     var = tv.choose(tokyo_history(), slug, ch.get("desk_pos", "auto"), ch.get("chair", "auto"), ch.get("sofa", "auto"), ch.get("art", "auto"))
     LAST_VARIATION.clear()
