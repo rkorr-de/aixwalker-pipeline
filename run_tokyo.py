@@ -13,7 +13,7 @@ import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter
@@ -289,10 +289,8 @@ def tokyo_history() -> list[dict]:
         return []
 
 
-def make_new_room(slug: str, scene_file: str, side: str, person: str, out: Path, max_tries: int = 3,
-                  choice: dict | None = None):
-    """Erzeugt für diesen Mix einen NEUEN Raum (Ort/Szene von Claude ausgedacht, `scene_file`), 4K, mit automatischer Prüfung.
-    Liefert (Bild, Schreibtisch-Mitte 0–1, Person-Mitte 0–1 oder None) oder (None, None, None), wenn nach max_tries kein Bild alle Kriterien erfüllt."""
+def build_room_prompt(slug: str, scene_file: str, side: str, person: str, choice: dict | None = None):
+    """Baut Variation und komplettes Bildprompt für einen neuen Raum (ohne Bild-Erzeugung). Liefert (prompt, style, var, scene, person)."""
     import genre_test_tokyo_rooms_v3 as r
     scene = Path(scene_file).read_text(encoding="utf-8").strip()
     if len(scene) < 80 or len(scene) > 900:
@@ -319,6 +317,15 @@ def make_new_room(slug: str, scene_file: str, side: str, person: str, out: Path,
         scene = " ".join(keep)
     parts = tv.apply(var, side, r)
     prompt = r.INTRO + parts["desk"] + parts["cozy"] + (parts.get("person") or r.PERSON[person]) + FIGURINE + parts["art"] + scene
+    return prompt, parts["style"], var, scene, person
+
+
+def make_new_room(slug: str, scene_file: str, side: str, person: str, out: Path, max_tries: int = 3,
+                  choice: dict | None = None):
+    """Erzeugt für diesen Mix einen NEUEN Raum (Ort/Szene von Claude ausgedacht, `scene_file`), 4K, mit automatischer Prüfung.
+    Liefert (Bild, Schreibtisch-Mitte 0–1, Person-Mitte 0–1 oder None) oder (None, None, None), wenn nach max_tries kein Bild alle Kriterien erfüllt."""
+    prompt, style_, var, scene, person = build_room_prompt(slug, scene_file, side, person, choice)
+    parts = {"style": style_}
     for i in range(1, max_tries + 1):
         art = images.generate_art(prompt, "16:9", pro=True, style=parts["style"], image_size="4K").convert("RGB")
         if art.size[0] < 2500:
@@ -815,6 +822,69 @@ def short_only(args, out: Path, lines: list[str]) -> int:
 
 
 # ---------------------------------------------------------------- Ablauf
+# ---------------------------------------------------------------- Bild von Rolf (Phase A: Prompt-Mail, Phase B: Mix aus Drive-Bild)
+def prompt_phase(args) -> int:
+    """Phase A (Rolf 22.10.2026): komplettes Bildprompt bauen, Plan + Prompt in Drive („Tokyo Hauptbild“) ablegen und Rolf mailen. Keine Kosten."""
+    import tokyo_inbox as ib
+    from pipeline import drive
+    if not (args.scene_file and args.quote_text and args.description_file):
+        raise SystemExit("--prompt-only braucht --scene-file, --quote-text und --description-file")
+    if args.room in {str(e.get("room")) for e in tokyo_history()}:
+        raise SystemExit(f"Raum-Kennung {args.room} wurde schon verwendet – neue Kennung wählen.")
+    lines = parse_quote(args.quote_text)
+    desc = parse_description(args.description_file)
+    prompt, style, var, scene, person = build_room_prompt(args.room, args.scene_file, args.desk_side, args.person,
+                                                          {"desk_pos": args.desk_pos, "chair": args.chair, "sofa": args.sofa, "art": args.art, "person_place": args.person_place})
+    plan = {"date": ib.today(), "created": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"), "room": args.room, "side": args.desk_side,
+            "person": person, "place_text": "sitzt arbeitend am Schreibtisch (Blick über die Schulter)" if var.get("at_desk") else "steht am Fenster und schaut hinaus",
+            "scene": scene, "variation": var, "quote": "|".join(lines), "description": desc, "prompt": prompt, "style": style,
+            "vol": args.vol or next_vol(), "status": "wartet auf Bild"}
+    svc = drive.service()
+    fid = ib.save_plan(svc, plan)
+    mid = ib.send_prompt_mail(plan, fid)
+    log(f"Plan + Bildprompt in Drive „{ib.FOLDER}“ abgelegt, Mail gesendet ({mid}). Raum {args.room}, Variation: {var}")
+    return 0
+
+
+def apply_inbox(args) -> int | None:
+    """Phase B: Plan und Rolfs Bild aus Drive holen. None = weiter mit dem Mix; sonst Exit-Code (4 kein Plan, 5 noch kein Bild, 6 läuft schon/fertig)."""
+    import tokyo_inbox as ib
+    from pipeline import drive
+    svc = drive.service()
+    plan, fid, _ = ib.load_plan(svc)
+    if not plan:
+        log("Kein Plan für heute (Phase A nicht gelaufen).")
+        return 4
+    if plan.get("status") == "fertig":
+        log("Mix für heute ist schon fertig.")
+        return 6
+    if plan.get("status") == "gestartet" and plan.get("started"):
+        age = (datetime.now(timezone.utc) - datetime.strptime(plan["started"], "%Y-%m-%dT%H:%M:%S.000Z").replace(tzinfo=timezone.utc)).total_seconds()
+        if age < 3 * 3600:
+            log(f"Mix läuft schon (gestartet vor {age / 60:.0f} Min).")
+            return 6
+    pic = {"id": plan["image_id"], "name": plan.get("image_name", "bild")} if plan.get("image_id") else ib.newest_image(svc, fid, plan["created"])
+    if not pic:
+        log("Noch kein Bild im Ordner.")
+        return 5
+    raw = Path("build") / "inbox_image"
+    drive.download(svc, pic["id"], raw)
+    im = Image.open(raw).convert("RGB")
+    dst = Path("build") / "inbox_image.png"
+    im.save(dst)
+    log(f"Bild von Rolf: {pic['name']} ({im.size[0]}×{im.size[1]})")
+    dfile = Path("build") / "inbox_desc.txt"
+    dfile.write_text(plan["description"], encoding="utf-8")
+    args.main_image, args.room, args.desk_side, args.person = str(dst), plan["room"], plan["side"], plan["person"]
+    args.quote_text, args.description_file, args.new_room = plan["quote"], str(dfile), False
+    if not args.vol:
+        args.vol = plan.get("vol", 0)
+    LAST_VARIATION.clear()
+    LAST_VARIATION.update(plan["variation"])
+    ib.mark(svc, plan, fid, status="gestartet", started=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z"), image_id=pic["id"], image_name=pic["name"])
+    return None
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--room", default="shinjuku-sky-loft")
@@ -833,6 +903,8 @@ def main() -> int:
     ap.add_argument("--art", default="auto", help="Wandbild: auto | ink (schwarz-weißes japanisches Tuschebild) | other | Schlüssel aus concepts/tokyo_variation.py")
     ap.add_argument("--person", default="auto", choices=["auto", "woman", "man"], help="Person im neuen Raum: Frau oder Mann (auto = automatisch wechselnd)")
     ap.add_argument("--main-image", default="", help="fertiges Hauptbild (von Rolf erzeugt, 16:9) statt Drive/Neuerzeugung; --room ist dann die Kennung des Raums")
+    ap.add_argument("--prompt-only", action="store_true", help="Phase A: nur Bildprompt bauen, in Drive ablegen und Rolf mailen (braucht --new-room-Angaben, --scene-file, --quote-text, --description-file)")
+    ap.add_argument("--from-inbox", action="store_true", help="Phase B: Plan + Rolfs Bild aus Drive „Tokyo Hauptbild“ holen (Exit 5 = noch kein Bild, 6 = läuft/fertig, 4 = kein Plan)")
     ap.add_argument("--vol", type=int, default=0, help="Nummer im Titel („- Vol. N“); ohne Angabe: automatisch hochgezählt")
     ap.add_argument("--out", default=None)
     ap.add_argument("--upload", action="store_true")
@@ -850,6 +922,12 @@ def main() -> int:
     ap.add_argument("--short-desk-x", type=float, default=0.0, help="Schreibtischmitte (0.0-1.0 von links) für den Short-Ausschnitt; sonst wie beim Cover")
     args = ap.parse_args()
     global TITLE
+    if args.prompt_only:
+        return prompt_phase(args)
+    if args.from_inbox:
+        rc = apply_inbox(args)
+        if rc is not None:
+            return rc
     vol = args.vol or next_vol()
     TITLE = f"{TITLE_BASE} - Vol. {vol}🎷"
     log(f"Titel: {TITLE}")
@@ -882,7 +960,7 @@ def main() -> int:
                 drive.upload_mix_package(ROOM_DRIVE_FOLDER, [], {"bilder": [named]})
             except Exception as e:  # noqa: BLE001
                 log(f"Raumbild nicht in Drive abgelegt: {str(e)[:160]}")
-            chk = check_room_image(Image.open(dst))   # Schreibtisch- und Personenposition für Cover/Short messen
+            chk = check_room_image(Image.open(dst), dict(LAST_VARIATION) or None)   # Schreibtisch- und Personenposition für Cover/Short messen
             log(f"Eigenes Bild geprüft: {chk}")
             if chk:
                 dx_ = chk.get("desk_x"); px_ = chk.get("person_x")
@@ -1009,6 +1087,16 @@ def main() -> int:
             memory.save(mem)
         except Exception as e:  # noqa: BLE001
             log(f"Gedächtnis nicht gespeichert: {str(e)[:160]}")
+    if args.from_inbox and not args.dry_run:
+        try:   # Plan in Drive als „fertig“ kennzeichnen, damit die stündliche Prüfung nichts doppelt startet
+            import tokyo_inbox as ib
+            from pipeline import drive
+            svc_ = drive.service()
+            plan_, fid_, _ = ib.load_plan(svc_)
+            if plan_:
+                ib.mark(svc_, plan_, fid_, status="fertig", video_id=video_id)
+        except Exception as e:  # noqa: BLE001
+            log(f"Plan nicht als fertig markiert: {str(e)[:160]}")
     log(f"Fertig: {total_min} Min, Video {video_url}")
     return 0
 
