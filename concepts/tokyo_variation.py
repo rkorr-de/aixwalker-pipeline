@@ -196,9 +196,14 @@ def apply(var: dict, side: str, base) -> dict:
         art = f"On the living-area wall hangs {OTHER_ART[var['art_key']]}. "
     else:
         art = "The living-area wall stays calm and bare apart from a wooden shelf with ceramics. "
-    ex = SHELL + ACCENT_WALL.get(var.get("accent_wall"), ACCENT_WALL["shikkui"]) + ". " + CONSOLE.get(var.get("console"), CONSOLE["bonsai"]) + ". "
+    if var.get("cyan") or var.get("rack"):
+        style = style.replace("absolutely no cold blue light and no blue tint", "no cold blue tint over the image (only tiny cyan LED accents and the glowing network rack are allowed)")
+    if var.get("accent_wall") == "slats":
+        style = style.replace("without separate rooms or dividing walls,", "without separate rooms (only one open, see-through slatted wood divider),")
+    cap = lambda t: t[:1].upper() + t[1:]
+    ex = SHELL + cap(ACCENT_WALL.get(var.get("accent_wall"), ACCENT_WALL["shikkui"])) + ". " + cap(CONSOLE.get(var.get("console"), CONSOLE["bonsai"])) + ". "
     ex += ("Far from the camera, in the background: " + DECO.get(var.get("deco"), DECO["designer_toy"]) + ". ")
-    ex += PURIFIER.get(var.get("purifier"), PURIFIER["dyson"]) + ". "
+    ex += cap(PURIFIER.get(var.get("purifier"), PURIFIER["dyson"])) + ". "
     if var.get("rack"):
         ex += RACK
     if var.get("robot"):
