@@ -111,8 +111,8 @@ NIGHT = ("IT IS DEEP NIGHT: behind every window the sky is pitch-dark night with
          "no sunlight, no sunrise or sunset glow, no dusk, no blue hour, no bright or blue sky anywhere, and no light spilling in from outside during the day. ")
 # Raum-Hülle: immer Beton dominant (Rolf 22.10.2026)
 SHELL = ("Architecture 'Tokyo Brutalism meets Japandi' (warm industrial, Tadao Ando inspired): MOST walls are raw, matte board-formed exposed concrete (Schalungsbeton) "
-         "with a precise grid of round formwork tie holes and fine wood-grain imprints from the formwork boards, no smooth plastered drywall; a seamless silky "
-         "microcement floor in cool stone grey or anthracite; precise joinery in walnut and smoked oak (built-in furniture, desktop, sideboard), kitchen and cabinet fronts in "
+         "with a precise grid of round formwork tie holes and fine wood-grain imprints from the formwork boards, no smooth plastered drywall; ALWAYS a "
+         "seamless, silky-matte dark anthracite concrete floor (microcement, deep charcoal-black, never light grey, never wood), softly reflecting the amber light; precise joinery in walnut and smoked oak (built-in furniture, desktop, sideboard), kitchen and cabinet fronts in "
          "charred black Shou Sugi Ban wood with a velvety matte charcoal surface. Light follows 'in praise of shadow': hidden aluminium cove profiles with COB LED strips "
          "wall-wash the raw concrete from the ceiling edge and along the baseboards in very warm amber (about 2000K, like glowing embers), a large Isamu Noguchi Akari "
          "washi-paper lantern gives ultra-soft light, matte black recessed downlights with honeycomb grids light small pools on tables and art, no central ceiling lamp. "
@@ -244,6 +244,7 @@ def apply(var: dict, side: str, base) -> dict:
         old = "the person in the background is very strongly out of focus (heavy bokeh blur, only a soft silhouette) and not recognizable in detail"
         assert old in style
         style = style.replace(old, "the person at the desk is seen from behind over the shoulder, the face is not visible and not recognizable")
+    style = style.rstrip() + " The floor is always dark anthracite concrete."
     ex = SHELL + cap(ACCENT_WALL.get(var.get("accent_wall"), ACCENT_WALL["shikkui"])) + ". " + cap(CONSOLE.get(var.get("console"), CONSOLE["bonsai"])) + ". "
     ex += ("Far from the camera, in the background: " + DECO.get(var.get("deco"), DECO["designer_toy"]) + ". ")
     ex += cap(PURIFIER.get(var.get("purifier"), PURIFIER["dyson"])) + ". "
