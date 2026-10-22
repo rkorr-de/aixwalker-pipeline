@@ -719,7 +719,7 @@ def parse_description(path: str) -> str:
     return text
 
 
-def description(chapter_text: str, total_min: int, intro: str = "") -> str:
+def description(chapter_text: str, total_min: int, intro: str = "", var: dict | None = None, vol: int = 0) -> str:
     if not intro:   # Notfall-Rückfall, wenn kein neuer Text übergeben wurde
         intro = (
             "Hang your coat on the hook. Leave the noise with it.\n\n"
@@ -727,8 +727,11 @@ def description(chapter_text: str, total_min: int, intro: str = "") -> str:
             "a small black tea tray, one warm lamp and the city glowing amber outside the window. A breathy tenor saxophone, "
             "single felt piano notes, a deep warm sub-bass and a slow, soft groove. Nothing here pulls at your attention.\n\n"
             f"For deep work, coding, studying, writing and productivity. About {metadata.hours_wording(total_min)}, uninterrupted.")
+    import tokyo_shop
+    shop = tokyo_shop.shop_block(var, vol)   # Amazon-Partnerlinks der im Raum gewählten Geräte (nur wenn Variation bekannt)
     return (
         f"{intro}\n\n"
+        + (f"{shop}\n\n" if shop else "") +
         f"Chapters\n{chapter_text}\n\n"
         f"Music by {config.ARTIST}, created with AI. Images: AI-generated.\n"
         f"{HASHTAGS}")
@@ -931,7 +934,7 @@ def main() -> int:
     # Upload (privat, Aufnahmeort Tokyo, Playlist) – Shorts bleiben privat, bis Rolf zustimmt
     video_id, video_url, short_id = None, "(nicht hochgeladen)", None
     privacy = "public" if args.public else "private"
-    desc = description(chapter_text, total_min, parse_description(args.description_file) if args.description_file else "")
+    desc = description(chapter_text, total_min, parse_description(args.description_file) if args.description_file else "", dict(LAST_VARIATION) or None, vol)
     if args.upload:
         from pipeline import youtube
         video_id = youtube.upload_video(mp4, TITLE, desc, TAGS, privacy=privacy, location=youtube.TOKYO)
