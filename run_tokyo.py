@@ -243,7 +243,7 @@ def room_check_text(var: dict | None = None) -> str:
             "\"keyboard_mouse\" (true if a keyboard AND a computer mouse are visible on the desk in front of the monitors; they may look small if the desk is far away), "
             "\"text\" (true if any readable text, logo or watermark is visible), "
             "\"person_sharp\" (true if a person is shown sharp or with a visible face; false if no person or only a blurred back view), "
-            "\"daylight\" (true if it looks like daytime or has cold blue light), "
+            "\"daylight\" (true if it looks like daytime or the whole image has a cold blue tint; small cyan LED accents and a glowing network rack are allowed), "
             "\"artifacts\" (true if there are obvious deformed objects, extra limbs or broken geometry), "
             f"\"ok\" (true only if desk, chair, person_visible, keyboard_mouse and figurine are true and text, person_sharp, daylight and artifacts are all false{ink_ok}).")
 
@@ -817,7 +817,7 @@ def main() -> int:
     ap.add_argument("--scene-file", default="", help="Datei mit dem neuen Orts-/Szenentext (englisch, 80–900 Zeichen, von Claude pro Mix neu erfunden)")
     ap.add_argument("--desk-side", default="right", choices=["left", "right"], help="Seite des Schreibtischs im neuen Raum (abwechseln)")
     ap.add_argument("--desk-pos", default="auto", choices=["auto", "front", "back"], help="Schreibtisch vorn oder im hinteren Teil der Wohnung (auto = abwechselnd, automatisch)")
-    ap.add_argument("--chair", default="auto", choices=["auto", "cognac", "black"], help="Farbe des Bürostuhl-Leders (auto = automatisch wechselnd)")
+    ap.add_argument("--chair", default="auto", choices=["auto", "cognac", "black", "eames", "aeron"], help="Bürostuhl: eames (cognac) oder aeron (schwarz, Onyx Black); auto = wechselnd")
     ap.add_argument("--sofa", default="auto", choices=["auto", "fabric", "leather"], help="Couch: Stoff oder Leder (auto = automatisch wechselnd)")
     ap.add_argument("--art", default="auto", help="Wandbild: auto | ink (schwarz-weißes japanisches Tuschebild) | other | Schlüssel aus concepts/tokyo_variation.py")
     ap.add_argument("--person", default="woman", choices=["woman", "man"], help="unscharfe Person am Fenster im neuen Raum (abwechseln)")

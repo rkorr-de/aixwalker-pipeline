@@ -56,6 +56,12 @@
   **Sofa** mal Stoff, mal Leder (mit Farbe), **Wandkunst**: etwa jeder dritte Raum bekommt im Wohnbereich ein großes japanisches abstraktes Tuschebild in strikt Schwarz-Weiß (sumi-e, kein Text), jedes Mal ein anderes aus 16 Varianten; sonst andere Kunst (Holzschnitte usw.).
   Der Szenentext darf Sofa, Schreibtisch, Stuhl und Wandbild NICHT festlegen (das Skript streicht solche Sätze). Überschreiben: `--desk-pos`, `--chair`, `--sofa`, `--art`. Die Wahl steht in `neuer_raum.json`, `result.json` und im Gedächtnis („variation“).
   Die Raumprüfung passt sich an (hinterer Schreibtisch, schwarzer Stuhl; tastatur/Maus dürfen klein sein).
+- **Tokyo-Mixe: weitere Raum-Variationen** (Rolf 22.10.2026, im selben Baustein `concepts/tokyo_variation.py`, automatisch gewählt): **Stuhl** Eames (Cognac-Leder) ODER Herman Miller Aeron Onyx Black (`--chair eames|aeron`);
+  **Tastatur** HHKB Studio oder Keychron Q Pro (Lubed Switches); **Audio** KEF LSX II oder Genelec RAW (Recycling-Aluminium) auf Tischstativen plus Sennheiser HD 800 S an Schiit-Verstärker (statt Headset);
+  **Deko weit weg von der Kamera**: Designer-Toy-Figur, gerahmter Mecha-Artprint oder Vinyl-Figur – bewusst Originaldesigns, KEINE geschützten Figuren (kein echtes KAWS/Bearbrick/Evangelion), analog zur Lain-Regel;
+  **Homelab-Rack** (UniFi-Stil, matte Glasfront, weiß/cyan) im Flur (~70 %), **Luftreiniger** (Dyson- oder Balmuda-Stil), **versenkte Roboter-Dockingstation** in der Küche (~60 %), dezente Cyan-Lichtkanten unter schwebenden Möbeln (~70 %);
+  **Raumhülle** „Tokyo Brutalism meets Japandi“: überwiegend Schalungsbeton mit Ankerlöchern, Mikrozementboden, Walnuss/geräucherte Eiche, Shou-Sugi-Ban-Fronten, Akzentwand (Shikkui / gerillte Betonpaneele / Holzlamellen), Bonsai oder Schiefer-Skulptur, Licht ca. 2000 K mit Lichtvouten und Akari-Leuchte.
+  Die Bildprüfung erlaubt kleine Cyan-Akzente. Testbilder: `python test_tokyo_images.py` (4 Bilder, ca. 1 $, Drive + Mail).
 - **Tokyo-Short: Dauerzeile oben** (Rolf 20.10.2026, ab dem nächsten Short): Im oberen Drittel steht über die GANZE Länge des Shorts (ohne Ein-/Ausblenden, nahtlose Schleife) der Text
   „Slow Jazz / for Deep Work & Coding“ (`SHORT_TOP_TEXT`, `short_top_layer()` in run_tokyo.py; Cinzel, Gold + Cremeweiß, weicher dunkler Verlauf, Mitte bei ca. 21 % der Höhe). Der Spruch bleibt in der Bildmitte.
 
