@@ -65,6 +65,14 @@ AUDIO = {
     "kef": "a pair of KEF LSX II compact active speakers on small desktop stands left and right of the monitors",
     "genelec": "a pair of Genelec RAW active studio monitors made of raw, unfinished recycled aluminium (matching the loft's concrete) on desktop stands left and right of the monitors",
 }
+PCS = {   # Rolf 22.10.2026: Computergehäuse am Arbeitsplatz (kein sichtbarer Markenschriftzug)
+    "north": ("a high-end Japandi-style PC tower in charcoal black (Fractal North style) with a front made of real walnut wood slats and a tinted glass side panel, "
+              "standing on the walnut desk or on a matching sideboard right next to it; inside only a very subtle warm white-amber glow matching the 2000K light, no RGB, no rainbow lighting"),
+    "sff": ("an extremely compact small-form-factor PC (Fractal Terra / FormD T1 style) about the size of a shoebox, milled from thick sandblasted aluminium in graphite grey "
+            "(echoing the speakers and the concrete), with a small walnut accent at the base, sitting discreetly beside the monitors or on a shelf board, no RGB lighting"),
+    "alu": ("a heavy premium PC case (InWin 905 / Lian Li style) of dark brushed aluminium with tinted glass, harmonising with the microcement floor and dark steel elements, "
+            "standing beside the desk, with at most a faint warm amber glow inside, no RGB lighting"),
+}
 HEADPHONES = "a pair of open-back hi-fi headphones (Sennheiser HD 800 S) on a slim stand next to a small Schiit Audio headphone amplifier on the desk"
 DECO = {
     "designer_toy": "a large glossy art-toy vinyl figure of an original design (a stylised bear-like collectible, about 70 cm tall) standing on a dark plinth",
@@ -153,7 +161,8 @@ def choose(history: list[dict], seed: str, desk_pos: str = "auto", chair: str = 
     purifier = balanced(tuple(PURIFIER), "purifier")
     accent = balanced(tuple(ACCENT_WALL), "accent_wall")
     console = balanced(tuple(CONSOLE), "console")
-    extras = {"kb": kb, "audio": audio, "deco": deco, "purifier": purifier, "accent_wall": accent, "console": console,
+    pc = balanced(tuple(PCS), "pc")
+    extras = {"pc": pc, "kb": kb, "audio": audio, "deco": deco, "purifier": purifier, "accent_wall": accent, "console": console,
               "rack": sub("rack").random() < 0.7, "robot": sub("robot").random() < 0.6, "cyan": sub("cyan").random() < 0.7}
     return {**extras, "desk_pos": pos, "chair": ch, "chair_pose": pose, "sofa_material": material, "sofa_color": color,
             "art_key": art_key, "ink": art_key in INK_ART}
@@ -179,6 +188,9 @@ def apply(var: dict, side: str, base) -> dict:
     assert kb_old in desk and hs_old in desk, "DESK Tastatur/Headset-Satz geändert"
     desk = desk.replace(kb_old, KEYBOARDS.get(var.get("kb"), KEYBOARDS["hhkb"]))
     desk = desk.replace(hs_old, AUDIO.get(var.get("audio"), AUDIO["kef"]) + ", " + HEADPHONES + " (no readable brand text anywhere)")
+    note_old = "a small notebook and a pen;"
+    assert note_old in desk, "DESK Notizbuch-Satz geändert"
+    desk = desk.replace(note_old, "a small notebook and a pen, and the computer: " + PCS.get(var.get("pc"), PCS["north"]) + ";")
     sofa_old = "a soft wool throw on a low modular designer sofa"
     assert sofa_old in base.COZY, "COZY-Sofa-Satz geändert"
     sofa = f"a low modular designer sofa in {var['sofa_color']}" + (" with a soft wool throw" if var["sofa_material"] == "fabric" else " with a folded wool throw")
