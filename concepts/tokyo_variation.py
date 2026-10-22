@@ -114,8 +114,9 @@ SHELL = ("Architecture 'Tokyo Brutalism meets Japandi' (warm industrial, Tadao A
          "with a precise grid of round formwork tie holes and fine wood-grain imprints from the formwork boards, no smooth plastered drywall; ALWAYS a "
          "seamless, silky-matte dark anthracite concrete floor (microcement, deep charcoal-black, never light grey, never wood), softly reflecting the amber light; precise joinery in walnut and smoked oak (built-in furniture, desktop, sideboard), kitchen and cabinet fronts in "
          "charred black Shou Sugi Ban wood with a velvety matte charcoal surface. Light follows 'in praise of shadow': hidden aluminium cove profiles with COB LED strips "
-         "wall-wash the raw concrete from the ceiling edge and along the baseboards in very warm amber (about 2000K, like glowing embers), a large Isamu Noguchi Akari "
-         "washi-paper lantern gives ultra-soft light, matte black recessed downlights with honeycomb grids light small pools on tables and art, no central ceiling lamp. "
+         "wall-wash the raw concrete from the ceiling edge and along the baseboards in very warm amber (about 2000K, like glowing embers), the ceiling lighting is very subtle and dim: "
+         "only a few tiny, barely visible matte black recessed downlights with honeycomb grids at low brightness, giving faint small pools of light on tables and art, the ceiling itself stays dark and calm, no bright ceiling lights, no central ceiling lamp, "
+         "and NO globe lamps, NO spherical or round ball lamps, NO paper lanterns and NO pendant orbs anywhere in the room. "
          "The air smells of hinoki and cool stone, the interior feels acoustically calm and temple-like. ")
 CYAN = ("Very subtle cyan or violet LED edge lights float under the kitchen island and under the sofa or a floating sideboard (Blade Runner / Ghost in the Shell reference, "
         "tasteful, small, not kitsch); the overall image stays warm amber. ")
