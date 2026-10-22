@@ -226,22 +226,32 @@ FIGURINE = ("Easter egg: somewhere in the room, on the desk, a shelf, the dining
             "of a tea caddy): long silver-lavender ponytail, large round white headphones, an oversized soft mint-green hoodie, small sneakers, a calm dreamy pose, "
             "painted matte PVC look on a small round black base. ")
 
-NEW_ROOM_CHECK = ("You are a strict quality checker for a photorealistic interior image. Answer ONLY with compact JSON, keys: "
-                  "\"desk\" (true if a complete computer workplace with exactly two monitors side by side is clearly visible somewhere in the room; it does not have to be in the foreground), "
-                  "\"desk_x\" (horizontal center of that desk as a number from 0.0 at the left edge to 1.0 at the right edge), "
-                  "\"person_visible\" (true if a person is visible anywhere, even blurred or from behind), "
-                  "\"person_x\" (horizontal center of that person from 0.0 at the left edge to 1.0 at the right edge, or null if no person), "
-                  "\"chair\" (true if a cognac-brown leather office chair stands at the desk), "
-                  "\"figurine\" (true if one small manga-style female figurine, clearly under about 15 cm tall, is visible anywhere in the room), "
-                  "\"keyboard_mouse\" (true if a keyboard AND a computer mouse are clearly visible on the desk in front of the monitors), "
-                  "\"text\" (true if any readable text, logo or watermark is visible), "
-                  "\"person_sharp\" (true if a person is shown sharp or with a visible face; false if no person or only a blurred back view), "
-                  "\"daylight\" (true if it looks like daytime or has cold blue light), "
-                  "\"artifacts\" (true if there are obvious deformed objects, extra limbs or broken geometry), "
-                  "\"ok\" (true only if desk, chair, person_visible, keyboard_mouse and figurine are true and text, person_sharp, daylight and artifacts are all false).")
+def room_check_text(var: dict | None = None) -> str:
+    """Prompt der automatischen Bildprüfung. Mit `var` (Variation, concepts/tokyo_variation.py) wird die Stuhlfarbe (cognac ODER schwarz)
+    und – wenn verlangt – das schwarz-weiße Tuschebild geprüft; ohne `var` (Rolfs eigene Bilder) genügt irgendein Bürostuhl."""
+    import tokyo_variation as tv
+    chair = tv.check_text(var) if var else ("\"chair\" (true if an office chair stands at or near the desk), \"art_ink\" (true if a large framed abstract "
+                                           "black-and-white ink painting hangs on a wall; not required), ")
+    ink_ok = "" if not var or not var.get("ink") else ", and art_ink is true"
+    return ("You are a strict quality checker for a photorealistic interior image. Answer ONLY with compact JSON, keys: "
+            "\"desk\" (true if a complete computer workplace with exactly two monitors side by side is clearly visible somewhere in the room; it does not have to be in the foreground, it may be in the rear part of the loft), "
+            "\"desk_x\" (horizontal center of that desk as a number from 0.0 at the left edge to 1.0 at the right edge), "
+            "\"person_visible\" (true if a person is visible anywhere, even blurred or from behind), "
+            "\"person_x\" (horizontal center of that person from 0.0 at the left edge to 1.0 at the right edge, or null if no person), "
+            + chair +
+            "\"figurine\" (true if one small manga-style female figurine, clearly under about 15 cm tall, is visible anywhere in the room), "
+            "\"keyboard_mouse\" (true if a keyboard AND a computer mouse are visible on the desk in front of the monitors; they may look small if the desk is far away), "
+            "\"text\" (true if any readable text, logo or watermark is visible), "
+            "\"person_sharp\" (true if a person is shown sharp or with a visible face; false if no person or only a blurred back view), "
+            "\"daylight\" (true if it looks like daytime or has cold blue light), "
+            "\"artifacts\" (true if there are obvious deformed objects, extra limbs or broken geometry), "
+            f"\"ok\" (true only if desk, chair, person_visible, keyboard_mouse and figurine are true and text, person_sharp, daylight and artifacts are all false{ink_ok}).")
 
 
-def check_room_image(img: Image.Image) -> dict | None:
+NEW_ROOM_CHECK = room_check_text()
+
+
+def check_room_image(img: Image.Image, var: dict | None = None) -> dict | None:
     """Automatische Prüfung des neuen Raumbilds mit dem Bildverständnis-Modell. None = Prüfung nicht möglich (gilt als nicht bestanden)."""
     import base64
     import io
@@ -251,7 +261,7 @@ def check_room_image(img: Image.Image) -> dict | None:
     buf = io.BytesIO()
     img.convert("RGB").resize((1536, 864), Image.LANCZOS).save(buf, "JPEG", quality=88)
     body = {"contents": [{"parts": [{"inline_data": {"mime_type": "image/jpeg", "data": base64.b64encode(buf.getvalue()).decode()}},
-                                    {"text": NEW_ROOM_CHECK}]}],
+                                    {"text": room_check_text(var)}]}],
             "generationConfig": {"responseMimeType": "application/json", "temperature": 0}}
     for model in (config.TEXT_MODEL, config.TEXT_MODEL_FALLBACK):
         try:
@@ -267,7 +277,20 @@ def check_room_image(img: Image.Image) -> dict | None:
     return None
 
 
-def make_new_room(slug: str, scene_file: str, side: str, person: str, out: Path, max_tries: int = 3):
+LAST_VARIATION: dict = {}   # Variation des zuletzt erzeugten neuen Raums (für result.json und Gedächtnis)
+
+
+def tokyo_history() -> list[dict]:
+    try:
+        from pipeline import memory
+        return list(memory.load().get("tokyo", []))
+    except Exception as e:  # noqa: BLE001
+        log(f"Gedächtnis für Raum-Variation nicht lesbar: {str(e)[:120]}")
+        return []
+
+
+def make_new_room(slug: str, scene_file: str, side: str, person: str, out: Path, max_tries: int = 3,
+                  choice: dict | None = None):
     """Erzeugt für diesen Mix einen NEUEN Raum (Ort/Szene von Claude ausgedacht, `scene_file`), 4K, mit automatischer Prüfung.
     Liefert (Bild, Schreibtisch-Mitte 0–1, Person-Mitte 0–1 oder None) oder (None, None, None), wenn nach max_tries kein Bild alle Kriterien erfüllt."""
     import genre_test_tokyo_rooms_v3 as r
@@ -276,13 +299,25 @@ def make_new_room(slug: str, scene_file: str, side: str, person: str, out: Path,
         raise SystemExit("Szenentext muss 80–900 Zeichen lang sein (neuer Ort: Fenster/Ausblick, Materialien, Stimmung).")
     if "tokyo" not in scene.lower():
         raise SystemExit("Der Szenentext muss einen Ort in Tokyo nennen (Stadtteil, z. B. Daikanyama, Kagurazaka, Asakusa).")
-    prompt = r.INTRO + r.DESK.format(side=side) + r.COZY + r.PERSON[person] + FIGURINE + scene
+    import tokyo_variation as tv
+    ch = choice or {}
+    var = tv.choose(tokyo_history(), slug, ch.get("desk_pos", "auto"), ch.get("chair", "auto"), ch.get("sofa", "auto"), ch.get("art", "auto"))
+    LAST_VARIATION.clear()
+    LAST_VARIATION.update(var)
+    log(f"Raum-Variation: {var}")
+    import re
+    keep = [x for x in re.split(r"(?<=[.!?])\s+", scene) if not re.search(r"\b(sofa|couch|desk|chair|armchair|painting|artwork|wall art|canvas|print)s?\b", x, re.I)]
+    if len(keep) < len(re.split(r"(?<=[.!?])\s+", scene)) and len(" ".join(keep)) >= 80:   # Sofa/Schreibtisch/Stuhl/Wandbild legt die Variation fest
+        log("Szenentext: Sätze über Sofa/Schreibtisch/Stuhl/Wandbild entfernt (die Variation legt sie fest)")
+        scene = " ".join(keep)
+    parts = tv.apply(var, side, r)
+    prompt = r.INTRO + parts["desk"] + parts["cozy"] + r.PERSON[person] + FIGURINE + parts["art"] + scene
     for i in range(1, max_tries + 1):
-        art = images.generate_art(prompt, "16:9", pro=True, style=r.STYLE, image_size="4K").convert("RGB")
+        art = images.generate_art(prompt, "16:9", pro=True, style=parts["style"], image_size="4K").convert("RGB")
         if art.size[0] < 2500:
             log(f"Neuer Raum Versuch {i}: nur {art.size}, verworfen")
             continue
-        res = check_room_image(art)
+        res = check_room_image(art, var)
         log(f"Neuer Raum Versuch {i}: Prüfung {res}")
         if res and res.get("ok") is True:
             dx = res.get("desk_x")
@@ -293,7 +328,7 @@ def make_new_room(slug: str, scene_file: str, side: str, person: str, out: Path,
             png.parent.mkdir(parents=True, exist_ok=True)
             art.save(png)
             (out / "img" / "neuer_raum.json").write_text(json.dumps({"slug": slug, "side": side, "person": person, "scene": scene,
-                                                                      "check": res, "desk_x": dx, "person_x": px, "tries": i}, indent=2, ensure_ascii=False))
+                                                                      "check": res, "desk_x": dx, "person_x": px, "tries": i, "variation": var, "prompt": prompt}, indent=2, ensure_ascii=False))
             try:   # Bild für spätere Verwendung in Drive ablegen (bilder/<slug>.png)
                 from pipeline import drive
                 named = out / "img" / f"{slug}.png"
@@ -781,6 +816,10 @@ def main() -> int:
     ap.add_argument("--new-room", action="store_true", help="NEUER Raum für diesen Mix: Bild wird neu erzeugt (Szene aus --scene-file) und automatisch geprüft; --room ist dann die neue Kennung")
     ap.add_argument("--scene-file", default="", help="Datei mit dem neuen Orts-/Szenentext (englisch, 80–900 Zeichen, von Claude pro Mix neu erfunden)")
     ap.add_argument("--desk-side", default="right", choices=["left", "right"], help="Seite des Schreibtischs im neuen Raum (abwechseln)")
+    ap.add_argument("--desk-pos", default="auto", choices=["auto", "front", "back"], help="Schreibtisch vorn oder im hinteren Teil der Wohnung (auto = abwechselnd, automatisch)")
+    ap.add_argument("--chair", default="auto", choices=["auto", "cognac", "black"], help="Farbe des Bürostuhl-Leders (auto = automatisch wechselnd)")
+    ap.add_argument("--sofa", default="auto", choices=["auto", "fabric", "leather"], help="Couch: Stoff oder Leder (auto = automatisch wechselnd)")
+    ap.add_argument("--art", default="auto", help="Wandbild: auto | ink (schwarz-weißes japanisches Tuschebild) | other | Schlüssel aus concepts/tokyo_variation.py")
     ap.add_argument("--person", default="woman", choices=["woman", "man"], help="unscharfe Person am Fenster im neuen Raum (abwechseln)")
     ap.add_argument("--main-image", default="", help="fertiges Hauptbild (von Rolf erzeugt, 16:9) statt Drive/Neuerzeugung; --room ist dann die Kennung des Raums")
     ap.add_argument("--vol", type=int, default=0, help="Nummer im Titel („- Vol. N“); ohne Angabe: automatisch hochgezählt")
@@ -841,7 +880,8 @@ def main() -> int:
     if args.new_room and not args.dry_run and not args.main_image:
         if not args.scene_file:
             raise SystemExit("--new-room braucht --scene-file")
-        art_new, new_desk_x, new_person_x = make_new_room(args.room, args.scene_file, args.desk_side, args.person, out)
+        art_new, new_desk_x, new_person_x = make_new_room(args.room, args.scene_file, args.desk_side, args.person, out,
+                                                          choice={"desk_pos": args.desk_pos, "chair": args.chair, "sofa": args.sofa, "art": args.art})
         if art_new is None:
             log("NEUER RAUM: kein Bild hat nach 3 Versuchen alle Kriterien erfüllt – Abbruch vor der Musik (kein Geld für Musik ausgegeben). "
                 "Mit vorhandenem Raum (--room shinjuku-sky-loft|nakameguro-evening-loft|azabu-rain-loft) neu starten und im Bericht melden.")
@@ -937,7 +977,7 @@ def main() -> int:
 
     cost_line = costs.report()
     log(cost_line)
-    result = {"room": args.room, "video_id": video_id, "video_url": video_url, "short_id": short_id, "short_check": (short_chk or None), "vol": vol, "privacy": privacy,
+    result = {"room": args.room, "video_id": video_id, "video_url": video_url, "short_id": short_id, "short_check": (short_chk or None), "vol": vol, "variation": dict(LAST_VARIATION) or None, "privacy": privacy,
               "duration_sec": total, "duration_min": total_min, "songs": len(wavs), "quote": lines, "title": TITLE,
               "cost_usd": costs.total_usd(), "cost_report": cost_line, "drive": drive_links,
               "boundaries": [round(s, 1) for s in starts], "video_mb": round(mp4.stat().st_size / 1e6)}
@@ -948,7 +988,8 @@ def main() -> int:
             mem = memory.load()
             mem.setdefault("tokyo", []).append({"date": date.today().isoformat(), "room": args.room, "video_id": video_id,
                                                 "short_id": short_id, "duration_min": total_min, "songs": len(wavs),
-                                                "privacy": privacy, "vol": vol, "quote": " ".join(lines), "cost_usd": costs.total_usd()})
+                                                "privacy": privacy, "vol": vol, "quote": " ".join(lines), "cost_usd": costs.total_usd(),
+                                                "variation": dict(LAST_VARIATION) or None})
             # Die Abend-Aufgabe „Mix-Link und veröffentlichen“ (19:45) liest nur die Liste „shorts2“ → Tokyo-Short dort eintragen,
             # sonst bliebe er privat und ohne Mix-Verknüpfung (gefunden 19.10.2026).
             mem.setdefault("shorts2", []).append({"date": date.today().isoformat(), "id": f"tokyo-{date.today().isoformat()}",

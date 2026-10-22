@@ -35,7 +35,7 @@
   einen neuen Ort (neue Kennung, z. B. `daikanyama-garden-loft`; nicht in Gedächtnis „tokyo“ Feld `room` und nicht in `r.ROOMS` verwendet) und schreibt einen englischen Szenentext
   (80–900 Zeichen: Fenster/Ausblick, Materialien, Stimmung; abends/nachts, warmes Licht, dunkle gerade Decke) in eine Datei. Aufruf:
   `run_tokyo.py --new-room --room <kennung> --scene-file <datei> --desk-side left|right --person woman|man ...` (Seite und Person gegenüber dem letzten Mix wechseln).
-  Das Skript erzeugt das Bild in 4K (0,24 $), prüft es automatisch (Schreibtisch mit zwei Monitoren sichtbar, Cognac-Ledersessel, kein Text, Person nur unscharf von hinten, kein Tageslicht/Blaustich,
+  Das Skript erzeugt das Bild in 4K (0,24 $), prüft es automatisch (Schreibtisch mit zwei Monitoren sichtbar, Bürostuhl (Cognac oder schwarz), kein Text, Person nur unscharf von hinten, kein Tageslicht/Blaustich,
   keine Fehler), misst die Schreibtischmitte selbst für den Album-Cover-Ausschnitt und legt das Bild in Drive `bilder/<kennung>.png` ab. Bis zu 3 Versuche; scheitern alle, bricht der Lauf VOR der Musik
   mit Exit-Code 3 ab → dann mit einem vorhandenen Raum neu starten und das Rolf im Bericht sagen. Bildkosten (bis 0,72 $ bei 3 Versuchen) in die Kostenmeldung aufnehmen.
   Ergänzung Rolf 19.10.2026: Der Ort liegt IMMER in Tokyo (Szenentext nennt Stadtteil + „Tokyo“, alles passt zum Thema Tokyo). Der Arbeitsplatz ist ein echter Computerarbeitsplatz mit zwei Monitoren,
@@ -51,6 +51,11 @@
   Automatisch (Rolf 19.10.2026 „automatisiere das“): Die Raumprüfung misst `person_x` und verlangt eine sichtbare Person; `short_center()` legt den Schwenk zwischen Person und Schreibtisch;
   `make_short_checked()` zieht Standbilder (Anfang/Mitte/Ende) und lässt sie prüfen (Schreibtisch + Person in ALLEN drei), bei Misserfolg verschiebt es den Ausschnitt und baut bis zu 3× neu (nur ffmpeg, kostenlos).
   Ergebnis steht in `short_check.json` und `result.json` („short_check“). Ist `ok` am Ende nicht `true`, im Bericht an Rolf sagen. Rolfs eigene Bilder (`--main-image`) werden ebenfalls vermessen.
+- **Tokyo-Mixe: Raum-Variationen automatisch** (Rolf 22.10.2026, ab dem Mix vom 23.10.): `concepts/tokyo_variation.py` wählt pro neuem Raum selbst (aus Gedächtnis „tokyo“, nie dreimal hintereinander dasselbe)
+  und baut es ins Bild-Prompt ein: **Schreibtisch** vorne oder im hinteren Teil der Wohnung (nur sichtbar muss er sein), **Bürostuhl** Cognac-Leder oder schwarz, wechselnde Stellung (abgewandt, zur Kamera, herangeschoben, schräg, zum Fenster),
+  **Sofa** mal Stoff, mal Leder (mit Farbe), **Wandkunst**: etwa jeder dritte Raum bekommt im Wohnbereich ein großes japanisches abstraktes Tuschebild in strikt Schwarz-Weiß (sumi-e, kein Text), jedes Mal ein anderes aus 16 Varianten; sonst andere Kunst (Holzschnitte usw.).
+  Der Szenentext darf Sofa, Schreibtisch, Stuhl und Wandbild NICHT festlegen (das Skript streicht solche Sätze). Überschreiben: `--desk-pos`, `--chair`, `--sofa`, `--art`. Die Wahl steht in `neuer_raum.json`, `result.json` und im Gedächtnis („variation“).
+  Die Raumprüfung passt sich an (hinterer Schreibtisch, schwarzer Stuhl; tastatur/Maus dürfen klein sein).
 - **Tokyo-Short: Dauerzeile oben** (Rolf 20.10.2026, ab dem nächsten Short): Im oberen Drittel steht über die GANZE Länge des Shorts (ohne Ein-/Ausblenden, nahtlose Schleife) der Text
   „Slow Jazz / for Deep Work & Coding“ (`SHORT_TOP_TEXT`, `short_top_layer()` in run_tokyo.py; Cinzel, Gold + Cremeweiß, weicher dunkler Verlauf, Mitte bei ca. 21 % der Höhe). Der Spruch bleibt in der Bildmitte.
 
