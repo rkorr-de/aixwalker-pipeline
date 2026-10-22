@@ -23,12 +23,12 @@ PRODUCTS = {
 # Nicht auf Amazon.de verlinkt (bisher kein Link): genelec, alu-PC, balmuda, Stuhl (Eames/Aeron), Schiit-Verstärker.
 
 HOOKS = [
-    "Love the setup? Here's the exact gear behind tonight's desk:",
+    "Love the setup? Here's the gear behind tonight's desk:",
     "Want this calm, focused corner for yourself? Here's what's on the desk:",
     "Build your own late-night focus setup with the gear from this room:",
     "Your best deep-work night starts with the right tools. This is what you see here:",
 ]
-DISCLOSURE = "Ad · Affiliate links – Als Amazon-Partner verdiene ich an qualifizierten Verkäufen."
+DISCLOSURE = "Ad · Affiliate links – As an Amazon Associate I earn from qualifying purchases."
 
 
 def shop_block(var: dict | None, vol: int = 0) -> str:
