@@ -307,6 +307,8 @@ def make_new_room(slug: str, scene_file: str, side: str, person: str, out: Path,
     ch = choice or {}
     var = tv.choose(tokyo_history(), slug, ch.get("desk_pos", "auto"), ch.get("chair", "auto"), ch.get("sofa", "auto"), ch.get("art", "auto"),
                     ch.get("person_place", "auto"), person)
+    if person == "auto":
+        person = var["gender"]
     LAST_VARIATION.clear()
     LAST_VARIATION.update(var)
     log(f"Raum-Variation: {var}")
@@ -826,7 +828,7 @@ def main() -> int:
     ap.add_argument("--person-place", default="auto", choices=["auto", "window", "desk"], help="Person: am Fenster (unscharf) oder arbeitend am Schreibtisch (Blick über die Schulter)")
     ap.add_argument("--sofa", default="auto", choices=["auto", "fabric", "leather"], help="Couch: Stoff oder Leder (auto = automatisch wechselnd)")
     ap.add_argument("--art", default="auto", help="Wandbild: auto | ink (schwarz-weißes japanisches Tuschebild) | other | Schlüssel aus concepts/tokyo_variation.py")
-    ap.add_argument("--person", default="woman", choices=["woman", "man"], help="unscharfe Person am Fenster im neuen Raum (abwechseln)")
+    ap.add_argument("--person", default="auto", choices=["auto", "woman", "man"], help="Person im neuen Raum: Frau oder Mann (auto = automatisch wechselnd)")
     ap.add_argument("--main-image", default="", help="fertiges Hauptbild (von Rolf erzeugt, 16:9) statt Drive/Neuerzeugung; --room ist dann die Kennung des Raums")
     ap.add_argument("--vol", type=int, default=0, help="Nummer im Titel („- Vol. N“); ohne Angabe: automatisch hochgezählt")
     ap.add_argument("--out", default=None)

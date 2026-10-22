@@ -174,10 +174,12 @@ def choose(history: list[dict], seed: str, desk_pos: str = "auto", chair: str = 
     purifier = balanced(tuple(PURIFIER), "purifier")
     accent = balanced(tuple(ACCENT_WALL), "accent_wall")
     console = balanced(tuple(CONSOLE), "console")
+    if gender == "auto":
+        gender = balanced(("woman", "man"), "gender")
     if person_place in ("desk", "window"):
         at_desk = person_place == "desk"
     else:   # etwa 40 %, nie dreimal hintereinander
-        at_desk = sub("at_desk").random() < 0.4 and _hist(history, "at_desk")[-2:] != [True, True]
+        at_desk = (sub("at_desk").random() < 0.5) and _hist(history, "at_desk")[-2:] != [True, True] or _hist(history, "at_desk")[-2:] == [False, False]
     pc = balanced(tuple(PCS), "pc")
     extras = {"at_desk": bool(at_desk), "gender": gender, "pc": pc, "kb": kb, "audio": audio, "deco": deco, "purifier": purifier, "accent_wall": accent, "console": console,
               "rack": sub("rack").random() < 0.7, "robot": sub("robot").random() < 0.6, "cyan": sub("cyan").random() < 0.7}
