@@ -289,6 +289,11 @@ def tokyo_history() -> list[dict]:
         return []
 
 
+# Rolf 23.10.2026: gilt bei JEDEM Tokyo-Bildprompt für die Person (Schreibtisch und Fenster, Frau und Mann)
+ANATOMY = (" Use for the person always perfect anatomy, detailed hands, correct fingers, accurate human anatomy, "
+           "beautifully detailed feet, flawless hands, highly detailed hands. ")
+
+
 def build_room_prompt(slug: str, scene_file: str, side: str, person: str, choice: dict | None = None):
     """Baut Variation und komplettes Bildprompt für einen neuen Raum (ohne Bild-Erzeugung). Liefert (prompt, style, var, scene, person)."""
     import genre_test_tokyo_rooms_v3 as r
@@ -316,7 +321,7 @@ def build_room_prompt(slug: str, scene_file: str, side: str, person: str, choice
         log("Szenentext: Sätze über Sofa/Schreibtisch/Stuhl/Wandbild entfernt (die Variation legt sie fest)")
         scene = " ".join(keep)
     parts = tv.apply(var, side, r)
-    prompt = r.INTRO + parts["desk"] + parts["cozy"] + (parts.get("person") or r.PERSON[person]) + FIGURINE + parts["art"] + scene
+    prompt = r.INTRO + parts["desk"] + parts["cozy"] + (parts.get("person") or r.PERSON[person]).rstrip() + ANATOMY + FIGURINE + parts["art"] + scene
     return prompt, parts["style"], var, scene, person
 
 
