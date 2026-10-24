@@ -122,6 +122,22 @@ def pick_name(genre: str, mem: dict) -> str:
     return free[0] if free else f"{names[date.today().isocalendar()[1] % len(names)]} {date.today().isocalendar()[1]}"
 
 
+COMMUNITY_MOOD = {
+    "Italian Chillout": ("🌙🍋", "Lanterns on the cliffs, the sea whispering below, and a warm Italian evening that never wants to end. 💛"),
+    "Mediterranean Lounge": ("🌅🍷", "Golden light on the water, a slow breeze and the soft hum of a summer evening by the sea. 💛"),
+}
+
+
+def community_text(genre: str, name: str, url: str) -> str:
+    """Community-Beitrag (Englisch, kurz, romantisch, mit Video-Link; Rolf 24.10.2026). Keine Zeit-/Längenangaben.
+    '{URL}' bleibt Platzhalter, bis der Link bekannt ist (send_mail ersetzt ihn)."""
+    emo, line = COMMUNITY_MOOD.get(genre, COMMUNITY_MOOD["Italian Chillout"])
+    tag = "".join(ch for ch in name.title() if ch.isalnum())
+    return (f"{emo} AIX WALKER Mega-Mix · {name}\n\n{line}\n\n"
+            f"Press play, dim the lights and let the night take you slowly. 🎧🌊\n\n▶️ {url}\n\n"
+            f"#AixWalker #{tag} #{genre.replace(' ', '')} #RomanticVibes")
+
+
 def texts_music(genre: str, name: str, total_min: int, albums: list[dict], chapters: str, bpm: str, playlist_id: str) -> dict:
     head, _, tags, playlist = monthly.genre_info(IMG_GENRE.get(genre, genre) if genre != "Italian Chillout" else genre)
     keyword = config.THUMB_KEYWORD.get(IMG_GENRE.get(genre, genre), head)
@@ -152,7 +168,7 @@ def texts_music(genre: str, name: str, total_min: int, albums: list[dict], chapt
     tags = list(dict.fromkeys(tags + ["long mix", f"{hrs.lower()} mix", "shuffled mix", "dinner music", "aix walker",
                                       "no vocals"]))[:15]
     comment = "🍋 The long mix is live! Which part of the day are you listening in? Full tracklist with timestamps below 👇"
-    community = (f"Neuer langer Mix: {name} – {hrs} {keyword} 🍷\nAlle Songs gemischt, jeder nur einmal – perfekt zum Laufenlassen.")
+    community = community_text(genre, name, "{URL}")
     return {"title": title, "description": desc[:5000], "tags": tags, "comment": comment, "community_de": community,
             "keyword": keyword, "playlist": playlist}
 
@@ -184,8 +200,9 @@ One long, uninterrupted session with the songs of our fireplace films, shuffled 
             "relaxing fireplace music", "snowy cabin ambience", "lofi jazz fireplace", f"{hrs.lower()} fireplace",
             "long fireplace video", "sleep music winter", "study music cozy", "aixwalker", "aix walker"]
     comment = f"❄️🔥 {hrs} by the fire – full tracklist with timestamps below 👇"
-    community = (f"Neu: {name} – {hrs} Kaminfeuer, ruhige Schneelandschaft und ruhige Musik in 4K 🔥❄️\n"
-                 f"Alle Songs gemischt, jeder nur einmal – perfekt für einen langen Winterabend.")
+    community = (f"🔥❄️ AIX WALKER Mega-Mix · {name}\n\nA crackling fire, quiet snow outside and soft music for a slow winter evening. 💛\n\n"
+                 f"Press play, wrap up warm and let the night take you slowly. 🎧\n\n▶️ {{URL}}\n\n"
+                 f"#AixWalker #CozyCabin #FireplaceMusic #WinterVibes")
     return {"title": title, "description": desc[:5000], "tags": tags, "comment": comment, "community_de": community}
 
 
@@ -207,7 +224,7 @@ def send_mail(res: dict) -> dict:
     lines += [f"  - {s['date']}: {s['title']} → {s.get('url') or s.get('error', 'nicht erzeugt')}" for s in res["shorts"]] or ["  (keine)"]
     lines += ["", "Kommentar mit Tracklist: " + ("gepostet – nur noch anpinnen (Studio → Kommentare → ⋮ → Anpinnen)"
                                                  if res.get("comment_ids") else "NICHT gepostet – Text steht in metadata.txt im Drive-Ordner"),
-              "", "Community-Beitrag (Text zum Einfügen):", t["community_de"], "", "Kapitel:", res["chapters"]]
+              "", "Community-Beitrag (Text zum Einfügen, Album-Cover hängt an):", t["community_de"].replace("{URL}", str(res.get("video_url") or "")), "", "Kapitel:", res["chapters"]]
     msg = EmailMessage()
     msg["To"], msg["From"] = to, "me"
     msg["Subject"] = f"AIX WALKER Mega-Mix: {res['name']} ({res['duration_min']} Min) – {when}"
@@ -465,7 +482,7 @@ def main() -> int:
     (base / "metadata.txt").write_text(
         f"=== YOUTUBE TITEL ===\n{t['title']}\n\n=== BESCHREIBUNG ===\n{t['description']}\n=== TAGS ===\n"
         f"{', '.join(t['tags'])}\n\n=== ANGEPINNTER KOMMENTAR ===\n{t['comment']}\n\n=== TRACKLISTE (Kommentar) ===\n"
-        f"{chr(10).join(comments)}\n\n=== COMMUNITY-BEITRAG ===\n{t['community_de']}\n", encoding="utf-8")
+        f"{chr(10).join(comments)}\n\n=== COMMUNITY-BEITRAG ===\n{t['community_de'].replace('{URL}', '(Video-Link)')}\n", encoding="utf-8")
     publish_at = None if (args.private or args.publish_at == "now") else megamix.publish_time_utc(args.publish_at)
     res = {"genre": genre, "week": week, "name": name, "title": t["title"], "duration_min": total_min,
            "albums": albums_used, "tracks": len(order), "thumbnail": str(thumb), "cover": str(cover) if cover else None,
