@@ -74,10 +74,10 @@ PCS = {   # Rolf 22.10.2026: Computergehäuse am Arbeitsplatz (kein sichtbarer M
             "standing beside the desk, with at most a faint warm amber glow inside, no RGB lighting"),
 }
 PERSON_AT_DESK = {   # Rolf 22.10.2026: Person arbeitet nachts am Schreibtisch, Blick über die Schulter von schräg hinten
-    "woman": ("A candid, cinematic, photorealistic natural shot of the coder, a confident Japanese woman in her early 30s, working deep at night at the desk, seen over the shoulder from slightly behind "
+    "woman": ("A candid, cinematic, photorealistic natural shot of the coder, a super attractive, confident and effortlessly cool Japanese woman coder in her early 30s, working deep at night at the desk, seen over the shoulder from slightly behind "
               "so that her face is not visible. She sits ergonomically but casually in the office chair, slightly angled toward the long walnut designer desk. Her dark hair is up in a loose messy low bun "
               "with wispy strands at the neck. She wears a relaxed, cozy nocturnal outfit of cool Tokyo streetwear: an oversized off-the-shoulder ribbed-knit cardigan in dark charcoal slipping off one shoulder "
-              "over a fine deep-green silk camisole, and fluid wide-leg dark linen trousers; her bare feet are casually tucked up onto the seat of the chair. Her posture is natural and completely absorbed "
+              "so that her bare shoulder and the line of her neck are visible, over a fine deep-green silk camisole worn naturally without bra straps or bra lines (a soft, natural silhouette), and fluid wide-leg dark linen trousers; her bare feet are casually tucked up onto the seat of the chair. Her posture is natural and completely absorbed "
               "in her task, an authentic late-night coding mood without any posing. "),
     "man": ("A candid, cinematic, photorealistic natural shot of the coder, a stylish, authentic Japanese man in his mid-30s, working deep at night at the desk, seen over the shoulder from slightly behind "
             "so that his face is not visible (only the back of his head and the temple of dark round acetate glasses). He sits ergonomically in the office chair, leaning in slightly toward the long walnut designer desk "
