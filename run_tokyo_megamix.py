@@ -71,6 +71,22 @@ def texts(total_min: int, chapters: str, intro: str, var: dict, playlist_id: str
     return {"title": title, "description": desc, "tags": tags, "comment": comment_intro, "hrs": hrs}
 
 
+def spread_and_label(order: list[dict], gap: int = 12) -> list[dict]:
+    """Die 22 Songtitel kommen in JEDEM Tokyo-Mix vor (verschiedene Songs, gleiche Namen). Damit es nicht wie Wiederholung wirkt:
+    1) gleicher Titel frühestens nach `gap` anderen Songs, 2) Titel bekommt den Raum des Quell-Mixes angehängt (z. B. „Soft Compile · Kichijoji“)."""
+    import re
+    rest, out = list(order), []
+    while rest:
+        recent = {x["title"] for x in out[-gap:]}
+        i = next((k for k, t in enumerate(rest) if t["title"] not in recent), 0)
+        out.append(rest.pop(i))
+    for t in out:
+        m = re.search(r"Tokyo Work Lounge\s*[–-]\s*([a-z]+)", str(t.get("album", "")))
+        if m:
+            t["title"] = f"{t['title']} · {m.group(1).capitalize()}"
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--room", default="", help="neue Raumkennung (nicht in Gedächtnis „tokyo“/„tokyo_megamix“ und nicht in r.ROOMS)")
@@ -167,6 +183,7 @@ def main() -> int:
             return 2
         pairs = rm.fetch_all(svc, sources, base / "src")
     order = rm.build_order(pairs, seed=today.toordinal() * 31 + 7, max_hours=args.max_hours, by_title=False)
+    order = spread_and_label(order)
     hours = megamix.total_seconds(order) / 3600
     if hours < (MIN_HOURS if not dry else 0.01):
         log(f"ABBRUCH: nur {hours:.1f} Std. Material")

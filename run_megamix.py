@@ -216,7 +216,7 @@ def send_mail(res: dict) -> dict:
             else f"geplant für {res['publish_local']} Uhr (Berlin)" if res.get("publish_at") else "sofort öffentlich")
     lines = [f"AIX WALKER Mega-Mix ({res['genre']}) ist hochgeladen – {when}", "",
              f"Titel: {res['title']}", f"Video: {res.get('video_url')}",
-             f"Dauer: {res['duration_min']} Min · {res['tracks']} Songs (zufällig gemischt, keiner doppelt) aus "
+             f"Dauer: {res['duration_min']} Min · {res['tracks']} Songs (zufällig gemischt, keine Datei doppelt) aus "
              f"{len(res['albums'])} Mixen: {', '.join(res['albums'])}", f"Drive: {res.get('drive_folder', '-')}",
              f"Kosten: Voranschlag {res['estimate_usd']:.2f} $ ≈ {res['estimate_usd'] * config.USD_EUR_RATE:.2f} €, "
              f"tatsächlich {res['cost_usd']:.2f} $ ≈ {res['cost_usd'] * config.USD_EUR_RATE:.2f} €",
