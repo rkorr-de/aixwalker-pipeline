@@ -212,7 +212,8 @@ def send_mail(res: dict) -> dict:
     svc = mailer._service()
     to = config.REPORT_EMAIL or svc.users().getProfile(userId="me").execute()["emailAddress"]
     t = res["texts"]
-    when = (f"geplant für {res['publish_local']} Uhr (Berlin)" if res.get("publish_at") else "sofort öffentlich")
+    when = ("PRIVAT hochgeladen (noch nicht öffentlich)" if res.get("private")
+            else f"geplant für {res['publish_local']} Uhr (Berlin)" if res.get("publish_at") else "sofort öffentlich")
     lines = [f"AIX WALKER Mega-Mix ({res['genre']}) ist hochgeladen – {when}", "",
              f"Titel: {res['title']}", f"Video: {res.get('video_url')}",
              f"Dauer: {res['duration_min']} Min · {res['tracks']} Songs (zufällig gemischt, keiner doppelt) aus "
