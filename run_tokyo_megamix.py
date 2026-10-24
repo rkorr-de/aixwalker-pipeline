@@ -90,7 +90,12 @@ def main() -> int:
     ap.add_argument("--no-short", action="store_true")
     ap.add_argument("--quote-text", default=DEFAULT_QUOTE)
     ap.add_argument("--desk-x", type=float, default=0.0, help="Schreibtischmitte 0–1; 0 = automatisch messen")
+    ap.add_argument("--image", default="", help="Rolfs neues Hauptbild (Datei). Pflicht, außer mit --use-latest-master")
+    ap.add_argument("--use-latest-master", action="store_true", help="master.jpg des neuesten Tokyo-Mixes statt eines neuen Bilds")
     args = ap.parse_args()
+    if not args.image and not args.use_latest_master and not args.dry_run:
+        log("ABBRUCH: Rolf macht ein NEUES Bild für den Tokyo-Mega-Mix (24.10.2026) – erst starten, wenn es da ist (--image <Datei>)")
+        return 5
     today = date.today()
     base = HERE / "build" / f"tokyo-megamix-{today.isoformat()}"
     shutil.rmtree(base, ignore_errors=True)
@@ -143,7 +148,10 @@ def main() -> int:
         from pipeline import youtube
         playlist_id = youtube.ensure_playlist(*rt.PLAYLIST)
         art = None
-        for f in reversed(sources):
+        if args.image:
+            art = Image.open(args.image).convert("RGB")
+            log(f"Hauptbild: Rolfs neues Bild {args.image} ({art.size[0]}×{art.size[1]})")
+        for f in ([] if art is not None else reversed(sources)):
             kids = drive.list_children(svc, f["id"])
             m = next((k for k in kids if k["name"] == "master.jpg"), None)
             if m:
