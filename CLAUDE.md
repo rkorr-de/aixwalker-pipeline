@@ -100,3 +100,9 @@
   (Zufallsreihenfolge, kein Song doppelt, keine neue Musik, kein neues Bild: `master.jpg` des neuesten Tokyo-Mixes). Läuft SOFORT, lädt PRIVAT hoch (kein Warten, keine Planung), dazu 1 Short (privat, Eintrag in „shorts2“),
   beschriftetes `album_3000.png`, Thumbnail, `metadata.txt`, Drive-Ordner „<Datum> – MEGAMIX Tokyo Work Lounge – Tokyo Work Lounge (<n> Min)“, Community-Text, Mail (`run_megamix.send_mail`). Gedächtnis: Liste „tokyo_megamix“
   (die Samstags-Rotation bleibt unberührt). Spruch für den Short per `--quote-text`, sonst Standard (pro Lauf neu wählen!). Test ohne Kosten: `--dry-run`.
+- **Tokyo-Sonntags-Mega-Mix, neues Konzept** (Rolf 24.10.2026, ersetzt den Eintrag „Tokyo-Mega-Mix“): `run_tokyo_megamix.py` läuft AUTARK. Claude denkt sich pro Lauf NEU aus: Raum (Kennung + Szenentext wie bei den Tokyo-Mixen),
+  Spruch, Beschreibungstext, Community-Text (`{URL}`, `{HOURS}`) und ruft auf: `python run_tokyo_megamix.py --room <kennung> --scene-file ... --desk-side left|right --person auto --quote-text "..." --description-file ... --community-file ...`
+  (Beispiel-Dateien: `megamix_inputs/2026-10-24/`). Das Skript erzeugt das NEUE Bild selbst (Variation, Prüfung, Easter-Egg), mischt bis zu 8 Std. aus allen vorhandenen Tokyo-Mixen (kein Song doppelt, keine neue Musik),
+  baut das Video wie die normalen Tokyo-Mixe (Spruch-Intro, Blenden), Beschreibung mit Amazon-Links, lädt SOFORT ÖFFENTLICH hoch, postet die Tracklisten-Kommentare, macht 1 Short (öffentlich), Cover, Thumbnail, Drive-Paket
+  und sendet EINE Mail (Community-Text, Cover, Infos). Gedächtnis „tokyo_megamix“. Fehler/zu wenig Material: Mail an Rolf (Exit 2/3), Exit 6 = heute schon gelaufen.
+  Ursache der 1 Std. am 24.10.: Alle Tokyo-Mixe benutzen dieselben 22 Songtitel, der Titelvergleich hat sie als „doppelt“ gelöscht → jetzt zählen nur identische Audiodateien (`by_title=False`).

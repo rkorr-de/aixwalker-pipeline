@@ -220,7 +220,7 @@ def send_mail(res: dict) -> dict:
              f"{len(res['albums'])} Mixen: {', '.join(res['albums'])}", f"Drive: {res.get('drive_folder', '-')}",
              f"Kosten: Voranschlag {res['estimate_usd']:.2f} $ ≈ {res['estimate_usd'] * config.USD_EUR_RATE:.2f} €, "
              f"tatsächlich {res['cost_usd']:.2f} $ ≈ {res['cost_usd'] * config.USD_EUR_RATE:.2f} €",
-             "Kein DistroKid-Release.", "",
+             "Kein DistroKid-Release.", *res.get("extra_lines", []), "",
              "Shorts (privat; der Link zum Mix wird abends 19:45 in Studio gesetzt, dann öffentlich):"]
     lines += [f"  - {s['date']}: {s['title']} → {s.get('url') or s.get('error', 'nicht erzeugt')}" for s in res["shorts"]] or ["  (keine)"]
     lines += ["", "Kommentar mit Tracklist: " + ("gepostet – nur noch anpinnen (Studio → Kommentare → ⋮ → Anpinnen)"
@@ -314,9 +314,9 @@ def shorts_cabin(base: Path, final_flac: Path, starts: list[float], clips: list[
 
 
 # ---------------------------------------------------------------- Lauf
-def build_order(pairs, seed: int, max_hours: float) -> list[dict]:
+def build_order(pairs, seed: int, max_hours: float, by_title: bool = True) -> list[dict]:
     durations = {str(t): audio.probe_duration(t) for _, mx in pairs for t in mx["tracks"]}
-    tracks = megamix.collect_tracks(pairs, durations)
+    tracks = megamix.collect_tracks(pairs, durations, by_title=by_title)
     log(f"{sum(len(mx['tracks']) for _, mx in pairs)} Songs gefunden, {len(tracks)} nach Entfernen von Doppelten")
     order = megamix.shuffle_unique(tracks, seed=seed, max_sec=max_hours * 3600)
     log(f"Zufallsreihenfolge: {len(order)} Songs, {megamix.total_seconds(order) / 3600:.2f} Std.")

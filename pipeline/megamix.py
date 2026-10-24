@@ -38,7 +38,7 @@ def _md5(path: Path) -> str | None:
         return None
 
 
-def collect_tracks(pairs: list[tuple[dict, dict]], durations: dict) -> list[dict]:
+def collect_tracks(pairs: list[tuple[dict, dict]], durations: dict, by_title: bool = True) -> list[dict]:
     """Alle Songs der Quell-Mixe als flache Liste [{path, title, album, dur}] ohne doppelte Songs.
     Doppelt = gleicher normierter Titel ODER identischer Dateiinhalt (dieselbe Datei in zwei Mixen). Dateigröße und
     Länge allein reichen nicht: gleich lange CBR-MP3s haben dieselbe Größe, sind aber verschiedene Songs."""
@@ -49,7 +49,7 @@ def collect_tracks(pairs: list[tuple[dict, dict]], durations: dict) -> list[dict
             dur = float(durations[str(path)]) if str(path) in durations else float(durations[path])
             key_t = norm_title(title)
             h = _md5(path)
-            if key_t in seen_titles or (h and h in seen_hash):
+            if (by_title and key_t in seen_titles) or (h and h in seen_hash):   # by_title=False: Tokyo-Mixe teilen dieselben 22 Titel
                 continue
             seen_titles.add(key_t)
             if h:
