@@ -106,3 +106,6 @@
   baut das Video wie die normalen Tokyo-Mixe (Spruch-Intro, Blenden), Beschreibung mit Amazon-Links, lädt SOFORT ÖFFENTLICH hoch, postet die Tracklisten-Kommentare, macht 1 Short (öffentlich), Cover, Thumbnail, Drive-Paket
   und sendet EINE Mail (Community-Text, Cover, Infos). Gedächtnis „tokyo_megamix“. Fehler/zu wenig Material: Mail an Rolf (Exit 2/3), Exit 6 = heute schon gelaufen.
   Ursache der 1 Std. am 24.10.: Alle Tokyo-Mixe benutzen dieselben 22 Songtitel, der Titelvergleich hat sie als „doppelt“ gelöscht → jetzt zählen nur identische Audiodateien (`by_title=False`).
+- **Tokyo: Claude erzeugt die Bilder wieder selbst** (Rolf 24.10.2026, ersetzt „Tokyo-Mix mit Rolfs eigenem Hauptbild“): Rolf liefert KEIN Bild mehr. Die Aufgabe `trig_017pBk9j8iKk9uz21feTAi55` läuft täglich 6:07 (Tagesmix, Cron `6,8`) und sonntags 8:07 (Mega-Mix):
+  `python run_tokyo.py --new-room --room <kennung> --scene-file ... --desk-side ... --person auto --quote-text ... --description-file ... --upload --public --drive` (Bild 4K mit Prüfung, 22 Tracks, Mix sofort öffentlich, Short privat), danach `send_tokyo_mail.py`.
+  Phase A/B (`--prompt-only`, `--from-inbox`, Drive „Tokyo Hauptbild“) ist abgeschafft, bleibt nur im Code.
