@@ -869,11 +869,17 @@ def apply_inbox(args) -> int | None:
             log(f"Mix läuft schon (gestartet vor {age / 60:.0f} Min).")
             return 6
     pic = {"id": plan["image_id"], "name": plan.get("image_name", "bild")} if plan.get("image_id") else ib.newest_image(svc, fid, plan["created"])
+    local = Path("build") / "tokyo_in.png"  # Rückfall: Rolfs Bild liegt lokal bereit (drive.file sieht selbst hochgeladene Dateien nicht)
+    if not pic and local.exists():
+        pic = {"id": "local", "name": "tokyo_in.png"}
     if not pic:
         log("Noch kein Bild im Ordner.")
         return 5
     raw = Path("build") / "inbox_image"
-    drive.download(svc, pic["id"], raw)
+    if pic["id"] == "local":
+        raw = local
+    else:
+        drive.download(svc, pic["id"], raw)
     im = Image.open(raw).convert("RGB")
     dst = Path("build") / "inbox_image.png"
     im.save(dst)
