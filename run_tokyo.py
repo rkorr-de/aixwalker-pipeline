@@ -906,6 +906,7 @@ def main() -> int:
     ap.add_argument("--cover-desk-x", type=float, default=0.0, help="Mitte des Schreibtischs im Hauptbild (0–1, von links) für den Album-Cover-Ausschnitt; 0 = Standard des Raums")
     ap.add_argument("--new-room", action="store_true", help="NEUER Raum für diesen Mix: Bild wird neu erzeugt (Szene aus --scene-file) und automatisch geprüft; --room ist dann die neue Kennung")
     ap.add_argument("--scene-file", default="", help="Datei mit dem neuen Orts-/Szenentext (englisch, 80–900 Zeichen, von Claude pro Mix neu erfunden)")
+    ap.add_argument("--existing-video-id", default=None, help="schon hochgeladenes Video übernehmen (kein neuer Upload)")
     ap.add_argument("--desk-side", default="right", choices=["left", "right"], help="Seite des Schreibtischs im neuen Raum (abwechseln)")
     ap.add_argument("--desk-pos", default="auto", choices=["auto", "front", "back"], help="Schreibtisch vorn oder im hinteren Teil der Wohnung (auto = abwechselnd, automatisch)")
     ap.add_argument("--chair", default="auto", choices=["auto", "cognac", "black", "eames", "aeron"], help="Bürostuhl: eames (cognac) oder aeron (schwarz, Onyx Black); auto = wechselnd")
@@ -1026,16 +1027,35 @@ def main() -> int:
     desc = description(chapter_text, total_min, parse_description(args.description_file) if args.description_file else "", dict(LAST_VARIATION) or None, vol)
     if args.upload:
         from pipeline import youtube
-        video_id = youtube.upload_video(mp4, TITLE, desc, TAGS, privacy=privacy, location=youtube.TOKYO)
+        if args.existing_video_id:   # Video wurde schon hochgeladen (Lauf brach danach ab) → nicht doppelt hochladen
+            video_id = args.existing_video_id
+            log(f"Vorhandenes Video übernommen: https://youtu.be/{video_id}")
+        else:
+            video_id = youtube.upload_video(mp4, TITLE, desc, TAGS, privacy=privacy, location=youtube.TOKYO)
         video_url = f"https://youtu.be/{video_id}"
         log(f"Hochgeladen ({privacy}): {video_url}")
-        youtube.set_thumbnail(video_id, thumb)
-        pid = youtube.ensure_playlist(*PLAYLIST)
-        youtube.add_to_playlist(video_id, pid)
-        log(f"Playlist „{PLAYLIST[0]}“: {pid}")
+        yt_pending = []
+        try:
+            youtube.set_thumbnail(video_id, thumb)
+        except Exception as e:  # noqa: BLE001
+            log(f"Thumbnail nicht gesetzt: {str(e)[:160]}")
+            yt_pending.append("thumbnail")
+        try:
+            pid = youtube.ensure_playlist(*PLAYLIST)
+            youtube.add_to_playlist(video_id, pid)
+            log(f"Playlist „{PLAYLIST[0]}“: {pid}")
+        except Exception as e:  # noqa: BLE001
+            log(f"Playlist nicht gesetzt: {str(e)[:160]}")
+            yt_pending.append("playlist")
         s_title, s_desc, s_tags = short_texts(lines, video_url)
-        short_id = youtube.upload_video(short, s_title, s_desc, s_tags, privacy="private", location=youtube.TOKYO)
-        log(f"Short hochgeladen (privat): https://youtube.com/shorts/{short_id}")
+        try:
+            short_id = youtube.upload_video(short, s_title, s_desc, s_tags, privacy="private", location=youtube.TOKYO)
+            log(f"Short hochgeladen (privat): https://youtube.com/shorts/{short_id}")
+        except Exception as e:  # noqa: BLE001
+            log(f"Short nicht hochgeladen: {str(e)[:160]}")
+            yt_pending.append("short")
+        if yt_pending:
+            log(f"YOUTUBE OFFEN (wahrscheinlich Tageslimit): {yt_pending}")
 
     meta = out / "metadata.txt"
     meta.write_text("\n".join(["TITEL", TITLE, "", "BESCHREIBUNG", desc, "", "TAGS", ", ".join(TAGS), "",
@@ -1094,7 +1114,7 @@ def main() -> int:
             # sonst bliebe er privat und ohne Mix-Verknüpfung (gefunden 19.10.2026).
             mem.setdefault("shorts2", []).append({"date": date.today().isoformat(), "id": f"tokyo-{date.today().isoformat()}",
                                                   "title": s_title, "video_id": short_id, "mix_video_id": video_id,
-                                                  "cost_usd": 0.0, "tokyo": True})
+                                                  "cost_usd": 0.0, "tokyo": True}) if short_id else None
             memory.save(mem)
         except Exception as e:  # noqa: BLE001
             log(f"Gedächtnis nicht gespeichert: {str(e)[:160]}")
