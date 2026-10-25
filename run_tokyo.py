@@ -80,17 +80,52 @@ def make_album_cover(art: Image.Image, desk_x: float, size: int = 3000) -> Image
     return Image.alpha_composite(sq, v.text_layer(size, size, 0.05, 0.085, 0.043, 0.032, center=0.48)).convert("RGB")
 
 
+VOL_FLOOR = 9   # Rolf 25.10.2026: heute ist Vol. 9 (Vol. 8 war doppelt vergeben). Nie darunter; bei Bedarf anheben.
+
+
+def youtube_vols() -> list[int]:
+    """Alle „Vol. N“ in den Titeln der eigenen Tokyo-Videos auf dem Kanal (auch privat; Rolf korrigiert Titel manchmal von Hand)."""
+    import re
+    from pipeline import youtube
+    yt = youtube.service()
+    up = yt.channels().list(part="contentDetails", mine=True).execute()["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+    vols, token = [], None
+    for _ in range(6):                                   # bis zu 300 jüngste Uploads
+        r = yt.playlistItems().list(part="snippet", playlistId=up, maxResults=50, pageToken=token).execute()
+        for it in r.get("items", []):
+            t = it["snippet"]["title"]
+            if "Tokyo Work Lounge" in t and "Mega" not in t:
+                m = re.search(r"Vol\.\s*(\d+)", t)
+                if m:
+                    vols.append(int(m.group(1)))
+        token = r.get("nextPageToken")
+        if not token:
+            break
+    return vols
+
+
 def next_vol() -> int:
-    """Laufende Nummer im Titel (Rolf 19.10.2026): der Mix vom 19.10. ist Vol. 2, danach zählt jeder Mix um 1 hoch.
-    Einträge im Gedächtnis „tokyo“ mit Feld „vol“ zählen; Einträge ohne „vol“ vom 19.10. oder früher gelten als Vol. 2."""
-    vols = [2]
+    """Laufende Nummer im Titel (Rolf 19.10.2026, verschärft 25.10.2026 nach doppeltem „Vol. 8“): höchste Nummer aus
+    1) Gedächtnis „tokyo“ (Feld vol), 2) den Titeln der Tokyo-Videos auf YouTube, 3) VOL_FLOOR − 1, plus 1.
+    Ist weder Gedächtnis noch YouTube lesbar, bricht der Lauf ab (lieber kein Mix als eine falsche Nummer)."""
+    mem_vols, yt_vols, ok = [], [], 0
     try:
         from pipeline import memory
         for e in memory.load().get("tokyo", []):
-            vols.append(int(e.get("vol") or 0))
+            mem_vols.append(int(e.get("vol") or 0))
+        ok += 1
     except Exception as e:  # noqa: BLE001
         log(f"Gedächtnis für Titelnummer nicht lesbar: {str(e)[:120]}")
-    return max(vols) + 1
+    try:
+        yt_vols = youtube_vols()
+        ok += 1
+    except Exception as e:  # noqa: BLE001
+        log(f"YouTube-Titel für Titelnummer nicht lesbar: {str(e)[:120]}")
+    if not ok:
+        raise SystemExit("ABBRUCH: Titelnummer (Vol.) nicht prüfbar – weder Gedächtnis noch YouTube lesbar")
+    vol = max([VOL_FLOOR - 1, *mem_vols, *yt_vols]) + 1
+    log(f"Titelnummer: Vol. {vol} (Gedächtnis max {max(mem_vols or [0])}, YouTube max {max(yt_vols or [0])}, Untergrenze {VOL_FLOOR})")
+    return vol
 
 
 def used_quotes() -> set[str]:
