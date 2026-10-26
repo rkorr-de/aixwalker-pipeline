@@ -445,33 +445,130 @@ def run(args) -> Report:
 
 
 # ------------------------------------------------------------------ Bericht
+# Erklärungen in einfacher Sprache: (Suchtext im Fund, „Was heißt das?“, „Warum ist das wichtig?“, „Was ist zu tun, wenn es nicht repariert wurde?“)
+EXPLAIN = [
+    ("nicht in der Playlist", "Das Video steht nicht in der Playlist „Tokyo Work Lounge“.",
+     "Zuschauer, die eine Folge fertig geschaut haben, bekommen sonst nicht automatisch die nächste angezeigt; das kostet Wiedergabezeit.",
+     "Der Wächter trägt das Video selbst ein. Schlägt das fehl, steht der YouTube-Fehlertext dabei."),
+    ("Thumbnail fehl", "Das Video hat kein eigenes Vorschaubild, YouTube zeigt nur ein zufälliges Standbild.",
+     "Das Vorschaubild entscheidet, ob jemand klickt. Ohne eigenes Bild gehen Aufrufe verloren.",
+     "Der Wächter lädt das Bild `thumb.jpg` aus dem Drive-Ordner des Mixes hoch."),
+    ("Dauer", "Die Länge des Videos passt nicht zum Erwarteten (ein Tokyo-Mix dauert normal 55 bis 75 Minuten).",
+     "Ist der Mix zu kurz, fehlen Songs oder der Bau ist abgebrochen; ist er viel zu lang, ist etwas doppelt gemischt.",
+     "Prüfen, ob Songs fehlen (Drive-Ordner, Kapitelliste) und ob der Lauf abgebrochen wurde."),
+    ("Sichtbarkeit", "Das Video ist nicht öffentlich.",
+     "Nicht öffentliche Videos sehen Zuschauer nicht und bringen keine Aufrufe.",
+     "Gehört es zum heutigen Mix, stellt der Wächter es selbst auf öffentlich. Shorts bleiben bis 19:45 bewusst privat."),
+    ("Doppelte Titelnummer", "Zwei Mixe tragen dieselbe Vol.-Nummer.",
+     "Doppelte Nummern verwirren Zuschauer und DistroKid-Alben und wirken unprofessionell.",
+     "Der Wächter ändert die Nummer des neuesten Mixes auf die nächste freie."),
+    ("Titelnummern springen", "Die Nummern der Mixe sind nicht lückenlos (z. B. Vol. 8, dann Vol. 10).",
+     "Eine Lücke kann ein fehlender oder umbenannter Mix sein.",
+     "Prüfen, ob ein Mix fehlt oder von Hand umbenannt wurde."),
+    ("Songtitel nicht neu", "Songtitel wiederholen sich (alte Standardliste oder schon in einem anderen Mix benutzt).",
+     "Du hast festgelegt: kein Songtitel wird zweimal benutzt. Doppelte Titel können bei DistroKid und YouTube Ärger machen.",
+     "Neue Titel erzeugen und in Beschreibung, Kapiteln und MP3-Namen ersetzen."),
+    ("keine identischen Audio", "Es gibt keine identischen Audiodateien in verschiedenen Mixen.", "So ist sichergestellt, dass jeder Mix neue Musik hat.", ""),
+    ("Identische Audiodateien", "Dieselbe Musikdatei steckt in mehreren Mixen.",
+     "Wiederverwendete Musik unter neuem Namen wäre ein ernstes Problem bei DistroKid und YouTube.",
+     "Ursache klären (bewusste Kopie wie ein v2-Mix oder Fehler im Lauf) und beheben."),
+    ("Drive", "Das Drive-Paket eines Mixes ist nicht vollständig (erwartet: 22 MP3s, Cover, Thumbnail, Hauptbild, metadata.txt).",
+     "Das Paket brauchst du für DistroKid und als Sicherung.",
+     "Fehlende Dateien aus dem Bau nachladen. Bei alten Ordnern (vor dem 19.10.) ist ein fehlendes Cover bekannt und kein neuer Fehler."),
+    ("gespeicherte Songtitel", "Im Gedächtnis fehlen die 22 Songtitel dieses Mixes.",
+     "Ohne gespeicherte Titel kann der nächste Mix nicht sicher prüfen, ob ein Titel schon benutzt wurde.",
+     "Titel aus Drive-Ordner oder Beschreibung nachtragen."),
+    ("Gedächtnis", "Der Mix steht nicht oder falsch im Gedächtnis (Datei memory.json).",
+     "Das Gedächtnis steuert Nummern, Räume, Sprüche und Songtitel der nächsten Mixe; Lücken führen zu Doppelungen.",
+     "Eintrag nachtragen."),
+    ("Kosten", "Der Lauf hat mehr gekostet als üblich.", "Dein Budget ist begrenzt (Tokyo ca. 2 $, Cabin 9 €).",
+     "Ursache finden (Bild mehrfach erzeugt? Neustart?). Mehrkosten über dem Budget meldet der Wächter dir."),
+    ("Short", "Zum heutigen Mix fehlt der Short oder er ist nicht wie geplant öffentlich.",
+     "Shorts bringen neue Zuschauer; sie sollen ab 19:45 öffentlich und mit dem Mix verknüpft sein.",
+     "Die Abendaufgabe (19:45) verknüpft ihn; fehlt sie, startet der Wächter eine Vertretung."),
+    ("Mega-Mix", "Es geht um den langen Mega-Mix (Samstag/Sonntag).", "Er soll mehrere Stunden lang und öffentlich sein.", "Länge und Sichtbarkeit prüfen."),
+    ("Playlists nicht lesbar", "Der Wächter darf die Playlists von YouTube nicht lesen (Zugriff verweigert, Fehler 403).",
+     "Dadurch kann er bei manchen Videos nicht prüfen, ob sie in einer Playlist stehen.",
+     "Die Berechtigung des YouTube-Zugangs muss erweitert werden; das kann nur mit deiner Freigabe geschehen."),
+    ("nicht prüfbar", "Der Wächter konnte diesen Punkt nicht lesen.", "Was er nicht lesen kann, kann er nicht bestätigen.", "Bleibt offen und wird von Hand oder nach einer Berechtigungs-Erweiterung geprüft."),
+    ("Der Wächter konnte selbst nicht prüfen", "Der Wächter selbst ist über einen Fehler gestolpert.",
+     "In diesem Lauf wurde nichts richtig geprüft, du siehst den Kanal also im Blindflug.",
+     "Die Wächter-Sitzung untersucht die Ursache und repariert den Code; die nächste Meldung zeigt, ob es klappt."),
+]
+
+
+def explain(f: Finding):
+    for key, was, warum, tun in EXPLAIN:
+        if key.lower() in f.text.lower():
+            return was, warum, tun
+    return ("", "", "") if f.level in ("OK", "INFO") else ("Das ist eine Auffälligkeit, für die der Wächter noch keine Standarderklärung hat.", "Sie weicht von deinen Regeln ab.", "Die Wächter-Sitzung untersucht sie und erklärt sie im Lagebericht.")
+
+
 def render(rep: Report, now: datetime):
     order = {"FEHLER": 0, "WARN": 1, "OK": 2, "INFO": 3}
     fs = sorted(rep.findings, key=lambda f: order[f.level])
-    n_err = len([f for f in fs if f.level == "FEHLER" and not f.fixed])
-    n_fix = len([f for f in fs if f.fixed])
-    n_warn = len([f for f in fs if f.level == "WARN"])
-    status = "ALLES IN ORDNUNG" if not (n_err or n_warn or n_fix) else f"{n_err} Fehler, {n_warn} Warnungen, {n_fix} selbst repariert"
+    errs = [f for f in fs if f.level == "FEHLER" and not f.fixed]
+    fixed = [f for f in fs if f.fixed]
+    warns = [f for f in fs if f.level == "WARN"]
+    oks = [f for f in fs if f.level == "OK"]
+    infos = [f for f in fs if f.level == "INFO"]
+    n_err, n_fix, n_warn = len(errs), len(fixed), len(warns)
+    status = "ALLES IN ORDNUNG" if not (n_err or n_warn or n_fix) else f"{n_err} offene Fehler, {n_warn} Warnungen, {n_fix} selbst repariert"
     subj = f"[Wächter] {now:%d.%m. %H:%M} · {status}"
-    lines = [f"WÄCHTER-BERICHT {now:%d.%m.%Y %H:%M} Uhr", status, ""]
-    for f in fs:
-        lines.append(f"[{f.level}] {f.text}" + (f"  → REPARIERT: {f.fixed}" if f.fixed else ""))
+    if not (n_err or n_warn or n_fix):
+        kurz = "Ich habe alles geprüft, was ich lesen kann. Es ist nichts schiefgegangen."
+    else:
+        kurz = (f"Selbst behoben: {n_fix}. Noch offene Fehler: {n_err}. Auffälligkeiten (Warnungen): {n_warn}. "
+                + ("Offene Fehler brauchen Aufmerksamkeit: Details unten. " if n_err else "Es gibt keine offenen Fehler. ")
+                + "Zu jedem Punkt steht unten, was es bedeutet, warum es wichtig ist und was passiert ist.")
+    def block(f):
+        was, warum, tun = explain(f)
+        out = [f"• {f.text}"]
+        if was: out.append(f"  Was heißt das? {was}")
+        if warum: out.append(f"  Warum ist das wichtig? {warum}")
+        if f.fixed: out.append(f"  Was habe ich getan? {f.fixed} – das ist erledigt.")
+        elif tun: out.append(f"  Was passiert jetzt / was ist zu tun? {tun}")
+        return out
+    L = [f"WÄCHTER-BERICHT {now:%d.%m.%Y %H:%M} Uhr", status, "", "KURZ UND KLAR", kurz, ""]
+    for title, items in (("SELBST REPARIERT", fixed), ("OFFENE FEHLER", errs), ("WARNUNGEN", warns)):
+        if items:
+            L += [title, ""]
+            for f in items:
+                L += block(f) + [""]
+    if oks:
+        L += ["DAS IST IN ORDNUNG", ""] + [f"• {f.text}" for f in oks] + [""]
+    if infos:
+        L += ["HINWEISE UND NICHT PRÜFBARES", ""]
+        for f in infos:
+            L += block(f) + [""]
     if rep.did:
-        lines += ["", "WAS HEUTE PASSIERT IST"] + [f"- {x}" for x in rep.did]
-    lines += ["", "Grenzen: Der Wächter liest YouTube, Drive und das Gedächtnis. DistroKid und Instagram/TikTok kann er nicht lesen; "
-              "was er nicht prüfen kann, steht als INFO im Bericht. Er löscht nie etwas und erzeugt keine Musik."]
-    text = "\n".join(lines)
+        L += ["WAS HEUTE PASSIERT IST"] + [f"- {x}" for x in rep.did] + [""]
+    L += ["GRENZEN: Der Wächter liest YouTube, Drive und das Gedächtnis. DistroKid, Instagram und TikTok kann er von hier nicht lesen; "
+          "das steht dann als Hinweis im Bericht. Löschen und Umbenennen entscheidet er selbst und schreibt es dann hier hinein."]
+    text = "\n".join(L)
     col = {"FEHLER": "#B31E1A", "WARN": "#B36B00", "OK": "#3F7D33", "INFO": "#5E5C55"}
-    html = [f"<div style='font-family:-apple-system,Arial,sans-serif;max-width:640px;color:#23211C'><h2 style='margin:0'>Wächter · {now:%d.%m.%Y %H:%M}</h2>",
-            f"<p style='font-size:16px;font-weight:bold'>{status}</p><table cellpadding='6' style='border-collapse:collapse;width:100%'>"]
-    for f in fs:
-        html.append(f"<tr><td style='border-top:1px solid #E2DFD5;color:{col[f.level]};font-weight:bold;width:70px'>{f.level}</td>"
-                    f"<td style='border-top:1px solid #E2DFD5'>{f.text}" + (f"<br><b style='color:#3F7D33'>Repariert: {f.fixed}</b>" if f.fixed else "") + "</td></tr>")
-    html.append("</table>")
+    from html import escape as e
+    H = [f"<div style='font-family:-apple-system,Arial,sans-serif;max-width:680px;color:#23211C;line-height:1.45'><h2 style='margin:0'>Wächter · {now:%d.%m.%Y %H:%M}</h2>",
+         f"<p style='font-size:16px;font-weight:bold;margin:6px 0'>{e(status)}</p><p style='margin:0 0 14px'>{e(kurz)}</p>"]
+    def hblock(f):
+        was, warum, tun = explain(f)
+        h = f"<div style='border-top:1px solid #E2DFD5;padding:8px 0'><b style='color:{col[f.level]}'>{e(f.text)}</b>"
+        if was: h += f"<br><b>Was heißt das?</b> {e(was)}"
+        if warum: h += f"<br><b>Warum ist das wichtig?</b> {e(warum)}"
+        if f.fixed: h += f"<br><b style='color:#3F7D33'>Was habe ich getan?</b> {e(f.fixed)} – erledigt."
+        elif tun: h += f"<br><b>Was passiert jetzt?</b> {e(tun)}"
+        return h + "</div>"
+    for title, items in (("Selbst repariert", fixed), ("Offene Fehler", errs), ("Warnungen", warns)):
+        if items:
+            H.append(f"<h3 style='margin:16px 0 4px'>{title}</h3>" + "".join(hblock(f) for f in items))
+    if oks:
+        H.append("<h3 style='margin:16px 0 4px'>Das ist in Ordnung</h3><ul>" + "".join(f"<li>{e(f.text)}</li>" for f in oks) + "</ul>")
+    if infos:
+        H.append("<h3 style='margin:16px 0 4px'>Hinweise und nicht Prüfbares</h3>" + "".join(hblock(f) for f in infos))
     if rep.did:
-        html.append("<h3>Was heute passiert ist</h3><ul>" + "".join(f"<li>{x}</li>" for x in rep.did) + "</ul>")
-    html.append("<p style='color:#5E5C55;font-size:12px'>Grenzen: liest YouTube, Drive und Gedächtnis; DistroKid, Instagram und TikTok kann er nicht lesen; löscht nie etwas; erzeugt keine Musik.</p></div>")
-    return subj, text, "".join(html), bool(n_err or n_warn)
+        H.append("<h3>Was heute passiert ist</h3><ul>" + "".join(f"<li>{e(x)}</li>" for x in rep.did) + "</ul>")
+    H.append("<p style='color:#5E5C55;font-size:12px'>Grenzen: liest YouTube, Drive und Gedächtnis; DistroKid, Instagram und TikTok kann er von hier nicht lesen. Löschen und Umbenennen entscheidet er selbst und schreibt es dann hier hinein.</p></div>")
+    return subj, text, "".join(H), bool(n_err or n_warn)
 
 
 def send_mail(subj, text, html):
