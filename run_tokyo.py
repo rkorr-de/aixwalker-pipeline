@@ -167,6 +167,22 @@ TRACK_NAMES = ["Lantern Hours", "Quiet Circuit", "Slow Neon", "Paper Window", "M
                "Warm Thread", "Hush Mode", "Dim Dashboard", "Lamp and Rain"]
 
 
+def track_names_for(n: int, args) -> list[str]:
+    """Rolf 26.10.2026: JEDER Mix bekommt neue Songtitel, kein Titel wird je zweimal benutzt (Gedächtnis „tokyo“ Feld track_titles)."""
+    if args.reuse_music:
+        return TRACK_NAMES[:n]          # Kopie eines früheren Mixes: Titel bleiben wie dort
+    sys.path.insert(0, str(Path(__file__).parent / "concepts"))
+    import song_names
+    from pipeline import memory
+    try:
+        mem = memory.load()
+    except Exception as e:  # noqa: BLE001
+        raise SystemExit(f"Gedächtnis nicht lesbar, Songtitel können nicht auf Neuheit geprüft werden: {e}")
+    names = song_names.new_titles(n, mem, seed=f"{date.today().isoformat()}|{args.room}")
+    log("Neue Songtitel: " + ", ".join(names))
+    return names
+
+
 def log(msg: str) -> None:
     print(f"[{time.strftime('%H:%M:%S')}] [tokyo] {msg}", flush=True)
 
@@ -1027,7 +1043,7 @@ def main() -> int:
     mix, starts = monthly.join_tracks(wavs, out / "wav" / "mix.flac", xf=XF)
     total = audio.probe_duration(mix)
     total_min = int(round(total / 60))
-    names = TRACK_NAMES[:len(wavs)]
+    names = track_names_for(len(wavs), args)
     chapter_text = metadata.chapters(names, starts)
     log(f"Mix {metadata.fmt_ts(total)}, {len(wavs)} Songs")
     aac = loopvideo.encode_audio(mix, out / "work" / "audio.m4a")
@@ -1156,7 +1172,7 @@ def main() -> int:
             from pipeline import memory
             mem = memory.load()
             mem.setdefault("tokyo", []).append({"date": date.today().isoformat(), "room": args.room, "video_id": video_id,
-                                                "short_id": short_id, "duration_min": total_min, "songs": len(wavs),
+                                                "short_id": short_id, "duration_min": total_min, "songs": len(wavs), "track_titles": names,
                                                 "privacy": privacy, "vol": vol, "quote": " ".join(lines), "cost_usd": costs.total_usd(),
                                                 "variation": dict(LAST_VARIATION) or None})
             # Die Abend-Aufgabe „Mix-Link und veröffentlichen“ (19:45) liest nur die Liste „shorts2“ → Tokyo-Short dort eintragen,
