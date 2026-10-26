@@ -232,10 +232,9 @@ def main() -> int:
     res["video_id"], res["video_url"] = vid, f"https://youtu.be/{vid}"
     log(f"Hochgeladen: {res['video_url']}")
     for step, fn in (("Thumbnail", lambda: youtube.set_thumbnail(vid, thumb)), ("Playlist", lambda: youtube.add_to_playlist(vid, playlist_id))):
-        try:
-            fn()
-        except Exception as e:  # noqa: BLE001
-            log(f"{step} fehlgeschlagen: {e}")
+        ok, err = youtube.retry(fn, label=step)
+        if not ok:
+            log(f"{step} NICHT gesetzt: {err[:400]}")
     if not args.private:
         youtube.set_public(vid)
         log("Mix öffentlich")

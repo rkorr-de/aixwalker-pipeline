@@ -1069,19 +1069,23 @@ def main() -> int:
             video_id = youtube.upload_video(mp4, TITLE, desc, TAGS, privacy=privacy, location=youtube.TOKYO)
         video_url = f"https://youtu.be/{video_id}"
         log(f"Hochgeladen ({privacy}): {video_url}")
-        yt_pending = []
-        try:
-            youtube.set_thumbnail(video_id, thumb)
-        except Exception as e:  # noqa: BLE001
-            log(f"Thumbnail nicht gesetzt: {str(e)[:160]}")
+        yt_pending, yt_errors = [], {}
+        ok, err = youtube.retry(lambda: youtube.set_thumbnail(video_id, thumb), label="Thumbnail")
+        if not ok:
+            log(f"Thumbnail NICHT gesetzt: {err[:400]}")
             yt_pending.append("thumbnail")
-        try:
+            yt_errors["thumbnail"] = err
+        def _pl():
             pid = youtube.ensure_playlist(*PLAYLIST)
             youtube.add_to_playlist(video_id, pid)
-            log(f"Playlist „{PLAYLIST[0]}“: {pid}")
-        except Exception as e:  # noqa: BLE001
-            log(f"Playlist nicht gesetzt: {str(e)[:160]}")
+            return pid
+        ok, err = youtube.retry(_pl, label="Playlist")
+        if ok:
+            log(f"Playlist „{PLAYLIST[0]}“ eingetragen")
+        else:
+            log(f"Playlist NICHT eingetragen: {err[:400]}")
             yt_pending.append("playlist")
+            yt_errors["playlist"] = err
         s_title, s_desc, s_tags = short_texts(lines, video_url)
         try:
             short_id = youtube.upload_video(short, s_title, s_desc, s_tags, privacy="private", location=youtube.TOKYO)
@@ -1089,8 +1093,13 @@ def main() -> int:
         except Exception as e:  # noqa: BLE001
             log(f"Short nicht hochgeladen: {str(e)[:160]}")
             yt_pending.append("short")
+        if yt_pending:   # das Video ist jetzt länger verarbeitet: noch eine Runde
+            if "thumbnail" in yt_pending and youtube.retry(lambda: youtube.set_thumbnail(video_id, thumb), tries=2, wait=120, label="Thumbnail (2. Runde)")[0]:
+                yt_pending.remove("thumbnail")
+            if "playlist" in yt_pending and youtube.retry(lambda: youtube.add_to_playlist(video_id, youtube.ensure_playlist(*PLAYLIST)), tries=2, wait=120, label="Playlist (2. Runde)")[0]:
+                yt_pending.remove("playlist")
         if yt_pending:
-            log(f"YOUTUBE OFFEN (wahrscheinlich Tageslimit): {yt_pending}")
+            log(f"YOUTUBE OFFEN: {yt_pending} – Fehler: {json.dumps(yt_errors, ensure_ascii=False)[:800]}")
 
     meta = out / "metadata.txt"
     meta.write_text("\n".join(["TITEL", TITLE, "", "BESCHREIBUNG", desc, "", "TAGS", ", ".join(TAGS), "",

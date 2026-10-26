@@ -242,3 +242,20 @@ def wait_until_public(video_id: str, timeout_s: int = 1500, poll_s: int = 30, lo
             log(f"Statusabfrage fehlgeschlagen: {str(e)[:120]}")
         time.sleep(poll_s)
     return False
+
+
+def retry(fn, tries: int = 4, wait: int = 60, label: str = "") -> tuple[bool, str]:
+    """Führt fn() bis zu `tries`-mal aus (YouTube lehnt Thumbnail/Playlist direkt nach dem Upload manchmal ab, solange das Video verarbeitet wird).
+    Liefert (ok, voller Fehlertext des letzten Versuchs)."""
+    import time
+    last = ""
+    for i in range(tries):
+        try:
+            fn()
+            return True, ""
+        except Exception as e:  # noqa: BLE001
+            last = f"{type(e).__name__}: {e}"
+            print(f"[youtube] {label} Versuch {i + 1}/{tries} fehlgeschlagen: {last[:500]}", flush=True)
+            if i + 1 < tries:
+                time.sleep(wait)
+    return False, last

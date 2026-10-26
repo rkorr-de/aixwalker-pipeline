@@ -522,10 +522,9 @@ def main() -> int:
     log(f"Hochgeladen: {res['video_url']} ({'geplant ' + publish_at if publish_at else privacy})")
     for step, fn in (("Thumbnail", lambda: youtube.set_thumbnail(vid, thumb)),
                      ("Playlist", lambda: youtube.add_to_playlist(vid, playlist_id))):
-        try:
-            fn()
-        except Exception as e:  # noqa: BLE001
-            log(f"{step} fehlgeschlagen: {e}")
+        ok, err = youtube.retry(fn, label=step)
+        if not ok:
+            log(f"{step} NICHT gesetzt: {err[:400]}")
 
     # 4) Shorts (privat; Related-Video-Link + öffentlich schaltet die Abendaufgabe 19:45)
     days = [sat, sun]
