@@ -80,7 +80,7 @@ def make_album_cover(art: Image.Image, desk_x: float, size: int = 3000) -> Image
     return Image.alpha_composite(sq, v.text_layer(size, size, 0.05, 0.085, 0.043, 0.032, center=0.48)).convert("RGB")
 
 
-VOL_FLOOR = 9   # Rolf 25.10.2026: heute ist Vol. 9 (Vol. 8 war doppelt vergeben). Nie darunter; bei Bedarf anheben.
+VOL_FLOOR = 11   # Rolf 26.10.2026: heute war Vol. 10, der nächste Mix (27.10.) ist Vol. 11. Nie darunter; bei Bedarf anheben.
 
 
 def youtube_vols() -> list[int]:
