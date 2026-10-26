@@ -121,6 +121,81 @@ def check_titles(chaps: dict[str, list[str]], vols: dict[str, int], rep: Report)
             rep.add("OK", f"Vol. {vol}: {len(titles)} neue, nie benutzte Songtitel")
 
 
+# ------------------------------------------------------------------ Genre-Prüfungen (Italienisch, Cabin, Ibiza, Sleep/Spa/Lounge, Mega-Mixe)
+GENRES = {   # Schlüssel: (Anzeigename, Stichwörter in Titel/Beschreibung, Mindestdauer Min, erwartete Playlist (Titel), Höchstabstand in Tagen, Kostengrenze USD)
+    "cabin": ("Winter Cabin", ("cabin", "fireplace"), 120, "Cozy Winter Cabin · Relaxing Fireplace Chillout 4K", 5, 15.0),
+    "italian": ("Italian Chillout", ("italian", "amalfi", "lake como", "dolce vita"), 25, "Italian Chillout Music", 3, 9.0),
+    "ibiza": ("Ibiza Sunset Lounge", ("ibiza", "balearic"), 25, "Ibiza Sunset Lounge", 14, 9.0),
+    "sleep": ("Sleep/Spa/Lounge", ("sleep", "spa ", "massage", "lounge", "ambient"), 25, "Chillout, Lounge & Sleep · Aix Walker", 14, 9.0),
+}
+
+
+def classify_genre(title: str, desc: str = "") -> str | None:
+    t = (title or "").lower()
+    for key, (_n, words, *_r) in GENRES.items():
+        if any(w in t for w in words):
+            return key
+    d = (desc or "")[:300].lower()
+    for key, (_n, words, *_r) in GENRES.items():
+        if any(w in d for w in words):
+            return key
+    return None
+
+
+def genre_findings(mixes: list[dict], now: datetime, pl_titles: dict[str, set], mem_cost: dict[str, float]) -> list[tuple[str, str]]:
+    """mixes: Videos ≥ 25 Min (ohne Tokyo-Tagesmixe) mit title, desc, minutes, id, published, privacy.
+    pl_titles: Playlist-Titel → Video-IDs. mem_cost: video_id → Kosten USD. Liefert (Level, Text)."""
+    out = []
+    last: dict[str, datetime] = {}
+    by_genre: dict[str, list[dict]] = {}
+    for v in mixes:
+        mega = "hours long" in v["title"].lower() or "long mix" in v["title"].lower()
+        g = classify_genre(v["title"], v["desc"])
+        pub = datetime.fromisoformat(v["published"].replace("Z", "+00:00"))
+        if "{" in v["title"] or "{" in v["desc"][:3000] or "TODO" in v["desc"]:
+            out.append(("FEHLER", f"{v['title'][:50]}: Platzhalter oder Entwurfsrest im Titel/in der Beschreibung (z. B. geschweifte Klammern)"))
+        if not v["desc"].strip():
+            out.append(("FEHLER", f"{v['title'][:50]}: Beschreibung ist leer"))
+        if g is None:
+            out.append(("INFO", f"{v['title'][:60]}: Genre nicht erkannt – nur allgemein geprüft"))
+            continue
+        name, _w, min_min, plname, _gap, cost_max = GENRES[g]
+        if not mega:
+            last[g] = max(last.get(g, pub), pub)
+            by_genre.setdefault(g, []).append(v)
+            if v["minutes"] < min_min:
+                out.append(("WARN", f"{name}: {v['title'][:40]} dauert nur {v['minutes']:.0f} Min (Mindestlänge {min_min})"))
+            ids = pl_titles.get(plname)
+            if ids is not None and v["id"] not in ids and v["privacy"] == "public":
+                out.append(("FEHLER", f"{name}: {v['title'][:40]} steht nicht in der Playlist „{plname}“"))
+        else:
+            if v["minutes"] < 240:
+                out.append(("WARN", f"Mega-Mix {name}: nur {v['minutes'] / 60:.1f} Std. (erwartet mindestens 4 Std.)"))
+        c = mem_cost.get(v["id"])
+        if c and c > cost_max:
+            out.append(("WARN", f"{name}: {v['title'][:40]} kostete {c:.2f} $ (Grenze {cost_max:.0f} $)"))
+    for g, (name, _w, _m, _p, gap, _c) in GENRES.items():
+        if g in last:
+            days = (now - last[g]).days
+            if days > gap:
+                out.append(("WARN", f"{name}: seit {days} Tagen kein neuer Mix (üblich höchstens {gap} Tage Abstand) – bewusst pausiert oder ausgefallen?"))
+            else:
+                out.append(("OK", f"{name}: letzter Mix vor {days} Tag(en), {len(by_genre[g])} Mix(e) in den letzten Tagen"))
+    # Songtitel dürfen nicht in mehreren Mixen derselben Linie vorkommen
+    for g, vs in by_genre.items():
+        seen: dict[str, str] = {}
+        dups = []
+        for v in sorted(vs, key=lambda v: v["published"]):
+            for c in parse_chapters(v["desc"]):
+                k = c.lower()
+                if k in seen and seen[k] != v["id"]:
+                    dups.append(c)
+                seen.setdefault(k, v["id"])
+        if dups:
+            out.append(("WARN", f"{GENRES[g][0]}: Songtitel in mehreren Mixen benutzt: {sorted(set(dups))[:5]}"))
+    return out
+
+
 def selftest() -> int:
     r = Report()
     assert parse_vol("... - Vol. 12🎷") == 12 and parse_vol("kein Titel") is None
@@ -132,6 +207,11 @@ def selftest() -> int:
     r2 = Report()
     check_titles({"x": ["Lantern Hours"] + [f"T{i}" for i in range(21)], "y": [f"U{i}" for i in range(22)]}, {"x": 11, "y": 12}, r2)
     assert any("alte Liste" in f.text for f in r2.problems) and any(f.level == "OK" for f in r2.findings)
+    assert classify_genre("Cozy Winter Cabin · 3 Hours Relaxing Fireplace") == "cabin" and classify_genre("Italian Amalfi Coast Dinner") == "italian"
+    t0 = datetime(2026, 10, 26, tzinfo=timezone.utc)
+    gv = [{"title": "Cozy Winter Cabin Fireplace", "desc": "x", "minutes": 90, "id": "c1", "published": "2026-10-10T08:00:00Z", "privacy": "public"}]
+    gf = genre_findings(gv, t0, {"Cozy Winter Cabin · Relaxing Fireplace Chillout 4K": set()}, {"c1": 20.0})
+    assert any("nur 90 Min" in t for _l, t in gf) and any("Playlist" in t for _l, t in gf) and any("Grenze" in t for _l, t in gf) and any("seit 15 Tagen" in t for _l, t in gf), gf
     print("Selbsttest bestanden")
     return 0
 
@@ -402,7 +482,7 @@ def run(args) -> Report:
     # 9) ALLE ANDEREN MIXE (Italienisch, Cabin, Ibiza, Sleep, Mega-Mixe …): allgemeine Prüfung
     other = [v for v in vids if v not in tokyo and v["minutes"] >= 25 and
              (now - datetime.fromisoformat(v["published"].replace("Z", "+00:00"))).days < max(args.days, 7)]
-    playlists = {}
+    playlists, pl_titles = {}, {}
     try:
         pls = yt.playlists().list(part="snippet", mine=True, maxResults=50).execute()["items"]
     except Exception as e:  # noqa: BLE001
@@ -411,6 +491,7 @@ def run(args) -> Report:
     for pl in pls:   # jede Playlist einzeln: eine nicht lesbare (z. B. private/Systemliste) darf die anderen nicht blockieren
         try:
             playlists[pl["id"]] = playlist_ids(yt, pl["id"])
+            pl_titles[pl["snippet"]["title"]] = playlists[pl["id"]]
         except Exception as e:  # noqa: BLE001
             rep.add("INFO", f"Playlist „{pl['snippet']['title'][:40]}“ nicht lesbar ({str(e)[:60]}) – übersprungen")
     all_mem_ids = {e.get("video_id") for k, lst in mem.items() if isinstance(lst, list) for e in lst if isinstance(e, dict)}
@@ -434,13 +515,13 @@ def run(args) -> Report:
                 rep.add("WARN", f"{v['title'][:50]}: kein hochauflösendes Thumbnail (maxres fehlt)")
         except Exception:  # noqa: BLE001
             pass
-    # Wochentag-Plan: wurde heute das Erwartete hochgeladen? (Di Italienisch, Mi Cabin, Sa Mega-Mix, So Tokyo-Mega)
-    expect = {1: ("Italian", "Italienischer Mix"), 2: ("Cabin", "Cabin-Mix")}
+    # Genre-Prüfungen (Cabin, Italienisch, Ibiza, Sleep/Spa/Lounge, Mega-Mixe) über die letzten 21 Tage
+    wide = [v for v in vids if v not in tokyo and v["minutes"] >= 25 and "Tokyo Work Lounge" not in v["title"]
+            and (now - datetime.fromisoformat(v["published"].replace("Z", "+00:00"))).days < 21]
+    mem_cost = {e.get("video_id"): float(e.get("cost_usd") or 0) for k, lst in mem.items() if isinstance(lst, list) for e in lst if isinstance(e, dict) and e.get("video_id")}
+    for lvl, txt in genre_findings(wide, now, pl_titles, mem_cost):
+        rep.add(lvl, txt)
     wd = now.weekday()
-    if wd in expect and now.hour >= 13:
-        key, name = expect[wd]
-        if not any(local_date(v) == today and key.lower() in (v["title"] + v["desc"][:300]).lower() for v in vids):
-            rep.add("WARN", f"{name} von heute nicht gefunden (Plan: {key}; Titelmuster kann abweichen – bitte prüfen)")
     if wd == 5 and now.hour >= 14 and not any(local_date(v) == today and v["minutes"] >= 240 for v in vids):
         rep.add("WARN", "Samstag: kein Mega-Mix (≥ 4 Std.) von heute gefunden")
     n_ok = len([v for v in other if v["privacy"] == "public"])
@@ -491,6 +572,15 @@ EXPLAIN = [
     ("Short", "Zum heutigen Mix fehlt der Short oder er ist nicht wie geplant öffentlich.",
      "Shorts bringen neue Zuschauer; sie sollen ab 19:45 öffentlich und mit dem Mix verknüpft sein.",
      "Die Abendaufgabe (19:45) verknüpft ihn; fehlt sie, startet der Wächter eine Vertretung."),
+    ("kein neuer Mix", "Von diesem Genre ist länger kein neuer Mix erschienen als üblich.",
+     "Jedes Genre hat eine Zielzahl pro Woche (Italienisch etwa alle 2 Tage, Cabin 2× pro Woche). Ausfälle kosten Aufrufe und Wiedergabezeit.",
+     "Die Wächter-Sitzung prüft, ob die geplante Aufgabe gelaufen ist, und startet bei Bedarf eine Vertretung, sofern es noch keinen Upload gibt."),
+    ("Platzhalter", "Im Titel oder in der Beschreibung steht noch ein Entwurfsrest (z. B. {URL} oder TODO).",
+     "Zuschauer sehen den Rest öffentlich; das wirkt unfertig.", "Der Wächter korrigiert Beschreibung/Titel (Umbenennen ist ihm erlaubt) und meldet es."),
+    ("Beschreibung ist leer", "Das Video hat keine Beschreibung.", "Ohne Beschreibung fehlen Kapitel, Stichwörter und Links; YouTube versteht das Video schlechter.", "Beschreibung ergänzen."),
+    ("Genre nicht erkannt", "Der Wächter konnte nicht erkennen, zu welchem Genre das Video gehört.", "Er prüft es dann nur allgemein.", "Stichwort in `GENRES` in waechter.py ergänzen."),
+    ("steht nicht in der Playlist", "Das Video steht nicht in der Playlist seines Genres.", "Zuschauer finden es dort nicht, und die Playlist verliert Wiedergabezeit.", "Der Wächter trägt es ein."),
+    ("Songtitel in mehreren Mixen", "Derselbe Songtitel kommt in mehreren Mixen desselben Genres vor.", "Du willst keine doppelten Songnamen.", "Ursache klären; bei neuen Mixen neue Titel erzeugen."),
     ("Mega-Mix", "Es geht um den langen Mega-Mix (Samstag/Sonntag).", "Er soll mehrere Stunden lang und öffentlich sein.", "Länge und Sichtbarkeit prüfen."),
     ("nicht lesbar", "Der Wächter konnte eine einzelne Playlist nicht von YouTube lesen (Fehler 403 = YouTube verweigert den Zugriff auf genau diese Liste, z. B. eine private oder vom System geführte Liste).",
      "Das betrifft nur diese eine Liste; die Freigabe des Kanals ist vollständig. Alle anderen Playlists werden normal geprüft.",
