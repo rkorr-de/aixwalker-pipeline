@@ -225,7 +225,11 @@ def run(args) -> Report:
     today = now.date().isoformat()
     yt = youtube.service()
     vids = load_videos(yt, args.days)
-    tokyo = [v for v in vids if "Tokyo Work Lounge" in v["title"] and "Hours Long Mix" not in v["title"]]
+    # Shorts (kurz, "#shorts" im Titel) sind KEINE Mixe (Fehler 26.10.2026: Wächter hat Shorts als Mix bewertet und in die Mix-Playlist eingetragen)
+    def is_short(v):
+        return v["minutes"] < 20 or "#shorts" in v["title"].lower()
+    tokyo = [v for v in vids if "Tokyo Work Lounge" in v["title"] and "Hours Long Mix" not in v["title"] and not is_short(v)]
+    tokyo_shorts = [v for v in vids if "Tokyo Work Lounge" in v["title"] and is_short(v)]
     mega = [v for v in vids if "Tokyo Work Lounge" in v["title"] and "Hours Long Mix" in v["title"]]
     tokyo.sort(key=lambda v: v["published"], reverse=True)
     vols = {v["id"]: parse_vol(v["title"]) for v in tokyo}
@@ -238,6 +242,23 @@ def run(args) -> Report:
     in_pl = playlist_ids(yt, pid) if pid else set()
     if not pid:
         rep.add("WARN", "Playlist „Tokyo Work Lounge · Slow Jazz for Work and Coding“ nicht gefunden")
+
+    # 0) Shorts gehören nicht in die Mix-Playlist: entfernen (reversibel)
+    if pid and args.fix and tokyo_shorts:
+        sids = {v["id"] for v in tokyo_shorts}
+        tok = None
+        try:
+            while True:
+                r = yt.playlistItems().list(part="contentDetails", playlistId=pid, maxResults=50, pageToken=tok).execute()
+                for it in r["items"]:
+                    if it["contentDetails"]["videoId"] in sids:
+                        yt.playlistItems().delete(id=it["id"]).execute()
+                        rep.add("FEHLER", f"Short {it['contentDetails']['videoId']} stand in der Mix-Playlist", fixed="entfernt")
+                tok = r.get("nextPageToken")
+                if not tok:
+                    break
+        except Exception as e:  # noqa: BLE001
+            rep.add("WARN", f"Shorts in der Mix-Playlist nicht entfernbar: {str(e)[:120]}")
 
     # 1) Mix von heute
     def local_date(v):
