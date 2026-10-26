@@ -404,10 +404,15 @@ def run(args) -> Report:
              (now - datetime.fromisoformat(v["published"].replace("Z", "+00:00"))).days < max(args.days, 7)]
     playlists = {}
     try:
-        for pl in yt.playlists().list(part="snippet", mine=True, maxResults=50).execute()["items"]:
-            playlists[pl["id"]] = playlist_ids(yt, pl["id"])
+        pls = yt.playlists().list(part="snippet", mine=True, maxResults=50).execute()["items"]
     except Exception as e:  # noqa: BLE001
+        pls = []
         rep.add("INFO", f"Playlists nicht lesbar: {str(e)[:100]}")
+    for pl in pls:   # jede Playlist einzeln: eine nicht lesbare (z. B. private/Systemliste) darf die anderen nicht blockieren
+        try:
+            playlists[pl["id"]] = playlist_ids(yt, pl["id"])
+        except Exception as e:  # noqa: BLE001
+            rep.add("INFO", f"Playlist „{pl['snippet']['title'][:40]}“ nicht lesbar ({str(e)[:60]}) – übersprungen")
     all_mem_ids = {e.get("video_id") for k, lst in mem.items() if isinstance(lst, list) for e in lst if isinstance(e, dict)}
     for v in sorted(other, key=lambda v: v["published"], reverse=True):
         tag = f"{v['title'][:60]} ({local_date(v)}, {v['minutes']:.0f} Min, https://youtu.be/{v['id']})"
@@ -487,9 +492,9 @@ EXPLAIN = [
      "Shorts bringen neue Zuschauer; sie sollen ab 19:45 öffentlich und mit dem Mix verknüpft sein.",
      "Die Abendaufgabe (19:45) verknüpft ihn; fehlt sie, startet der Wächter eine Vertretung."),
     ("Mega-Mix", "Es geht um den langen Mega-Mix (Samstag/Sonntag).", "Er soll mehrere Stunden lang und öffentlich sein.", "Länge und Sichtbarkeit prüfen."),
-    ("Playlists nicht lesbar", "Der Wächter darf die Playlists von YouTube nicht lesen (Zugriff verweigert, Fehler 403).",
-     "Dadurch kann er bei manchen Videos nicht prüfen, ob sie in einer Playlist stehen.",
-     "Die Berechtigung des YouTube-Zugangs muss erweitert werden; das kann nur mit deiner Freigabe geschehen."),
+    ("nicht lesbar", "Der Wächter konnte eine einzelne Playlist nicht von YouTube lesen (Fehler 403 = YouTube verweigert den Zugriff auf genau diese Liste, z. B. eine private oder vom System geführte Liste).",
+     "Das betrifft nur diese eine Liste; die Freigabe des Kanals ist vollständig. Alle anderen Playlists werden normal geprüft.",
+     "Nichts zu tun, solange die Mix-Playlists lesbar sind."),
     ("nicht prüfbar", "Der Wächter konnte diesen Punkt nicht lesen.", "Was er nicht lesen kann, kann er nicht bestätigen.", "Bleibt offen und wird von Hand oder nach einer Berechtigungs-Erweiterung geprüft."),
     ("Der Wächter konnte selbst nicht prüfen", "Der Wächter selbst ist über einen Fehler gestolpert.",
      "In diesem Lauf wurde nichts richtig geprüft, du siehst den Kanal also im Blindflug.",
