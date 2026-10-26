@@ -1100,6 +1100,11 @@ def main() -> int:
                 yt_pending.remove("playlist")
         if yt_pending:
             log(f"YOUTUBE OFFEN: {yt_pending} – Fehler: {json.dumps(yt_errors, ensure_ascii=False)[:800]}")
+        try:   # alle älteren Tokyo-Mixe ohne Thumbnail/Playlist nachziehen (best effort)
+            rr = subprocess.run([sys.executable, str(Path(__file__).parent / "repair_tokyo_youtube.py"), "--days", "14"], capture_output=True, text=True, timeout=900)
+            log("Reparatur Thumbnail/Playlist:\n" + (rr.stdout or "")[-1500:] + (rr.stderr or "")[-500:])
+        except Exception as e:  # noqa: BLE001
+            log(f"Reparaturlauf fehlgeschlagen: {e}")
 
     meta = out / "metadata.txt"
     meta.write_text("\n".join(["TITEL", TITLE, "", "BESCHREIBUNG", desc, "", "TAGS", ", ".join(TAGS), "",
