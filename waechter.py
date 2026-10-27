@@ -491,15 +491,18 @@ def run(args) -> Report:
     except Exception as e:  # noqa: BLE001
         pls = []
         rep.add("INFO", f"Playlists nicht lesbar: {str(e)[:100]}")
-    unreadable = []
+    unreadable, unread_err = [], []
     for pl in pls:   # jede Playlist einzeln: eine nicht lesbare (z. B. private/Systemliste) darf die anderen nicht blockieren
         try:
             playlists[pl["id"]] = playlist_ids(yt, pl["id"])
             pl_titles[pl["snippet"]["title"]] = playlists[pl["id"]]
         except Exception as e:  # noqa: BLE001
             unreadable.append(pl["snippet"]["title"][:30])
-    if unreadable:
-        rep.add("INFO", f"{len(unreadable)} Playlists nicht lesbar (YouTube-Fehler 403, übersprungen), z. B.: {', '.join(unreadable[:4])}. Die Mix-Playlists sind lesbar")
+            unread_err.append(str(e))
+    if unreadable and any("quota" in x.lower() for x in unread_err):
+        rep.add("WARN", f"YouTube-Tageskontingent (Quota) aufgebraucht: {len(unreadable)} Playlists konnten nicht gelesen werden – Playlist-Prüfungen (z. B. Cabin/Italienisch in der Playlist) sind in diesem Lauf NICHT zuverlässig")
+    elif unreadable:
+        rep.add("INFO", f"{len(unreadable)} Playlists nicht lesbar (YouTube-Fehler, übersprungen), z. B.: {', '.join(unreadable[:4])}. Letzter Fehler: {unread_err[-1][:90]}")
     all_mem_ids = {e.get("video_id") for k, lst in mem.items() if isinstance(lst, list) for e in lst if isinstance(e, dict)}
     for v in sorted(other, key=lambda v: v["published"], reverse=True):
         tag = f"{v['title'][:60]} ({local_date(v)}, {v['minutes']:.0f} Min, https://youtu.be/{v['id']})"
@@ -590,6 +593,7 @@ EXPLAIN = [
     ("steht nicht in der Playlist", "Das Video steht nicht in der Playlist seines Genres.", "Zuschauer finden es dort nicht, und die Playlist verliert Wiedergabezeit.", "Der Wächter trägt es ein."),
     ("Songtitel in mehreren Mixen", "Derselbe Songtitel kommt in mehreren Mixen desselben Genres vor.", "Du willst keine doppelten Songnamen.", "Ursache klären; bei neuen Mixen neue Titel erzeugen."),
     ("Mega-Mix", "Es geht um den langen Mega-Mix (Samstag/Sonntag).", "Er soll mehrere Stunden lang und öffentlich sein.", "Länge und Sichtbarkeit prüfen."),
+    ("Tageskontingent", "YouTube erlaubt pro Tag nur eine begrenzte Menge an Abfragen (Quota); sie ist heute aufgebraucht.", "Solange das Kontingent leer ist, kann der Wächter Playlists nicht prüfen und Reparaturen (Thumbnail, Playlist) scheitern.", "Das Kontingent füllt sich täglich um ca. 8:00 Uhr (Berlin, Mitternacht kalifornischer Zeit) wieder auf; der nächste Lauf prüft dann alles. Reparaturen werden dann nachgeholt."),
     ("nicht lesbar", "Der Wächter konnte eine einzelne Playlist nicht von YouTube lesen (Fehler 403 = YouTube verweigert den Zugriff auf genau diese Liste, z. B. eine private oder vom System geführte Liste).",
      "Das betrifft nur diese eine Liste; die Freigabe des Kanals ist vollständig. Alle anderen Playlists werden normal geprüft.",
      "Nichts zu tun, solange die Mix-Playlists lesbar sind."),
