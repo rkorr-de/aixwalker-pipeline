@@ -608,10 +608,10 @@ def explain(f: Finding):
     for key, was, warum, tun in EXPLAIN:
         if key.lower() in f.text.lower():
             return was, warum, tun
-    return ("", "", "") if f.level in ("OK", "INFO") else ("Das ist eine Auffälligkeit, für die der Wächter noch keine Standarderklärung hat.", "Sie weicht von deinen Regeln ab.", "Die Wächter-Sitzung untersucht sie und erklärt sie im Lagebericht.")
+    return ("", "", "") if f.level in ("OK", "INFO") else ("Das ist eine Auffälligkeit, für die der Wächter noch keine Standarderklärung hat.", "Sie weicht von deinen Regeln ab.", "Die Wächter-Sitzung untersucht sie; ihr Ergebnis steht oben unter „Ermittlung der Wächter-Sitzung“.")
 
 
-def render(rep: Report, now: datetime):
+def render(rep: Report, now: datetime, notes: str = ""):
     order = {"FEHLER": 0, "WARN": 1, "OK": 2, "INFO": 3}
     fs = sorted(rep.findings, key=lambda f: order[f.level])
     errs = [f for f in fs if f.level == "FEHLER" and not f.fixed]
@@ -637,6 +637,8 @@ def render(rep: Report, now: datetime):
         elif tun: out.append(f"  Was passiert jetzt / was ist zu tun? {tun}")
         return out
     L = [f"WÄCHTER-BERICHT {now:%d.%m.%Y %H:%M} Uhr", status, "", "KURZ UND KLAR", kurz, ""]
+    if notes.strip():
+        L += ["ERMITTLUNG DER WÄCHTER-SITZUNG (selbst nachgeforscht: Befund, Beweis, Schluss, Maßnahme)", "", notes.strip(), ""]
     for title, items in (("SELBST REPARIERT", fixed), ("OFFENE FEHLER", errs), ("WARNUNGEN", warns)):
         if items:
             L += [title, ""]
@@ -657,6 +659,8 @@ def render(rep: Report, now: datetime):
     from html import escape as e
     H = [f"<div style='font-family:-apple-system,Arial,sans-serif;max-width:680px;color:#23211C;line-height:1.45'><h2 style='margin:0'>Wächter · {now:%d.%m.%Y %H:%M}</h2>",
          f"<p style='font-size:16px;font-weight:bold;margin:6px 0'>{e(status)}</p><p style='margin:0 0 14px'>{e(kurz)}</p>"]
+    if notes.strip():
+        H.append("<h3 style='margin:16px 0 4px'>Ermittlung der Wächter-Sitzung</h3><div style='white-space:pre-wrap;border:1px solid #E2DFD5;padding:8px'>" + e(notes.strip()) + "</div>")
     def hblock(f):
         was, warum, tun = explain(f)
         h = f"<div style='border-top:1px solid #E2DFD5;padding:8px 0'><b style='color:{col[f.level]}'>{e(f.text)}</b>"
@@ -694,10 +698,12 @@ def main() -> int:
     ap.add_argument("--days", type=int, default=3)
     ap.add_argument("--drive-folders", type=int, default=12)
     ap.add_argument("--selftest", action="store_true")
+    ap.add_argument("--notes-file", default="", help="Ermittlungen der Sitzung (Befund/Beweis/Schluss/Maßnahme je Fund); kommen in den Bericht")
     args = ap.parse_args()
     if args.selftest:
         return selftest()
     now = datetime.now(BERLIN)
+    notes = Path(args.notes_file).read_text(encoding="utf-8") if args.notes_file and Path(args.notes_file).exists() else ""
     try:
         rep = run(args)
         rounds = [len(rep.problems)]
@@ -714,7 +720,7 @@ def main() -> int:
     except Exception as e:  # noqa: BLE001
         rep = Report()
         rep.add("FEHLER", f"Der Wächter konnte selbst nicht prüfen: {type(e).__name__}: {str(e)[:300]}")
-        subj, text, html, _ = render(rep, now)
+        subj, text, html, _ = render(rep, now, notes)
         print(text)
         if args.mail:
             try:
@@ -722,7 +728,7 @@ def main() -> int:
             except Exception as e2:  # noqa: BLE001
                 print("Mail fehlgeschlagen:", e2)
         return 2
-    subj, text, html, issues = render(rep, now)
+    subj, text, html, issues = render(rep, now, notes)
     print(text)
     try:   # Verlauf ins Gedächtnis (damit der nächste Lauf weiß, was der vorige gesehen hat)
         from pipeline import memory
