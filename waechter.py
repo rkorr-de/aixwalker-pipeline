@@ -156,6 +156,9 @@ def genre_findings(mixes: list[dict], now: datetime, pl_titles: dict[str, set], 
             out.append(("FEHLER", f"{v['title'][:50]}: Platzhalter oder Entwurfsrest im Titel/in der Beschreibung (z. B. geschweifte Klammern)"))
         if not v["desc"].strip():
             out.append(("FEHLER", f"{v['title'][:50]}: Beschreibung ist leer"))
+        if g is None and re.search(r"\bgym\b|workout|night drive", (v["title"] + " " + v["desc"][:300]).lower()):
+            out.append(("INFO", f"{v['title'][:40]}: Gym/Night Drive – Genre seit 08.10.2026 bewusst eingestellt, nur Grundprüfung"))
+            continue
         if g is None:
             out.append(("INFO", f"{v['title'][:60]}: Genre nicht erkannt – nur allgemein geprüft"))
             continue
@@ -173,7 +176,7 @@ def genre_findings(mixes: list[dict], now: datetime, pl_titles: dict[str, set], 
                 out.append(("WARN", f"Mega-Mix {name}: nur {v['minutes'] / 60:.1f} Std. (erwartet mindestens 4 Std.)"))
         c = mem_cost.get(v["id"])
         if c and c > cost_max:
-            out.append(("WARN", f"{name}: {v['title'][:40]} kostete {c:.2f} $ (Grenze {cost_max:.0f} $)"))
+            out.append(("WARN" if (now - pub).days <= 2 else "INFO", f"{name}: {v['title'][:40]} kostete {c:.2f} $ (Grenze {cost_max:.0f} $)"))
     for g, (name, _w, _m, _p, gap, _c) in GENRES.items():
         if g in last:
             days = (now - last[g]).days
@@ -488,12 +491,15 @@ def run(args) -> Report:
     except Exception as e:  # noqa: BLE001
         pls = []
         rep.add("INFO", f"Playlists nicht lesbar: {str(e)[:100]}")
+    unreadable = []
     for pl in pls:   # jede Playlist einzeln: eine nicht lesbare (z. B. private/Systemliste) darf die anderen nicht blockieren
         try:
             playlists[pl["id"]] = playlist_ids(yt, pl["id"])
             pl_titles[pl["snippet"]["title"]] = playlists[pl["id"]]
         except Exception as e:  # noqa: BLE001
-            rep.add("INFO", f"Playlist „{pl['snippet']['title'][:40]}“ nicht lesbar ({str(e)[:60]}) – übersprungen")
+            unreadable.append(pl["snippet"]["title"][:30])
+    if unreadable:
+        rep.add("INFO", f"{len(unreadable)} Playlists nicht lesbar (YouTube-Fehler 403, übersprungen), z. B.: {', '.join(unreadable[:4])}. Die Mix-Playlists sind lesbar")
     all_mem_ids = {e.get("video_id") for k, lst in mem.items() if isinstance(lst, list) for e in lst if isinstance(e, dict)}
     for v in sorted(other, key=lambda v: v["published"], reverse=True):
         tag = f"{v['title'][:60]} ({local_date(v)}, {v['minutes']:.0f} Min, https://youtu.be/{v['id']})"
@@ -567,6 +573,8 @@ EXPLAIN = [
     ("Gedächtnis", "Der Mix steht nicht oder falsch im Gedächtnis (Datei memory.json).",
      "Das Gedächtnis steuert Nummern, Räume, Sprüche und Songtitel der nächsten Mixe; Lücken führen zu Doppelungen.",
      "Eintrag nachtragen."),
+    ("kostete", "Dieser Lauf hat mehr gekostet als die Grenze für dieses Genre.", "Dein Budget ist begrenzt (Cabin 9 €, Tokyo ca. 2 $).",
+     "Bei älteren Läufen (z. B. Cabin vom 21.10., Ursache: zu viele Veo-Clips) ist es bekannt und seit 21.10. per Kostengrenze im Code abgesichert; nur frische Läufe (letzte 2 Tage) gelten als Warnung."),
     ("Kosten", "Der Lauf hat mehr gekostet als üblich.", "Dein Budget ist begrenzt (Tokyo ca. 2 $, Cabin 9 €).",
      "Ursache finden (Bild mehrfach erzeugt? Neustart?). Mehrkosten über dem Budget meldet der Wächter dir."),
     ("Short", "Zum heutigen Mix fehlt der Short oder er ist nicht wie geplant öffentlich.",
@@ -593,6 +601,10 @@ EXPLAIN = [
 
 
 def explain(f: Finding):
+    if "nicht lesbar" in f.text.lower():   # sonst greift fälschlich „Short“ bei Playlist-Namen
+        for key, was, warum, tun in EXPLAIN:
+            if key == "nicht lesbar":
+                return was, warum, tun
     for key, was, warum, tun in EXPLAIN:
         if key.lower() in f.text.lower():
             return was, warum, tun
@@ -688,6 +700,17 @@ def main() -> int:
     now = datetime.now(BERLIN)
     try:
         rep = run(args)
+        rounds = [len(rep.problems)]
+        while args.fix and any(f.fixed for f in rep.findings) and len(rounds) < 4:   # Sofort-Regel: nach Reparatur neu messen
+            fixed_before = [f.fixed for f in rep.findings if f.fixed]
+            rep2 = run(args)
+            rounds.append(len(rep2.problems))
+            rep2.findings += [Finding("INFO", f"Reparatur in Runde {len(rounds) - 1}: {x}") for x in fixed_before]
+            rep2.did += rep.did
+            rep = rep2
+            if not any(f.fixed for f in rep.findings):
+                break
+        rep.did.append(f"Messrunden: {len(rounds)} (Probleme je Runde: {' → '.join(map(str, rounds))}); Vorher → Nachher: {rounds[0]} → {rounds[-1]}")
     except Exception as e:  # noqa: BLE001
         rep = Report()
         rep.add("FEHLER", f"Der Wächter konnte selbst nicht prüfen: {type(e).__name__}: {str(e)[:300]}")
