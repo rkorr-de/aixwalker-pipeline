@@ -477,7 +477,20 @@ def run(args) -> Report:
     if sh and now.hour >= 21:
         d = yt.videos().list(part="status", id=sh[0]["video_id"]).execute()["items"]
         if d and d[0]["status"]["privacyStatus"] != "public":
-            rep.add("WARN", f"Tokyo-Short von heute ist um {now:%H:%M} noch {d[0]['status']['privacyStatus']} (Verknüpfung 19:45 lief nicht?)")
+            fixed_short = False
+            if getattr(args, "fix", False):
+                try:   # Abendaufgabe 19:45 lief nicht: Short selbst öffentlich schalten (umkehrbar, kostenlos; Related-Link nur in Studio möglich)
+                    st = d[0]["status"]
+                    st.pop("publishAt", None)
+                    st["privacyStatus"] = "public"
+                    yt.videos().update(part="status", body={"id": sh[0]["video_id"], "status": st}).execute()
+                    fixed_short = True
+                except Exception as ex:  # noqa: BLE001
+                    rep.add("INFO", f"Short konnte nicht öffentlich geschaltet werden: {str(ex)[:80]}")
+            if fixed_short:
+                rep.add("WARN", f"Tokyo-Short von heute war um {now:%H:%M} noch privat (Verknüpfung 19:45 lief nicht) – Wächter hat ihn öffentlich geschaltet; Related-Video-Link fehlt (nur in Studio setzbar)", fixed="Short öffentlich geschaltet")
+            else:
+                rep.add("WARN", f"Tokyo-Short von heute ist um {now:%H:%M} noch {d[0]['status']['privacyStatus']} (Verknüpfung 19:45 lief nicht?)")
         elif d:
             rep.add("OK", "Tokyo-Short von heute ist öffentlich")
     elif not sh and now.hour >= 9 and todays:
@@ -732,6 +745,13 @@ def main() -> int:
         rep.did.append(f"Messrunden: {len(rounds)} (Probleme je Runde: {' → '.join(map(str, rounds))}); Vorher → Nachher: {rounds[0]} → {rounds[-1]}")
     except Exception as e:  # noqa: BLE001
         rep = Report()
+        if "quota" in str(e).lower() or "exceeded your" in str(e).lower():
+            rep.add("WARN", "YouTube-Tageskontingent (Quota) aufgebraucht: die Videoliste war nicht lesbar, dieser Lauf prüft YouTube NICHT (Tagesmix laut Gedächtnis vorhanden, siehe Notizen)")
+            subj, text, html, issues = render(rep, now, notes)
+            print(text)
+            if args.mail:
+                send_mail(subj, text, html)
+            return 1
         rep.add("FEHLER", f"Der Wächter konnte selbst nicht prüfen: {type(e).__name__}: {str(e)[:300]}")
         subj, text, html, _ = render(rep, now, notes)
         print(text)
