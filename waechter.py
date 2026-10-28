@@ -130,6 +130,13 @@ GENRES = {   # Plan Rolf 26.10.2026: Italien Di, Cabin Mi (je wöchentlich) + Sa
 }
 
 
+# Bewusst pausierte Linien (ROUTINE_PROMPT.md: pausiert seit 13.10.2026, bis Rolf sie freigibt) – kein Alarm bei fehlenden Mixen
+PAUSED_GENRES = {
+    "ibiza": "bewusst pausiert seit 13.10.2026 (Freigabe durch Rolf nötig)",
+    "sleep": "bewusst pausiert seit 13.10.2026 (Auto-Mix/Sleep/Spa, Freigabe durch Rolf nötig)",
+}
+
+
 def classify_genre(title: str, desc: str = "") -> str | None:
     t = (title or "").lower()
     for key, (_n, words, *_r) in GENRES.items():
@@ -180,7 +187,9 @@ def genre_findings(mixes: list[dict], now: datetime, pl_titles: dict[str, set], 
     for g, (name, _w, _m, _p, gap, _c) in GENRES.items():
         if g in last:
             days = (now - last[g]).days
-            if days > gap:
+            if g in PAUSED_GENRES and days > gap:
+                out.append(("INFO", f"{name}: seit {days} Tagen kein Mix – {PAUSED_GENRES[g]}"))
+            elif days > gap:
                 out.append(("WARN", f"{name}: seit {days} Tagen kein neuer Mix (üblich höchstens {gap} Tage Abstand) – bewusst pausiert oder ausgefallen?"))
             else:
                 out.append(("OK", f"{name}: letzter Mix vor {days} Tag(en), {len(by_genre[g])} Mix(e) in den letzten Tagen"))
