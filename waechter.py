@@ -122,9 +122,9 @@ def check_titles(chaps: dict[str, list[str]], vols: dict[str, int], rep: Report)
 
 
 # ------------------------------------------------------------------ Genre-Prüfungen (Italienisch, Cabin, Ibiza, Sleep/Spa/Lounge, Mega-Mixe)
-GENRES = {   # Schlüssel: (Anzeigename, Stichwörter in Titel/Beschreibung, Mindestdauer Min, erwartete Playlist (Titel), Höchstabstand in Tagen, Kostengrenze USD)
-    "cabin": ("Winter Cabin", ("cabin", "fireplace"), 120, "Cozy Winter Cabin · Relaxing Fireplace Chillout 4K", 5, 15.0),
-    "italian": ("Italian Chillout", ("italian", "amalfi", "lake como", "dolce vita"), 25, "Italian Chillout Music", 3, 9.0),
+GENRES = {   # Plan Rolf 26.10.2026: Italien Di, Cabin Mi (je wöchentlich) + Samstags-Mega → Höchstabstand 8 Tage. Schlüssel: (Anzeigename, Stichwörter in Titel/Beschreibung, Mindestdauer Min, erwartete Playlist (Titel), Höchstabstand in Tagen, Kostengrenze USD)
+    "cabin": ("Winter Cabin", ("cabin", "fireplace"), 120, "Cozy Winter Cabin · Relaxing Fireplace Chillout 4K", 8, 15.0),
+    "italian": ("Italian Chillout", ("italian", "amalfi", "lake como", "dolce vita"), 25, "Italian Chillout Music", 8, 9.0),
     "ibiza": ("Ibiza Sunset Lounge", ("ibiza", "balearic"), 25, "Ibiza Sunset Lounge", 14, 9.0),
     "sleep": ("Sleep/Spa/Lounge", ("sleep", "spa ", "massage", "lounge", "ambient"), 25, "Chillout, Lounge & Sleep · Aix Walker", 14, 9.0),
 }
