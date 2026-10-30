@@ -16,6 +16,11 @@ Kids-Kanal (zweiter Kanal im selben Google-Konto; beim Google-Dialog den Kids-Ka
   python auth_youtube.py token kids "<komplette localhost-Adresse>"
   Ausgabe: KIDS_YT_REFRESH_TOKEN=…
 
+YOIN Rooms (@yoinrooms, eigener Kanal; beim Google-Dialog den Kanal YOIN Rooms auswählen):
+  python auth_youtube.py url yoin
+  python auth_youtube.py token yoin "<komplette localhost-Adresse>"
+  Ausgabe: YOIN_YT_REFRESH_TOKEN=…
+
 Gmail (Report-Mail ohne Connector, Scope gmail.send):
   python auth_youtube.py url gmail
   python auth_youtube.py token gmail "<komplette localhost-Adresse>"
@@ -54,10 +59,10 @@ def exchange(redirected_url: str) -> str:
 
 if __name__ == "__main__":
     args = sys.argv[1:]
-    kind = next((a for a in args if a in ("drive", "kids", "gmail")), "yt")
-    args = [a for a in args if a not in ("drive", "kids", "gmail")]
+    kind = next((a for a in args if a in ("drive", "kids", "yoin", "gmail")), "yt")
+    args = [a for a in args if a not in ("drive", "kids", "yoin", "gmail")]
     scopes = {"drive": DRIVE_SCOPES, "gmail": ["https://www.googleapis.com/auth/gmail.send"]}.get(kind, SCOPES)
-    var = {"drive": "DRIVE_REFRESH_TOKEN", "kids": "KIDS_YT_REFRESH_TOKEN", "gmail": "GMAIL_REFRESH_TOKEN"}.get(kind, "YT_REFRESH_TOKEN")
+    var = {"drive": "DRIVE_REFRESH_TOKEN", "kids": "KIDS_YT_REFRESH_TOKEN", "yoin": "YOIN_YT_REFRESH_TOKEN", "gmail": "GMAIL_REFRESH_TOKEN"}.get(kind, "YT_REFRESH_TOKEN")
     if args and args[0] == "url":
         print(auth_url(scopes))
     elif len(args) >= 2 and args[0] == "token":
