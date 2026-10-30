@@ -152,3 +152,15 @@ python run_kids_compilation.py --vertical --if-due --upload --publish-tomorrow 0
 | `KIDS_AFFILIATE_LINE` | Leer gesetzt = keine Amazon-Partnerlinks in den Beschreibungen. Sonst gilt die Kuscheltier-Liste aus `kids/affiliate.py` (3 passende Kuscheltiere je Short, 5 je Zusammenschnitt, vor den Hashtags, mit Werbehinweis); `python -m kids.affiliate` tauscht die Links in allen bestehenden Videos aus |
 | `METRICOOL_TOKEN` | optional – Instagram Reel (17:00) + TikTok (18:00) je Short über Metricool (`kids/social.py`, Plan: `KIDS_SOCIAL_PLAN.md`); nur nötig im bezahlten Metricool-Tarif (Advanced/Custom). Ohne Token schreibt das Skript stattdessen `social_plan.json`, und die Tages-Sitzung postet kostenlos über den verbundenen Metricool-MCP-Connector (Routine-Schritt 4d). Der lange Short (Mo/Mi/Fr) geht zusätzlich eigenständig auf TikTok (Routine-Schritt 4c) – TikToks Creator Rewards Program zahlt nur für Videos über 1 Minute. `KIDS_SOCIAL_NETWORKS`, `KIDS_SOCIAL_TIMES`, `KIDS_SOCIAL_DRAFT=1` (nur mit Token) für Tests |
 | `DRIVE_REFRESH_TOKEN` | vorhandene Drive-Freigabe; Ablage je Short unter `Giggle Meadow Shorts/<Datum – Titel>` (`KIDS_DRIVE_ROOT` ändert den Ordnernamen) |
+
+## YOIN Rooms (@yoinrooms, eigener Kanal für ruhigen Tokyo-Café-Jazz)
+
+Neuer Kanal im selben Google-Konto, getrennt von AIX WALKER und Giggle Meadow. Modul `yoin/` (Stand 30.10.2026: nur Grundgerüst).
+
+| | |
+|---|---|
+| Kanal | „YOIN Rooms“, `@yoinrooms`, ID `UCjz1OHf67_NfXGA709EOQiw` |
+| Token-Variable | `YOIN_YT_REFRESH_TOKEN` (`python auth_youtube.py url yoin` / `token yoin "<localhost-Adresse>"`); kein Ausweich-Token, damit nie auf AIX WALKER hochgeladen wird |
+| Modul | `yoin/config.py` (Kanal, Token-Variable, Voreinstellungen), `yoin/youtube.py` (`check_channel()`, `upload()` privat + Kanal-Prüfung, `set_thumbnail()`); `python -m yoin.youtube` = Token-Prüfung (ein `channels.list`-Aufruf) |
+| Vorhandene Tests | `scripts/yoin_songtest.py` bis `yoin_songtest4.py` (Lyria-Songtests), `scripts/yoin_bildtest.py` (2 Hauptbilder, Thumbnails, Texte) – alle ohne Upload |
+| Stand | Token am 30.10.2026 geprüft (Kanalname und ID stimmen). Noch kein Upload, keine Produktion; der erste Testraum startet erst nach Rolfs Freigabe |
