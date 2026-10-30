@@ -627,6 +627,10 @@ EXPLAIN = [
 
 
 def explain(f: Finding):
+    if "tageskontingent" in f.text.lower():   # Quota hat Vorrang (Text enthält auch „nicht lesbar“)
+        for key, was, warum, tun in EXPLAIN:
+            if key == "Tageskontingent":
+                return was, warum, tun
     if "nicht lesbar" in f.text.lower():   # sonst greift fälschlich „Short“ bei Playlist-Namen
         for key, was, warum, tun in EXPLAIN:
             if key == "nicht lesbar":
