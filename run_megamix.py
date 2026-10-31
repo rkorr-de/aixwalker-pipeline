@@ -327,7 +327,7 @@ def run_all(args) -> int:
     """Alle Genres der Rotation nacheinander (Rolf 17.10.2026: jeden Samstag EIN Mega-Mix PRO Genre). Jedes Genre läuft als
     eigener Prozess (eigener Arbeitsordner, eigenes Gedächtnis-Laden); fehlendes Material oder ein Fehler stoppt die anderen nicht.
     Reihenfolge: Italian, Lounge, zuletzt Cabin (dauert am längsten)."""
-    order = ["Italian Chillout", "Mediterranean Lounge", "Cozy Winter Cabin"]
+    order = ["Italian Chillout", "Mediterranean Lounge"]   # Cabin gestoppt (Rolf 31.10.2026)
     rc = {}
     for g in order:
         cmd = [sys.executable, "run_megamix.py", "--genre", g, "--max-hours", str(args.max_hours), "--publish-at", args.publish_at]
