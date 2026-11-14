@@ -142,12 +142,22 @@ def list_children(svc, parent: str, folders: bool | None = None) -> list[dict]:
             return sorted(out, key=lambda f: f["name"])
 
 
-def download(svc, file_id: str, dst: Path) -> Path:
+def download(svc, file_id: str, dst: Path, attempts: int = 5) -> Path:
+    """Lädt eine Datei; bei Netzwerkfehlern (z. B. Connection reset) bis zu `attempts` Versuche (14.11.2026)."""
+    import time
     from googleapiclient.http import MediaIoBaseDownload
     dst.parent.mkdir(parents=True, exist_ok=True)
-    with open(dst, "wb") as fh:
-        dl = MediaIoBaseDownload(fh, svc.files().get_media(fileId=file_id), chunksize=16 * 1024 * 1024)
-        done = False
-        while not done:
-            _, done = dl.next_chunk()
+    for i in range(1, attempts + 1):
+        try:
+            with open(dst, "wb") as fh:
+                dl = MediaIoBaseDownload(fh, svc.files().get_media(fileId=file_id), chunksize=16 * 1024 * 1024,)
+                done = False
+                while not done:
+                    _, done = dl.next_chunk(num_retries=3)
+            return dst
+        except (OSError, ConnectionError) as e:
+            if i == attempts:
+                raise
+            print(f"[drive] Download {dst.name} fehlgeschlagen ({e}); Versuch {i + 1}/{attempts} in {10 * i} s", flush=True)
+            time.sleep(10 * i)
     return dst
