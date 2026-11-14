@@ -19,7 +19,7 @@ GENRE_TEXT = {   # Stichwort im Genre-Namen → (Titelteil, Zweck, Tags, Playlis
                 "amalfi coast music", "italian dinner music", "lake como", "italian cafe music", "bossa lounge"], "italian"),
     "mediterranean": ("Mediterranean Spa Lounge", "Balearic Chillout for Relaxing Sunsets", ["balearic chillout",
                       "spa lounge", "ibiza chillout", "luxury spa music", "beach lounge", "chillout lounge", "sunset music"], "chillout"),
-    "spa": ("Dark Ambient Spa Music", "Deep Relaxing Music for Massage & Wellness", ["spa music", "dark ambient",
+    "spa": ("Relaxing Spa Music", "Deep Relaxing Music for Massage & Wellness", ["spa music", "relaxing spa music",
             "massage music", "relaxing music", "wellness music"], "chillout"),
     "sleep": ("Sleep Music", "Fall Asleep Fast", ["sleep music", "deep sleep", "relaxing music", "fall asleep fast",
               "insomnia music"], "chillout"),
