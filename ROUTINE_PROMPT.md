@@ -258,3 +258,16 @@ Rückfragen**. Plan-Dokument: „Aix Walker – Wachstums- und Einnahmenplan 202
 - Nachschub: Routine „AIX WALKER Tipp-Recherche (So)“ recherchiert sonntags 4 Wellness-Tipps + 2 Orte mit Websuche,
   schreibt sie als JSON und hängt sie mit `python run_tip_short.py --add <datei.json>` an (ungültige/doppelte Einträge
   werden übersprungen).
+
+## Spa-Linie (seit 14.11.2026, Rolf)
+
+- **Wieder aktiv:** 1 Spa-Mix pro Woche, SONNTAGS (Aufgabe `trig_01Vwy5ku97MCMTBJEzQHkx21`, 6:03 Berlin): `python run_auto.py --genre "Dark Ambient Spa"`
+  (Standardformat, ca. 90 Min, 30+10 Tracks, `config.SPA_LINE`/`SPA_TRACKS`). Dazu der Monats-Mix (`monthly_mix.py`, am 1. des Monats in der Tages-Routine).
+- **Nur EIN Bild** je Mix (`images.spa_master_art`, 4K, 1:1): keine Einzelbilder pro Song, alle Track-Cover nutzen dasselbe Bild. Das nackte Hauptbild
+  wird immer gesichert: Drive-Ordner `ohne_text/` UND `hauptbild_ohne_text.png` im Mix-Ordner.
+- **Thumbnail/Cover wie das Referenzfoto** (Rolf 14.11.): „RELAXING MUSIC“ weiß oben rechts, zweite Zeile dunkelgrün unten rechts (rotiert nach Kalenderwoche:
+  `config.SPA_SCENES`), Schrift ca. 1,4× größer als im Vorbild (`images.spa_text_overlay`). Kein Albumname, keine Dauer im Bild.
+- **Short** (auffällig, zum Liken/Klicken): großer Hook oben (`config.SPA_SHORT_HOOKS`), darüber/darunter Like-Aufforderung (`SPA_SHORT_CTAS`), Knopf „FULL MIX“,
+  keine Zeitangaben. Auf YouTube sofort öffentlich; Instagram + TikTok plant die Sonntags-Aufgabe über Metricool (Marke 7364161).
+- **DistroKid** (Künstler Aix Walker): eigene Aufgabe `trig_01PhA9EN9VxHP53RQwJQHe3J` sonntags ab 11:37 (Wiederholung 14:37), autark, Marker `DISTROKID_ERLEDIGT.txt` im Drive-Mix-Ordner.
+- Mail wie gehabt (Pipeline): DistroKid-Titel/Angaben, Album-Cover + Thumbnail als Anhang, Drive-Link.

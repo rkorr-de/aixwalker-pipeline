@@ -457,6 +457,8 @@ def track_counts(brief: dict) -> tuple[int, int, int]:
     fmt = config.LINE_FORMAT.get(brief.get("genre", ""))
     if fmt:
         return fmt["tracks"], fmt["extra"], fmt["min_minutes"]
+    if brief.get("genre") in config.SPA_LINE and not brief.get("long"):
+        return config.SPA_TRACKS               # Spa-Linie (14.11.2026): ca. 90 Min, ein Hauptbild
     if brief.get("long"):
         return config.LONG_PLANNED_TRACKS, config.LONG_EXTRA_TRACKS, config.LONG_MIN_MINUTES
     return config.PLANNED_TRACKS, config.EXTRA_TRACKS, config.MIN_MIX_MINUTES

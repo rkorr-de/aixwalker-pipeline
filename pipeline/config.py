@@ -72,7 +72,7 @@ GLOW = (255, 206, 140)    # atmendes Licht im Video: warmes Gold passend zum hel
 # Begriff). Derselbe Begriff steht im YouTube-Titel direkt hinter dem Albumnamen → Video und Album sehen gleich aus.
 THUMB_KEYWORD = {   # immer mit „Music", damit sofort klar ist: das ist Musik, kein Spa- oder Reisevideo (Rolf 08.10.)
     "Mediterranean Spa Lounge": "Chillout Lounge Music",
-    "Dark Ambient Spa": "Luxury Spa Music",
+    "Dark Ambient Spa": "Relaxing Spa Music",   # Spa-Linie seit 14.11.2026 (SPA_LINE)
     "Chillout Sleep": "Sleep Music",
     "Slow Gym Beats": "Slow Gym Beats Music",
     "Italian Chillout": "Italian Chillout Music",
@@ -127,9 +127,10 @@ IMAGE_STYLE = {
     "Mediterranean Spa Lounge": (" Bright, warm, vivid luxury resort photography: golden-hour sunset or sunny Mediterranean "
                                  "daylight, rich saturated colors (turquoise water, white architecture, warm orange and pink "
                                  "sky), inviting and aspirational, clean high-end travel-magazine look, wide composition." + _NO_TEXT),
-    "Dark Ambient Spa": (" Warm, inviting luxury spa photography: glowing candlelight and golden tones, rich warm colors with fresh "
-                         "green leaves or blossom accents, soft steam, polished stone and wood, bright enough to read well on a "
-                         "phone screen, high-end wellness-magazine look." + _NO_TEXT),
+    "Dark Ambient Spa": (" Bright, airy, serene zen-wellness photography in the style of a premium relaxing-music cover: "
+                         "soft sky-blue and teal gradients, drifting white mist over calm water, fresh green leaves, smooth "
+                         "stones and a pink lotus, gentle diffused daylight, clean uncluttered composition with a calm empty "
+                         "area for lettering, bright enough to read on a phone screen, high-end wellness-magazine look." + _NO_TEXT),
     "Chillout Sleep": (" Calm, dreamy evening photography: soft warm lights against a deep blue dusk sky, gentle but colorful, "
                        "cozy and safe, clear and not murky, high-end interior or nature photography." + _NO_TEXT),
     # Gym (wieder ab 13.10.2026): hell und warm statt altem dunklem Teal-Look, immer draußen
@@ -170,6 +171,27 @@ IMAGE_STYLE = {
                           "magazines or books show no readable text. Real photograph, not CGI, not a render, not an "
                           "illustration." + _NO_TEXT),
 }
+
+# --- Spa-Linie (Rolf 14.11.2026): 1 Mix pro Woche (sonntags) + Monats-Mix, ein einziges Hauptbild je Mix (keine Einzelbilder
+# pro Song), Thumbnail/Cover im Look des Referenzfotos „RELAXING MUSIC / NATURE SOUNDS“ (Schrift größer), auffälliger Short. ---
+SPA_LINE = {"Dark Ambient Spa"}
+SPA_TRACKS = (30, 10, 90)                 # Haupt-Tracks, Reserve, Mindestminuten
+SPA_THUMB_LINE1 = "RELAXING MUSIC"        # weiß, oben rechts
+SPA_TEXT_SCALE = 1.0
+# (Bildvariante, zweite Textzeile in dunklem Grün unten rechts) – Rotation nach Kalenderwoche
+SPA_SCENES = [
+    ("a large pink lotus flower in full bloom at the base of the stones, fresh green bamboo leaves hanging in from the top-left corner", "SPA MASSAGE"),
+    ("a white water lily and a few floating pink petals at the base of the stones, fresh green fern fronds in the top-left corner", "DEEP RELAXATION"),
+    ("a delicate white orchid on a small flat stone at the base, a misty tropical garden, green bamboo leaves in the top-left corner", "ZEN GARDEN"),
+    ("a floating pink lotus flower and a few drops of water, a thin bamboo water spout at the left edge pouring softly into the pond, bamboo leaves top-left", "STRESS RELIEF"),
+    ("pale yellow frangipani flowers floating around the base of the stones, palm and bamboo leaves in the top-left corner", "CALM MIND"),
+    ("two pink lotus buds and one open lotus flower at the base of the stones, soft ripples, green bamboo stalks at the left edge", "INNER PEACE"),
+]
+# Short: Hook (max. 4 Wörter, groß oben) + Aufforderung zum Liken/Klicken (eine Zeile über dem Knopf „FULL MIX“); keine Zeitangaben
+SPA_SHORT_HOOKS = ["Take a deep breath", "Drop your shoulders", "Your sign to relax", "Breathe out slowly",
+                   "Stop scrolling. Unwind.", "You deserve this calm", "Unclench your jaw", "Let today go"]
+SPA_SHORT_CTAS = ["Like if you needed this", "Double tap if you feel calm", "Like for more calm", "Save this for tonight"]
+
 DEFAULT_GENRE = "Mediterranean Spa Lounge"
 
 TARGET_LUFS = -14.0

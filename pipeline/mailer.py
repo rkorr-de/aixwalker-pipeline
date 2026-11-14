@@ -101,7 +101,10 @@ def build_report(concept: dict, result: dict, estimate_usd: float | None = None)
         "- Community-Beitrag posten",
         "- Endscreen setzen: letzte 20 s → Playlist + Abonnieren",
         *([] if concept.get("format") == "long" or concept.get("genre") in config.LINE_FORMAT
-          else ["- DistroKid-Release anlegen (Angaben oben)"]),
+          else (["- DistroKid: wird sonntags automatisch hochgeladen (Aufgabe „Spa-Mix: DistroKid-Upload“, Rolfs PC muss an sein) – "
+                 "du bekommst eine Meldung; Angaben oben nur zur Kontrolle",
+                 "- Short auf Instagram + TikTok: wird automatisch über Metricool eingeplant; auf YouTube ist er schon öffentlich"]
+                if concept.get("genre") in config.SPA_LINE else ["- DistroKid-Release anlegen (Angaben oben)"])),
     ]
     return "\n".join(parts)
 

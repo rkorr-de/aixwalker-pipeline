@@ -520,6 +520,134 @@ def make_album_cover(art: Image.Image, keyword: str, album: str, out: Path, size
     return out
 
 
+# ---------------------------------------------------------------------------------------------------------------
+# Spa-Linie (Rolf 14.11.2026): Look des Referenzfotos „RELAXING MUSIC / NATURE SOUNDS“ – zwei Textblöcke rechts (oben
+# weiß, unten dunkelgrün), Motiv links (Steine, Lotus, Bambus, Nebel über Wasser). Schrift ca. 1,4× größer als im Vorbild.
+# ---------------------------------------------------------------------------------------------------------------
+SPA_GREEN = (36, 66, 28)
+SPA_NAVY = (14, 44, 62)
+
+
+def spa_week_index(today=None) -> int:
+    import datetime as _dt
+    d = today or _dt.date.today()
+    return d.isocalendar()[1] % len(config.SPA_SCENES)
+
+
+def spa_master_art(idx: int | None = None) -> Image.Image:
+    """Das EINE Hauptbild der Spa-Linie (quadratisch, 4K, ohne Schrift). Das Rohbild landet über `generate_art` im Drive-Ordner
+    „ohne_text“. Linke Bildhälfte: gestapelte Zen-Steine mit Blüte, Bambus oben links; rechte Hälfte ruhig für die Schrift."""
+    idx = spa_week_index() if idx is None else idx % len(config.SPA_SCENES)
+    variant = config.SPA_SCENES[idx][0]
+    scene = ("Photorealistic bright zen spa photograph for a relaxing-music cover. Strict composition in a square frame (a wide "
+             "16:9 band cut from the vertical middle of it must work on its own, so keep every important element between 22 % and "
+             "78 % of the frame height): on the LEFT third a tall, well-balanced stack of five smooth dark-grey basalt zen stones "
+             f"standing at the edge of calm water, {variant}. Soft white mist drifts over the glassy water with a gentle mirror "
+             "reflection. The RIGHT HALF of the frame is calm, clean and almost empty: soft turquoise-blue water and mist, a "
+             "slightly deeper teal-blue in its upper part and bright pale white-blue mist in its lower part, with no objects, so "
+             "large lettering can be placed there. Bright airy colours, sky-blue to teal gradient, shallow depth of field, soft "
+             "diffused natural daylight, outdoor setting, high-end wellness-magazine photograph. No people, no animals, no text, "
+             "no letters, no watermark, no logos.")
+    img = generate_art(scene, "1:1", pro=True, style=style_for("Dark Ambient Spa"), image_size="4K")
+    print(f"[images] Spa-Hauptbild {img.size[0]}×{img.size[1]} (Variante {idx}: {config.SPA_SCENES[idx][1]})")
+    return img
+
+
+def _region_lum(img: Image.Image, box: tuple[int, int, int, int]) -> float:
+    reg = img.crop(box).convert("L").resize((24, 24))
+    return float(np.asarray(reg, dtype=np.float32).mean() / 255.0)
+
+
+def spa_text_overlay(img: Image.Image, line1: str, line2: str, *, scale_ref: float | None = None,
+                     size_boost: float = 1.0, max_w_frac: float = 0.56, mark: bool = True) -> Image.Image:
+    """Zeichnet die zwei rechtsbündigen Textblöcke (je Wort eine Zeile): `line1` weiß oben rechts, `line2` dunkelgrün unten rechts.
+    Schriftgröße: möglichst groß bis `max_w_frac` der Bildbreite; `size_boost` < 1 verkleinert. Kontrast wird gemessen – ist die
+    Fläche unter einem Block zu hell/dunkel für die Standardfarbe, wechselt die Farbe (Weiß ↔ Marineblau, Grün ↔ Hellcreme)."""
+    img = img.convert("RGB")
+    w, h = img.size
+    d = ImageDraw.Draw(img)
+    path = config.FONT_TITLE
+    words1, words2 = line1.upper().split(), line2.upper().split()
+    if len(words1) == 1:
+        words1 = [line1.upper()]
+    # einheitliche Schriftgröße (Rolf 14.11.2026: größer als im Vorbild, dort ca. 34 % der Breite für „RELAXING“):
+    # „RELAXING“ füllt `max_w_frac` der Breite; ein längeres Wort („RELAXATION“) darf bis 1,2× davon breit werden.
+    longest = max(words1 + words2, key=len)
+    size = int(h * 0.30)
+    while size > 20:
+        f = _font(path, size, "Medium")
+        if (_tracked_width(d, "RELAXING", f, size * 0.03) <= w * max_w_frac
+                and _tracked_width(d, longest, f, size * 0.03) <= w * max_w_frac * 1.22):
+            break
+        size -= 4
+    size = int(size * size_boost)
+    f = _font(path, size, "Medium")
+    tr = size * 0.03
+    bb = d.textbbox((0, 0), "H", font=f)
+    cap = bb[3] - bb[1]
+    lh = int(cap * 1.55)
+    mx = int(w * 0.045)
+    # Block 1: oben rechts
+    top1 = int(h * 0.06)
+    h1 = lh * (len(words1) - 1) + cap
+    # Block 2: unten rechts
+    h2 = lh * (len(words2) - 1) + cap
+    bot2 = int(h * 0.90)
+    top2 = bot2 - h2
+
+    def place(words, top):
+        out = []
+        for i, wd in enumerate(words):
+            tw = _tracked_width(d, wd, f, tr)
+            b = d.textbbox((0, 0), wd, font=f)
+            out.append((w - mx - tw, top + i * lh - b[1], wd, tw))
+        return out
+    p1, p2 = place(words1, top1), place(words2, top2)
+    box1 = (int(min(x for x, *_ in p1)), top1, w - mx, top1 + h1)
+    box2 = (int(min(x for x, *_ in p2)), top2, w - mx, top2 + h2)
+    col1 = (255, 255, 255) if _region_lum(img, box1) < 0.66 else SPA_NAVY
+    col2 = SPA_GREEN if _region_lum(img, box2) > 0.55 else (238, 248, 230)
+
+    def paint(md, items):
+        for x, y, wd, _ in items:
+            _draw_tracked(md, (x, y), wd, f, 255, tr)
+    if col1 == (255, 255, 255):   # weiche Aufhellung des Himmels hinter weißer Schrift: nur ein feiner dunkler Hof
+        _soft_shadow(img, lambda md: paint(md, p1), radius=max(5, size * 0.10), alpha=95)
+    else:
+        _soft_shadow(img, lambda md: paint(md, p1), radius=max(5, size * 0.10), alpha=0)
+    if col2 != SPA_GREEN:
+        _soft_shadow(img, lambda md: paint(md, p2), radius=max(5, size * 0.10), alpha=110)
+    d = ImageDraw.Draw(img)
+    for x, y, wd, _ in p1:
+        _draw_tracked(d, (x, y), wd, f, col1, tr)
+    for x, y, wd, _ in p2:
+        _draw_tracked(d, (x, y), wd, f, col2, tr)
+    if mark:   # kleine Marke unten links wie bei allen Linien
+        _corner_labels(img, h / 720, "", mark=True)
+    return img
+
+
+def make_spa_thumbnail(art: Image.Image, line2: str, out: Path, w: int = 1280, h: int = 720,
+                       line1: str | None = None) -> Path:
+    """YouTube-Thumbnail der Spa-Linie: 16:9-Mittelstreifen des Hauptbilds + Textblöcke wie im Referenzfoto."""
+    img = _cover_crop(crop_aspect(art, 16, 9), w, h).convert("RGB")
+    img = spa_text_overlay(img, line1 or config.SPA_THUMB_LINE1, line2, max_w_frac=0.48)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    img.save(out, "JPEG", quality=92)
+    if out.stat().st_size > 2_000_000:
+        img.save(out, "JPEG", quality=80)
+    return out
+
+
+def make_spa_cover(art: Image.Image, line2: str, out: Path, size: int = 3000, line1: str | None = None) -> Path:
+    """Album-Cover der Spa-Linie (DistroKid 3000×3000): das ganze Hauptbild mit denselben Textblöcken (Wiedererkennung)."""
+    img = _cover_crop(art, size, size).convert("RGB")
+    img = spa_text_overlay(img, line1 or config.SPA_THUMB_LINE1, line2, max_w_frac=0.44)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    img.save(out, "PNG", optimize=True)
+    return out
+
+
 def make_track_cover(art: Image.Image, title: str, track_no: int, album: str, out: Path, size: int = 1400) -> Path:
     """Track-Cover (MP3-Tag und Videobild): gleicher Look – Tracktitel groß, darunter der Albumname in Schreibschrift."""
     img = _cover_crop(art, size, size).convert("RGB")

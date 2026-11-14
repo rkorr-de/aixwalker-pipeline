@@ -159,10 +159,24 @@ def main() -> int:
     # 1b) Cover, MP3s, Video-Frames (nach der Zählung, damit TRCK n/total stimmt)
     covers, frames = [], []
     art_cache: dict[int, object] = {}
+    # Spa-Linie (Rolf 14.11.2026): EIN Hauptbild je Mix, keine Einzelbilder pro Song – alle Track-Cover nutzen dasselbe Bild.
+    spa = genre in config.SPA_LINE and not is_long
+    spa_idx = images.spa_week_index()
+    spa_master = None
+    raw_png = out / "covers" / "hauptbild_ohne_text.png"
+    if spa:
+        if raw_png.exists() and not args.dry_run:
+            from PIL import Image as _Image
+            spa_master = _Image.open(raw_png).convert("RGB")
+            log("Spa-Hauptbild aus früherem Versuch wiederverwendet")
+        else:
+            spa_master = images.spa_master_art(spa_idx)
+            spa_master.save(raw_png, "PNG")     # nacktes Hauptbild immer sichern (Rolf 14.11.2026)
+        art_cache[0] = spa_master
     for i, t in enumerate(tracks, 1):
         art_prompt = (concept.get("track_art_prompts") or [None] * total)[i - 1] or \
             f"{concept['art_prompt']} Variation: {t['variation']}."
-        gi = (i - 1) // config.LONG_ART_GROUP if is_long else i - 1   # Lang-Format: ein Bild je Track-Gruppe
+        gi = 0 if spa else ((i - 1) // config.LONG_ART_GROUP if is_long else i - 1)   # Lang-Format: ein Bild je Track-Gruppe; Spa: ein Bild
         if gi not in art_cache:
             art_cache[gi] = images.color_grade(images.generate_art(art_prompt, "1:1", style=images.style_for(genre)),
                                                genre)   # z. B. Orange-&-Teal-Filter der Ibiza-Linie
@@ -191,16 +205,23 @@ def main() -> int:
     # 3) Album-Cover, Thumbnail, Video
     # Album-Cover und Thumbnail: dieselbe Szene, derselbe Stil, derselbe Text → Video und Album sehen gleich aus
     keyword = config.THUMB_KEYWORD.get(genre, genre)
-    scene = concept.get("thumbnail_prompt") or concept["art_prompt"]
-    master = images.master_art(scene, genre)          # EIN Hauptbild: Cover = ganz, Thumbnail = 16:9-Ausschnitt
-    master.save(out / "covers" / "master.jpg", "JPEG", quality=92)
-    text_scale = config.THUMB_TEXT_SCALE.get(genre, 1.0)
-    look = {"subline": config.THUMB_SUBLINE.get(genre), "one_line": genre in config.THUMB_ONE_LINE,
-            "title_top": genre in config.THUMB_TITLE_TOP}   # Ibiza: Unterzeile, einzeilig, Titel oben im Himmel
-    images.make_album_cover(master, keyword, album, out / "covers" / "album_3000.png", text_scale=text_scale, **look)
-    thumb_art = images.crop_aspect(master, 16, 9)
-    thumbs = [images.make_thumbnail(thumb_art, keyword, album, out / "thumbnail" / "thumb_A.jpg",
-                                    duration=images.duration_label(total_min), text_scale=text_scale, **look)]
+    if spa:
+        master = spa_master
+        spa_line2 = config.SPA_SCENES[spa_idx][1]
+        master.save(out / "covers" / "master.jpg", "JPEG", quality=92)
+        images.make_spa_cover(master, spa_line2, out / "covers" / "album_3000.png")
+        thumbs = [images.make_spa_thumbnail(master, spa_line2, out / "thumbnail" / "thumb_A.jpg")]
+    else:
+        scene = concept.get("thumbnail_prompt") or concept["art_prompt"]
+        master = images.master_art(scene, genre)          # EIN Hauptbild: Cover = ganz, Thumbnail = 16:9-Ausschnitt
+        master.save(out / "covers" / "master.jpg", "JPEG", quality=92)
+        text_scale = config.THUMB_TEXT_SCALE.get(genre, 1.0)
+        look = {"subline": config.THUMB_SUBLINE.get(genre), "one_line": genre in config.THUMB_ONE_LINE,
+                "title_top": genre in config.THUMB_TITLE_TOP}   # Ibiza: Unterzeile, einzeilig, Titel oben im Himmel
+        images.make_album_cover(master, keyword, album, out / "covers" / "album_3000.png", text_scale=text_scale, **look)
+        thumb_art = images.crop_aspect(master, 16, 9)
+        thumbs = [images.make_thumbnail(thumb_art, keyword, album, out / "thumbnail" / "thumb_A.jpg",
+                                        duration=images.duration_label(total_min), text_scale=text_scale, **look)]
     mp4_path = out / "video" / f"{concept['slug']}.mp4"
     if config.ANIMATED_VISUALS:
         try:
@@ -252,13 +273,24 @@ def main() -> int:
     if not args.no_shorts:
         overlays = concept.get("short_overlays") or [s.get("overlay", "feel this") for s in concept.get("shorts", [])]
         overlays = (overlays + ["feel the drop", "lock in"])[: config.SHORTS_COUNT]
+        if spa:   # Hook zum Liken/Klicken, rotiert nach Kalenderwoche (Rolf 14.11.2026)
+            wk = date.today().isocalendar()[1]
+            overlays = [config.SPA_SHORT_HOOKS[(wk + k) % len(config.SPA_SHORT_HOOKS)] for k in range(config.SHORTS_COUNT)]
         passages = shorts.find_passages(mix_wav, starts, total_sec, config.SHORT_CLIP_SEC, config.SHORTS_COUNT)
         for k, p in enumerate(passages):
             t_title = tracks[p["track_index"]]["title"]
-            frame = shorts.make_short_frame(master, None, overlays[k], t_title,   # 9:16 aus dem 1:1-Hauptbild
-                                            out / "shorts" / f"short_{k + 1}_frame.png", total_min=total_min,
-                                            album=album, keyword=config.THUMB_KEYWORD.get(genre),
-                                            note=config.vocal_note(genre))
+            if spa:   # linker Streifen des Hauptbilds (Steine + Blüte), keine Zeitangabe im Short
+                sh = master.height
+                frame = shorts.make_short_frame(master.crop((0, 0, int(sh * 9 / 16), sh)), None, overlays[k], t_title,
+                                                out / "shorts" / f"short_{k + 1}_frame.png", total_min=None,
+                                                album=album, keyword=config.THUMB_KEYWORD.get(genre),
+                                                note=config.vocal_note(genre),
+                                                cta=config.SPA_SHORT_CTAS[(date.today().isocalendar()[1] + k) % len(config.SPA_SHORT_CTAS)])
+            else:
+                frame = shorts.make_short_frame(master, None, overlays[k], t_title,   # 9:16 aus dem 1:1-Hauptbild
+                                                out / "shorts" / f"short_{k + 1}_frame.png", total_min=total_min,
+                                                album=album, keyword=config.THUMB_KEYWORD.get(genre),
+                                                note=config.vocal_note(genre))
             clip_path = out / "shorts" / f"short_{k + 1}.mp4"
             if config.ANIMATED_VISUALS:
                 try:
@@ -304,6 +336,8 @@ def main() -> int:
             from pipeline import drive
             folder = f"{date.today().isoformat()} – {album} ({genre}, {bpm} BPM)"
             files = [out / "covers" / "album_3000.png", out / "covers" / "master.jpg", out / "metadata.txt", mp4, *thumbs]
+            if spa and raw_png.exists():
+                files.append(raw_png)
             subfolders = {"mp3": sorted((out / "mp3").glob("*.mp3")),
                           "shorts": [Path(s["file"]) for s in short_list]}
             drive_links = drive.upload_mix_package(folder, files, subfolders)

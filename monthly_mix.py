@@ -143,8 +143,16 @@ def produce(genre: str, month: str, pairs: list[tuple[dict, dict]], out: Path, m
                                [{"album": p["album"], "video_id": next((e.get("video_id") for e in mem.get("mixes", [])
                                                                           if e.get("album", "").lower() == p["album"].lower()), None)}
                                 for p, _ in pairs], chapter_text, bpm_range)
+    spa = genre in config.SPA_LINE
     if args.dry_run:
-        art = images.procedural_art("16:9", seed=1)
+        art = images.procedural_art("1:1" if spa else "16:9", seed=1)
+    elif spa:   # Spa-Linie (Rolf 14.11.2026): ein Hauptbild im Look des Referenzfotos, Rohbild wandert über generate_art nach „ohne_text“
+        try:
+            art = images.spa_master_art(images.spa_week_index())
+            art.save(out / "hauptbild_ohne_text.png", "PNG")
+        except Exception as e:  # noqa: BLE001
+            log(f"Motiv-Erzeugung fehlgeschlagen ({e}) – Cover des letzten Mixes als Ersatz")
+            art = Image.open(pairs[-1][1]["cover"]) if pairs[-1][1].get("cover") else images.procedural_art("1:1", seed=1)
     else:
         try:
             art = images.color_grade(images.generate_art(monthly.hero_prompt(genre), "16:9", pro=True,
@@ -154,10 +162,15 @@ def produce(genre: str, month: str, pairs: list[tuple[dict, dict]], out: Path, m
             log(f"Motiv-Erzeugung fehlgeschlagen ({e}) – Cover des letzten Mixes als Ersatz")
             art = Image.open(pairs[-1][1]["cover"]) if pairs[-1][1].get("cover") else images.procedural_art("16:9", seed=1)
     head = monthly.genre_info(genre)[0]
-    thumb = monthly.make_monthly_thumbnail(art, monthly.hours_label(total_min), head, f"{month_label} {y}",
-                                           out / "thumbnail_monthly.jpg")
-    frame = monthly.make_monthly_thumbnail(art, monthly.hours_label(total_min), head, f"{month_label} {y}",
-                                           out / "frame.png", 1920, 1080)
+    if spa:
+        thumb = images.make_spa_thumbnail(art, "MONTHLY MIX", out / "thumbnail_monthly.jpg")
+        frame = images.make_spa_thumbnail(art, "MONTHLY MIX", out / "frame.jpg", 1920, 1080)
+        images.make_spa_cover(art, "MONTHLY MIX", out / "album_3000.png")
+    else:
+        thumb = monthly.make_monthly_thumbnail(art, monthly.hours_label(total_min), head, f"{month_label} {y}",
+                                               out / "thumbnail_monthly.jpg")
+        frame = monthly.make_monthly_thumbnail(art, monthly.hours_label(total_min), head, f"{month_label} {y}",
+                                               out / "frame.png", 1920, 1080)
     fr = Image.open(frame).convert("RGB")
     images.add_subscribe_badge(fr)
     fr.save(frame)

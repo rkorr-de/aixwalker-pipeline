@@ -134,7 +134,7 @@ def _extrude(img: Image.Image, paint_white, draw_col, size: int, scale: float = 
 
 def make_short_frame(art: Image.Image, cover_png: Path | None, headline: str, track_title: str, out: Path,
                      w: int = 1080, h: int = 1920, total_min: int | None = None, album: str | None = None,
-                     keyword: str | None = None, note: str = "no vocals") -> Path:
+                     keyword: str | None = None, note: str = "no vocals", cta: str | None = None) -> Path:
     """9:16-Bild „einladend statt Textwand“ (Rolf 11.10.2026): das Hauptbild randlos und scharf, oben Genre-Begriff +
     große Hook-Zeile, unten Albumname + leuchtender Knopf „FULL MIX · 3 HOURS“ (pulsiert im Video mit der Musik).
     Nur 4 Textelemente, alles im sicheren Bereich. Regel für ALLE Linien (Rolf 12.10.): nie ein kleines Cover im Short –
@@ -223,8 +223,21 @@ def make_short_frame(art: Image.Image, cover_png: Path | None, headline: str, tr
     ink = (24, 26, 30)
     d.polygon([(tx0, cy - tri // 2), (tx0, cy + tri // 2), (tx0 + int(tri * 0.86), cy)], fill=ink)
     _draw_tracked(d, (tx0 + tri + 26, cy - (lb[1] + lb[3]) / 2), label, fp, ink, tp)
-    # … darüber der Albumname in Schreibschrift (identisch zu Video-/Albumtitel)
-    if album:
+    # … darüber entweder die Like-/Klick-Aufforderung (Spa-Linie, Rolf 14.11.2026) oder der Albumname in Schreibschrift
+    if cta:
+        ct = cta.upper()
+        fc = _fit_tracked(d, ct, config.FONT_TITLE, LOW_MAX_W + 60, 54, 34, 0.08, "ExtraBold")
+        tc = fc.size * 0.08
+        cb = d.textbbox((0, 0), ct, font=fc)
+        cx = (w - _tracked_width(d, ct, fc, tc)) / 2
+        cy_ = py0 - 46 - (cb[3] - cb[1]) - cb[1]
+        from .images import _soft_shadow as _ss
+        _ss(bg, lambda md: _draw_tracked(md, (cx, cy_), ct, fc, 255, tc), radius=12, alpha=190)
+        d = ImageDraw.Draw(bg)
+        _draw_tracked(d, (cx + 3, cy_ + 3), ct, fc, (20, 30, 20), tc)
+        _draw_tracked(d, (cx, cy_), ct, fc, (255, 244, 200), tc)
+        boxes.append((int(cx), int(cy_ + cb[1]), int(cx + _tracked_width(d, ct, fc, tc)) + 6, int(cy_ + cb[3]) + 6))
+    elif album:
         fa = _fit_text(d, album, config.FONT_SCRIPT, LOW_MAX_W + 40, 150, 84)
         ab = d.textbbox((0, 0), album, font=fa)
         ax = (w - (ab[2] - ab[0])) / 2 - ab[0]
@@ -284,7 +297,9 @@ def short_metadata(concept: dict, idx: int, passage: dict, track_title: str, ove
     if kw and "music" not in title.lower():                     # sofort klar, dass es Musik ist (Rolf 08.10.)
         title = f"{title} · {kw}"
     title = f"{title[:100 - len(' #Shorts')].rstrip()} #Shorts"
-    desc = (f"{overlay}\n\n🎧 Full mix ({concept.get('total_min', 60)}+ min, {config.vocal_note(concept.get('genre'))}, no interruptions): {full_url}\n"
+    full_note = ("no vocals, no interruptions" if concept.get("genre") in config.SPA_LINE else
+                 f"{concept.get('total_min', 60)}+ min, {config.vocal_note(concept.get('genre'))}, no interruptions")
+    desc = (f"{overlay}\n\n🎧 Full mix ({full_note}): {full_url}\n"
             f"Track: {track_title} · {concept['genre']} · {concept['bpm']} BPM\n"
             f"From the mix „{concept['album']}“ by {config.ARTIST} (AI-assisted, original music)\n\n"
             f"{' '.join(concept['hashtags'][:4])} #Shorts")
