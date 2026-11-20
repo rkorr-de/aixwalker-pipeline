@@ -72,7 +72,7 @@ GLOW = (255, 206, 140)    # atmendes Licht im Video: warmes Gold passend zum hel
 # Begriff). Derselbe Begriff steht im YouTube-Titel direkt hinter dem Albumnamen → Video und Album sehen gleich aus.
 THUMB_KEYWORD = {   # immer mit „Music", damit sofort klar ist: das ist Musik, kein Spa- oder Reisevideo (Rolf 08.10.)
     "Mediterranean Spa Lounge": "Chillout Lounge Music",
-    "Dark Ambient Spa": "Relaxing Spa Music",   # Spa-Linie seit 14.11.2026 (SPA_LINE)
+    "Dark Ambient Spa": "Spa Music Relaxation",   # Spa-Linie seit 14.11.2026 (SPA_LINE)
     "Chillout Sleep": "Sleep Music",
     "Slow Gym Beats": "Slow Gym Beats Music",
     "Italian Chillout": "Italian Chillout Music",
@@ -176,6 +176,10 @@ IMAGE_STYLE = {
 # pro Song), Thumbnail/Cover im Look des Referenzfotos „RELAXING MUSIC / NATURE SOUNDS“ (Schrift größer), auffälliger Short. ---
 SPA_LINE = {"Dark Ambient Spa"}
 SPA_TRACKS = (30, 10, 90)                 # Haupt-Tracks, Reserve, Mindestminuten
+# SEO (vidIQ-Recherche 20.11.2026): Titel-Stichwort „Spa Music Relaxation“; diese Tags/Hashtags stehen bei jedem Spa-Mix vorn
+SPA_MUST_TAGS = ["spa music", "spa music relaxation", "relaxing spa music", "relaxing ambient music", "massage music",
+                 "stress relief music", "spa music no ads", "meditation music"]
+SPA_MUST_HASHTAGS = ["#SpaMusic", "#RelaxingMusic", "#MassageMusic", "#StressRelief"]
 SPA_THUMB_LINE1 = "RELAXING MUSIC"        # weiß, oben rechts
 SPA_TEXT_SCALE = 1.0
 # (Bildvariante, zweite Textzeile in dunklem Grün unten rechts) – Rotation nach Kalenderwoche

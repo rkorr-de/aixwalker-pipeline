@@ -526,9 +526,14 @@ def validate(c: dict, mem: dict, brief: dict) -> list[str]:
         errs.append(f"yt_title: nach dem Albumnamen fehlt der Genre-Kernbegriff ({'/'.join(title_kw)}) – "
                      f"sonst Erwartungs-Mismatch wie bei „Slow Beat“ für einen Sleep-Mix")
     c["hashtags"] = [h if h.startswith("#") else "#" + h for h in c["hashtags"]][:5]
+    if brief["genre"] in config.SPA_LINE:   # Spa-SEO (20.11.2026): feste Hashtags vorn
+        c["hashtags"] = list(dict.fromkeys(config.SPA_MUST_HASHTAGS + c["hashtags"]))
     if "#AixWalker" not in c["hashtags"]:
         c["hashtags"] = c["hashtags"][:4] + ["#AixWalker"]
+    c["hashtags"] = c["hashtags"][:5]
     tags = [t.strip().lower() for t in c["tags"] if t.strip()]
+    if brief["genre"] in config.SPA_LINE:
+        tags = list(dict.fromkeys(config.SPA_MUST_TAGS + tags))
     for must in ("aixwalker", "aix walker"):
         if must not in tags:
             tags.append(must)

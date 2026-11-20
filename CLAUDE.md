@@ -130,3 +130,4 @@
   Thumbnail/Cover im Look von Rolfs Referenzfoto („RELAXING MUSIC“ weiß oben rechts, zweite Zeile dunkelgrün unten rechts), Schrift größer (`images.spa_text_overlay`, `config.SPA_*`).
   Short: auffälliger Hook + Like-Aufforderung + „FULL MIX“, keine Zeitangaben; YouTube sofort öffentlich, Instagram + TikTok über Metricool (Marke 7364161) durch die Sonntags-Aufgabe.
   DistroKid (Aix Walker) automatisch durch Aufgabe `trig_01PhA9EN9VxHP53RQwJQHe3J` (sonntags 11:37/14:37), Marker `DISTROKID_ERLEDIGT.txt`. Mail wie gehabt (DistroKid-Titel, Cover, Drive-Link).
+- **Spa-SEO** (Rolf 20.11.2026, vidIQ-Recherche): Titel-Stichwort jetzt „Spa Music Relaxation“ (`THUMB_KEYWORD`, vorher „Relaxing Spa Music“); `config.SPA_MUST_TAGS` / `SPA_MUST_HASHTAGS` (#SpaMusic #RelaxingMusic #MassageMusic #StressRelief + #AixWalker) werden in `planner.py` bei jedem Spa-Mix vorn eingefügt; `monthly.py` „spa“ angepasst. Social-Hashtags in der Sonntags-Aufgabe unverändert.
